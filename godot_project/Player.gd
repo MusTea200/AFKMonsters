@@ -4,18 +4,17 @@ class_name Player
 @export var move_force: float = 1000.0
 @export var spring_damping: float = 1.0
 @export var slingshot_multiplier: float = 2.0
+@export var max_health: float = 100.0
 
-# Store dictionary of { joint: Line2D } to manage visual ropes
+var current_health: float
 var active_springs: Dictionary = {}
 
 func _ready() -> void:
-	# Ensure zero gravity for top-down view
+	current_health = max_health
 	gravity_scale = 0.0
-	# Add some damping so we don't slide forever
 	linear_damp = 3.0
 
 func _physics_process(delta: float) -> void:
-	# WASD Movement
 	var input_vector = Vector2.ZERO
 	if Input.is_key_pressed(KEY_D) or Input.is_action_pressed("ui_right"):
 		input_vector.x += 1
@@ -33,11 +32,9 @@ func _physics_process(delta: float) -> void:
 	_update_ropes()
 
 func _unhandled_input(event: InputEvent) -> void:
-	# Mouse click logic
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		_try_attach_spring(get_global_mouse_position())
 
-	# Spacebar logic
 	if event is InputEventKey and event.keycode == KEY_SPACE and event.pressed:
 		if not event.echo:
 			_release_slingshot()
@@ -52,15 +49,12 @@ func _try_attach_spring(click_pos: Vector2) -> void:
 	for hit in result:
 		var collider = hit["collider"]
 
-		# Check if it's our new GrappleNode
 		if collider is GrappleNode:
 			var dist = global_position.distance_to(collider.global_position)
-			# Only connect if within max_rope_length
 			if dist <= collider.max_rope_length:
 				_create_spring_joint(collider)
 			break
 		elif collider is StaticBody2D or collider is AnimatableBody2D or (collider is RigidBody2D and collider.freeze):
-			# Fallback for normal static bodies (using default stiffness 20.0)
 			_create_spring_joint(collider, 20.0)
 			break
 
@@ -72,7 +66,6 @@ func _create_spring_joint(target_body: Node2D, override_stiffness: float = -1.0)
 	var dir = global_position.direction_to(target_body.global_position)
 	joint.rotation = dir.angle() - PI / 2.0
 
-	# Determine stiffness
 	var applied_stiffness = 20.0
 	if override_stiffness > 0:
 		applied_stiffness = override_stiffness
@@ -89,7 +82,6 @@ func _create_spring_joint(target_body: Node2D, override_stiffness: float = -1.0)
 	joint.node_a = joint.get_path_to(self)
 	joint.node_b = joint.get_path_to(target_body)
 
-	# Create visual rope
 	var line = Line2D.new()
 	line.width = 4.0
 	line.default_color = Color.WHITE
@@ -107,14 +99,11 @@ func _update_ropes() -> void:
 				var dist = global_position.distance_to(target_node.global_position)
 				var stretch = max(0.0, dist - joint.rest_length)
 
-				# Update visual position
 				line.clear_points()
 				line.add_point(global_position)
 				line.add_point(target_node.global_position)
 
-				# Change color based on tension (stretch vs initial length)
 				var tension_ratio = min(1.0, stretch / max(1.0, joint.length))
-				# Interpolate from White to Red based on tension
 				line.default_color = Color.WHITE.lerp(Color.RED, tension_ratio)
 		else:
 			joints_to_remove.append(joint)
@@ -151,3 +140,18 @@ func _release_slingshot() -> void:
 
 	if total_impulse.length() > 0:
 		apply_central_impulse(total_impulse)
+
+# Called by enemies when hit below threshold
+func take_damage(amount: float) -> void:
+	current_health -= amount
+	print("Player took ", amount, " damage! Health: ", current_health)
+	if current_health <= 0:
+		print("Player died!")
+		# Here you would typically emit a signal or restart the game
+		# get_tree().reload_current_scene()
+
+# Called by enemies when hit below threshold
+func bounce_back(dir: Vector2, force: float) -> void:
+	# Clear existing velocities and applying an instantaneous bounce
+	linear_velocity = Vector2.ZERO
+	apply_central_impulse(dir * force)
