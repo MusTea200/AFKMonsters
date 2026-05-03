@@ -9,10 +9,31 @@ class_name Player
 var current_health: float
 var active_springs: Dictionary = {}
 
+# Economy & Level
+var exp: float = 0.0
+var level: int = 1
+var gold: float = 0.0
+var next_level_exp: float = 100.0
+
+# Upgrades
+var mass_multiplier: float = 1.0
+var stiffness_multiplier: float = 1.0
+var orbital_scene = preload("res://Orbital.tscn")
+
+# Reference to UI (You would typically inject this or autoload it)
+var level_up_ui: LevelUpUI
+
 func _ready() -> void:
 	current_health = max_health
 	gravity_scale = 0.0
 	linear_damp = 3.0
+
+	# Instantiate UI for simplicity
+	var ui_scene = preload("res://LevelUpUI.tscn")
+	if ui_scene:
+		level_up_ui = ui_scene.instantiate()
+		add_child(level_up_ui)
+		level_up_ui.upgrade_selected.connect(_apply_upgrade)
 
 func _physics_process(delta: float) -> void:
 	var input_vector = Vector2.ZERO
@@ -72,7 +93,8 @@ func _create_spring_joint(target_body: Node2D, override_stiffness: float = -1.0)
 	elif target_body is GrappleNode:
 		applied_stiffness = target_body.stiffness
 
-	joint.stiffness = applied_stiffness
+	# Apply Upgrade Multiplier
+	joint.stiffness = applied_stiffness * stiffness_multiplier
 	joint.damping = spring_damping
 
 	var current_distance = global_position.distance_to(target_body.global_position)
@@ -141,17 +163,59 @@ func _release_slingshot() -> void:
 	if total_impulse.length() > 0:
 		apply_central_impulse(total_impulse)
 
-# Called by enemies when hit below threshold
+# Economy & Stats
+func add_exp(amount: float) -> void:
+	exp += amount
+	print("EXP gained: ", exp, "/", next_level_exp)
+	if exp >= next_level_exp:
+		_level_up()
+
+func add_gold(amount: float) -> void:
+	gold += amount
+	print("Gold gained. Total: ", gold)
+
+func _level_up() -> void:
+	exp -= next_level_exp
+	level += 1
+	next_level_exp *= 1.5 # Scaling requirements
+	print("Level Up! Reached Level ", level)
+
+	if is_instance_valid(level_up_ui):
+		level_up_ui.show_upgrades()
+
+func _apply_upgrade(type: String) -> void:
+	match type:
+		"mass":
+			# 1) Kütle Artışı
+			mass_multiplier += 0.5
+			mass = 1.0 * mass_multiplier
+			print("Upgrade: Mass increased to ", mass)
+		"stiffness":
+			# 2) Yay Esnekliği
+			stiffness_multiplier += 0.5
+			print("Upgrade: Stiffness multiplier increased to ", stiffness_multiplier)
+		"orbital":
+			# 3) Yörünge
+			var orb = orbital_scene.instantiate()
+			# Offset the initial rotation slightly based on how many exist so they don't stack
+			var current_orbitals = _count_orbitals()
+			orb.rotation = current_orbitals * (PI/2.0)
+			add_child(orb)
+			print("Upgrade: Orbital added!")
+
+func _count_orbitals() -> int:
+	var count = 0
+	for child in get_children():
+		if child is OrbitalPivot:
+			count += 1
+	return count
+
+# Combat
 func take_damage(amount: float) -> void:
 	current_health -= amount
-	print("Player took ", amount, " damage! Health: ", current_health)
 	if current_health <= 0:
 		print("Player died!")
-		# Here you would typically emit a signal or restart the game
-		# get_tree().reload_current_scene()
 
-# Called by enemies when hit below threshold
 func bounce_back(dir: Vector2, force: float) -> void:
-	# Clear existing velocities and applying an instantaneous bounce
 	linear_velocity = Vector2.ZERO
 	apply_central_impulse(dir * force)

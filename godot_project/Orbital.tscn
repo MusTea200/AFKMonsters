@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=3 uid="uid://dorbital1234"]
+
+[ext_resource type="Script" path="res://Orbital.gd" id="1_orb1"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_orb"]
+radius = 24.0
+
+[node name="OrbitalPivot" type="Node2D"]
+script = ExtResource("1_orb1")
+
+[node name="OrbitalArea" type="Area2D" parent="."]
+position = Vector2(150, 0)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="OrbitalArea"]
+shape = SubResource("CircleShape2D_orb")
+
+[node name="Polygon2D" type="Polygon2D" parent="OrbitalArea"]
+color = Color(0, 1, 0.8, 1)
+polygon = PackedVector2Array(-12, -12, 12, -12, 12, 12, -12, 12)
