@@ -10,7 +10,7 @@ var current_health: float
 var active_springs: Dictionary = {}
 
 # Economy & Level
-var exp: float = 0.0
+var current_exp: float = 0.0
 var level: int = 1
 var gold: float = 0.0
 var next_level_exp: float = 100.0
@@ -35,7 +35,7 @@ func _ready() -> void:
 		add_child(level_up_ui)
 		level_up_ui.upgrade_selected.connect(_apply_upgrade)
 
-func _physics_process(delta: float) -> void:
+func _physics_process(_delta: float) -> void:
 	var input_vector = Vector2.ZERO
 	if Input.is_key_pressed(KEY_D) or Input.is_action_pressed("ui_right"):
 		input_vector.x += 1
@@ -165,9 +165,9 @@ func _release_slingshot() -> void:
 
 # Economy & Stats
 func add_exp(amount: float) -> void:
-	exp += amount
+	current_exp += amount
 	print("EXP gained: ", exp, "/", next_level_exp)
-	if exp >= next_level_exp:
+	if current_exp >= next_level_exp:
 		_level_up()
 
 func add_gold(amount: float) -> void:
@@ -175,7 +175,7 @@ func add_gold(amount: float) -> void:
 	print("Gold gained. Total: ", gold)
 
 func _level_up() -> void:
-	exp -= next_level_exp
+	current_exp -= next_level_exp
 	level += 1
 	next_level_exp *= 1.5 # Scaling requirements
 	print("Level Up! Reached Level ", level)

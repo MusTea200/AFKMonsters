@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3 uid="uid://darena1234"]
 
-[ext_resource type="Script" path="res://Arena.gd" id="1_arena"]
+[ext_resource type="Script" uid="uid://dbwwkhi2388iv" path="res://Arena.gd" id="1_arena"]
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_bouncy"]
 bounce = 1.0
