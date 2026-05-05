@@ -27,6 +27,7 @@ func _ready() -> void:
 	current_health = max_health
 	gravity_scale = 0.0
 	linear_damp = 3.0
+	lock_rotation = true # Prevent erratic spinning, essential for smooth Orbitals!
 
 	# Instantiate UI for simplicity
 	var ui_scene = preload("res://LevelUpUI.tscn")
@@ -167,7 +168,8 @@ func _release_slingshot() -> void:
 func add_exp(amount: float) -> void:
 	exp += amount
 	print("EXP gained: ", exp, "/", next_level_exp)
-	if exp >= next_level_exp:
+	# While loop fixes the logic if the player collects a massive amount of EXP at once
+	while exp >= next_level_exp:
 		_level_up()
 
 func add_gold(amount: float) -> void:
