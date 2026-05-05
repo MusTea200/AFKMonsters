@@ -1,6 +1,7 @@
-[gd_scene load_steps=5 format=3 uid="uid://darena1234"]
+[gd_scene load_steps=6 format=3 uid="uid://darena1234"]
 
 [ext_resource type="Script" uid="uid://dbwwkhi2388iv" path="res://Arena.gd" id="1_arena"]
+[ext_resource type="PackedScene" uid="uid://cx6g0q6j7l2vj" path="res://Player.tscn" id="2_u45fm"]
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_bouncy"]
 bounce = 1.0
@@ -43,3 +44,8 @@ physics_material_override = SubResource("PhysicsMaterial_bouncy")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Borders/RightWall"]
 shape = SubResource("RectangleShape2D_vertical")
+
+[node name="Player" parent="." instance=ExtResource("2_u45fm")]
+position = Vector2(1962, 2103)
+
+[node name="Camera2D" type="Camera2D" parent="Player"]
