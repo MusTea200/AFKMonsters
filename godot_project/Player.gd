@@ -2,15 +2,16 @@ extends RigidBody2D
 class_name Player
 
 @export var move_force: float = 1000.0
-@export var spring_damping: float = 1.0
-@export var slingshot_multiplier: float = 2.0
+@export var max_speed: float = 1200.0
+@export var spring_damping: float = 0.5 # Lower damping for smoother swinging
+@export var slingshot_multiplier: float = 1.0 # Reduced since we rely on actual spring physics now
 @export var max_health: float = 100.0
 
 var current_health: float
 var active_springs: Dictionary = {}
 
 # Economy & Level
-var current_exp: float = 0.0
+var exp: float = 0.0
 var level: int = 1
 var gold: float = 0.0
 var next_level_exp: float = 100.0
@@ -26,16 +27,17 @@ var level_up_ui: LevelUpUI
 func _ready() -> void:
 	current_health = max_health
 	gravity_scale = 0.0
-	linear_damp = 3.0
+	# Lower linear damp allows for more natural "Spider-Man" style swinging and gliding
+	linear_damp = 1.0
+	lock_rotation = true
 
-	# Instantiate UI for simplicity
 	var ui_scene = preload("res://LevelUpUI.tscn")
 	if ui_scene:
 		level_up_ui = ui_scene.instantiate()
 		add_child(level_up_ui)
 		level_up_ui.upgrade_selected.connect(_apply_upgrade)
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	var input_vector = Vector2.ZERO
 	if Input.is_key_pressed(KEY_D) or Input.is_action_pressed("ui_right"):
 		input_vector.x += 1
@@ -51,6 +53,11 @@ func _physics_process(_delta: float) -> void:
 		apply_central_force(input_vector * move_force)
 
 	_update_ropes()
+
+# Limit the maximum velocity safely through physics integration
+func _integrate_forces(state: PhysicsDirectBodyState2D) -> void:
+	if state.linear_velocity.length() > max_speed:
+		state.linear_velocity = state.linear_velocity.limit_length(max_speed)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
@@ -93,7 +100,6 @@ func _create_spring_joint(target_body: Node2D, override_stiffness: float = -1.0)
 	elif target_body is GrappleNode:
 		applied_stiffness = target_body.stiffness
 
-	# Apply Upgrade Multiplier
 	joint.stiffness = applied_stiffness * stiffness_multiplier
 	joint.damping = spring_damping
 
@@ -140,45 +146,29 @@ func _release_slingshot() -> void:
 	if active_springs.is_empty():
 		return
 
-	var total_impulse = Vector2.ZERO
-
+	# Just destroy the joints. The physics engine has already built up velocity
+	# due to the springs pulling the player over time.
 	for joint in active_springs:
 		if is_instance_valid(joint):
-			var target_node = joint.get_node_or_null(joint.node_b)
-			if target_node:
-				var dir = global_position.direction_to(target_node.global_position)
-				var dist = global_position.distance_to(target_node.global_position)
-
-				var stretch = max(0.0, dist - joint.rest_length)
-				var force_magnitude = stretch * joint.stiffness
-
-				total_impulse += dir * force_magnitude * slingshot_multiplier
-
 			if is_instance_valid(active_springs[joint]):
 				active_springs[joint].queue_free()
 			joint.queue_free()
 
 	active_springs.clear()
 
-	if total_impulse.length() > 0:
-		apply_central_impulse(total_impulse)
-
 # Economy & Stats
 func add_exp(amount: float) -> void:
-	current_exp += amount
-	print("EXP gained: ", exp, "/", next_level_exp)
-	if current_exp >= next_level_exp:
+	exp += amount
+	while exp >= next_level_exp:
 		_level_up()
 
 func add_gold(amount: float) -> void:
 	gold += amount
-	print("Gold gained. Total: ", gold)
 
 func _level_up() -> void:
-	current_exp -= next_level_exp
+	exp -= next_level_exp
 	level += 1
-	next_level_exp *= 1.5 # Scaling requirements
-	print("Level Up! Reached Level ", level)
+	next_level_exp *= 1.5
 
 	if is_instance_valid(level_up_ui):
 		level_up_ui.show_upgrades()
@@ -186,29 +176,29 @@ func _level_up() -> void:
 func _apply_upgrade(type: String) -> void:
 	match type:
 		"mass":
-			# 1) Kütle Artışı
 			mass_multiplier += 0.5
 			mass = 1.0 * mass_multiplier
-			print("Upgrade: Mass increased to ", mass)
 		"stiffness":
-			# 2) Yay Esnekliği
 			stiffness_multiplier += 0.5
-			print("Upgrade: Stiffness multiplier increased to ", stiffness_multiplier)
 		"orbital":
-			# 3) Yörünge
-			var orb = orbital_scene.instantiate()
-			# Offset the initial rotation slightly based on how many exist so they don't stack
-			var current_orbitals = _count_orbitals()
-			orb.rotation = current_orbitals * (PI/2.0)
-			add_child(orb)
-			print("Upgrade: Orbital added!")
+			if orbital_scene:
+				var orb = orbital_scene.instantiate()
+				add_child(orb)
+				_rearrange_orbitals()
 
-func _count_orbitals() -> int:
-	var count = 0
+func _rearrange_orbitals() -> void:
+	var orbitals = []
 	for child in get_children():
 		if child is OrbitalPivot:
-			count += 1
-	return count
+			orbitals.append(child)
+
+	var count = orbitals.size()
+	if count == 0:
+		return
+
+	var angle_step = (PI * 2.0) / float(count)
+	for i in range(count):
+		orbitals[i].rotation = angle_step * i
 
 # Combat
 func take_damage(amount: float) -> void:
