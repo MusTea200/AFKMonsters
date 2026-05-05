@@ -49,3 +49,4 @@ shape = SubResource("RectangleShape2D_vertical")
 position = Vector2(1962, 2103)
 
 [node name="Camera2D" type="Camera2D" parent="Player"]
+position_smoothing_enabled = true
