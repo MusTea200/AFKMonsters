@@ -8,6 +8,7 @@ extends Node2D
 
 var grapple_node_scene = preload("res://GrappleNode.tscn")
 var enemy_scene = preload("res://Enemy.tscn")
+var magnet_scene = preload("res://Magnet.tscn")
 var spawn_timer: Timer
 
 var player_node: Player
@@ -69,27 +70,23 @@ func _try_spawn_node_around(center: Vector2, min_rad: float, max_rad: float) -> 
 	# Check distance against existing nodes
 	var is_valid = true
 	for child in get_children():
-		if child is GrappleNode:
+		if child is GrappleNode or child is Magnet:
 			if potential_pos.distance_to(child.global_position) < min_distance_between_nodes:
 				is_valid = false
 				break
 
 	if is_valid:
-		_create_node_instance(potential_pos)
+		if randf() < 0.1: # 10% chance to spawn a Magnet instead of GrappleNode
+			var magnet = magnet_scene.instantiate() as Magnet
+			magnet.global_position = potential_pos
+			add_child(magnet)
+		else:
+			_create_node_instance(potential_pos)
 
 func _create_node_instance(pos: Vector2) -> void:
 	var node_instance = grapple_node_scene.instantiate() as GrappleNode
 	node_instance.global_position = pos
-
-	# Randomize rarity based on some weights
-	var rand_val = randf()
-	if rand_val < 0.6:
-		node_instance.rarity = GrappleNode.Rarity.WHITE # 60% chance
-	elif rand_val < 0.9:
-		node_instance.rarity = GrappleNode.Rarity.BLUE # 30% chance
-	else:
-		node_instance.rarity = GrappleNode.Rarity.PURPLE # 10% chance
-
+	# Type is randomized in GrappleNode._ready() now
 	add_child(node_instance)
 
 func _setup_enemy_spawner() -> void:

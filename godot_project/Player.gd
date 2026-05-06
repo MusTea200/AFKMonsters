@@ -26,6 +26,7 @@ var current_target_node: Node2D = null
 var shoot_timer: float = 0.0
 var bullet_scene = preload("res://Bullet.tscn")
 var health_bar: ProgressBar
+var balance_label: Label
 
 
 # Combo System
@@ -66,6 +67,7 @@ func _ready() -> void:
 	if is_instance_valid(health_bar):
 		health_bar.max_value = max_health
 		health_bar.value = current_health
+
 
 
 	# Find ExpBar and initialize
@@ -120,12 +122,13 @@ func _physics_process(delta: float) -> void:
 				var force_mag = stretch * 20.0 * stiffness_multiplier
 				apply_central_force(pull_dir * force_mag)
 	_update_ropes()
-# Health Regen
+	# Health Regen
 	if current_health < max_health and current_health > 0:
 		current_health += can_yenileme * delta
 		current_health = min(current_health, max_health)
 		if is_instance_valid(health_bar):
 			health_bar.value = current_health
+
 
 	# Auto Shooting
 	shoot_timer += delta
@@ -146,6 +149,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 			_try_attach_spring(get_global_mouse_position())
+		elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
+			_release_slingshot()
 		elif event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:
 			if is_instance_valid(camera):
 				var new_zoom = clamp(camera.zoom.x + zoom_speed, min_zoom, max_zoom)
@@ -210,6 +215,11 @@ func _create_spring_joint(target_body: Node2D, override_stiffness: float = -1.0)
 		get_tree().current_scene.add_child(line)
 		active_springs[target_body] = line
 
+		# Trigger effect if GrappleNode
+		if target_body is GrappleNode:
+			if target_body.has_method("trigger_effect"):
+				target_body.trigger_effect(self)
+
 func _update_ropes() -> void:
 	var nodes_to_remove = []
 	for node in active_springs:
@@ -248,6 +258,8 @@ func add_exp(amount: float) -> void:
 
 func add_gold(amount: float) -> void:
 	gold += amount
+	if is_instance_valid(balance_label):
+		balance_label.text = "Gold: " + str(gold)
 
 func _level_up() -> void:
 	exp -= next_level_exp
@@ -269,6 +281,7 @@ func _apply_upgrade(type: String) -> void:
 			if is_instance_valid(health_bar):
 				health_bar.max_value = max_health
 				health_bar.value = current_health
+
 		"regen":
 			can_yenileme += 0.5
 		"armor":
@@ -306,6 +319,7 @@ func take_damage(amount: float) -> void:
 
 	if is_instance_valid(health_bar):
 		health_bar.value = current_health
+
 
 	if current_health <= 0:
 		print("Player died!")

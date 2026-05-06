@@ -21,10 +21,25 @@ var upgrade_pool = [
 ]
 
 var buttons: Array[Button] = []
+@onready var reroll_btn = $Panel/RerollButton
+var reroll_cost: float = 10.0
+var player_node: Player
 
 func _ready() -> void:
 	panel.hide()
 	process_mode = Node.PROCESS_MODE_ALWAYS # UI runs even when paused
+	# Try to find RerollButton, we assume user added it
+	reroll_btn = panel.find_child("RerollButton", true, false)
+	if reroll_btn:
+		reroll_btn.pressed.connect(_on_reroll_pressed)
+
+	# Find player
+	var scene_nodes = get_tree().current_scene.get_children()
+	for n in scene_nodes:
+		if n is Player:
+			player_node = n
+			break
+
 
 	# Clear existing static buttons
 	for child in vbox.get_children():
@@ -85,3 +100,8 @@ func _resume_and_emit(type: String) -> void:
 	Engine.time_scale = 1.0
 	get_tree().paused = false
 	upgrade_selected.emit(type)
+
+func _on_reroll_pressed() -> void:
+	if is_instance_valid(player_node) and player_node.gold >= reroll_cost:
+		player_node.add_gold(-reroll_cost)
+		_roll_upgrades()

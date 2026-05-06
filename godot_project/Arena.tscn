@@ -1,10 +1,49 @@
-[gd_scene load_steps=3 format=3 uid="uid://darena1234"]
+[gd_scene load_steps=6 format=3 uid="uid://darena1234"]
 
 [ext_resource type="Script" uid="uid://dbwwkhi2388iv" path="res://Arena.gd" id="1_arena"]
 [ext_resource type="PackedScene" uid="uid://cx6g0q6j7l2vj" path="res://Player.tscn" id="2_u45fm"]
 
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_bouncy"]
+bounce = 1.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_horizontal"]
+size = Vector2(4000, 100)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_vertical"]
+size = Vector2(100, 4000)
+
 [node name="Arena" type="Node2D"]
 script = ExtResource("1_arena")
+
+[node name="Borders" type="Node2D" parent="."]
+
+[node name="TopWall" type="StaticBody2D" parent="Borders"]
+position = Vector2(2000, -50)
+physics_material_override = SubResource("PhysicsMaterial_bouncy")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Borders/TopWall"]
+shape = SubResource("RectangleShape2D_horizontal")
+
+[node name="BottomWall" type="StaticBody2D" parent="Borders"]
+position = Vector2(2000, 4050)
+physics_material_override = SubResource("PhysicsMaterial_bouncy")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Borders/BottomWall"]
+shape = SubResource("RectangleShape2D_horizontal")
+
+[node name="LeftWall" type="StaticBody2D" parent="Borders"]
+position = Vector2(-50, 2000)
+physics_material_override = SubResource("PhysicsMaterial_bouncy")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Borders/LeftWall"]
+shape = SubResource("RectangleShape2D_vertical")
+
+[node name="RightWall" type="StaticBody2D" parent="Borders"]
+position = Vector2(4050, 2000)
+physics_material_override = SubResource("PhysicsMaterial_bouncy")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Borders/RightWall"]
+shape = SubResource("RectangleShape2D_vertical")
 
 [node name="Player" parent="." instance=ExtResource("2_u45fm")]
 position = Vector2(1962, 2103)
@@ -12,39 +51,3 @@ position = Vector2(1962, 2103)
 [node name="Camera2D" type="Camera2D" parent="Player"]
 zoom = Vector2(0.5, 0.5)
 position_smoothing_enabled = true
-
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
-
-[node name="ExpBar" type="ProgressBar" parent="CanvasLayer"]
-offset_left = 1.0
-offset_top = 33.0
-offset_right = 332.0
-offset_bottom = 74.0
-
-[node name="RichTextLabel" type="RichTextLabel" parent="CanvasLayer/ExpBar"]
-layout_mode = 0
-offset_left = 151.0
-offset_top = -25.0
-offset_right = 181.0
-offset_bottom = -1.0
-text = "EXP"
-
-[node name="PauseMenu" type="Panel" parent="CanvasLayer"]
-process_mode = 3
-visible = false
-offset_right = 1152.0
-offset_bottom = 647.0
-
-[node name="StatsLabel" type="RichTextLabel" parent="CanvasLayer/PauseMenu"]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.3654514
-anchor_top = 0.32766616
-anchor_right = 0.6458333
-anchor_bottom = 0.6012364
-offset_left = -37.0
-offset_top = -19.000015
-offset_right = 24.0
-offset_bottom = -4.999939
-grow_horizontal = 2
-grow_vertical = 2
