@@ -4,33 +4,81 @@ class_name LevelUpUI
 signal upgrade_selected(upgrade_type)
 
 @onready var panel = $Panel
-@onready var btn_mass = $Panel/VBoxContainer/BtnMass
-@onready var btn_stiffness = $Panel/VBoxContainer/BtnStiffness
-@onready var btn_orbital = $Panel/VBoxContainer/BtnOrbital
+@onready var vbox = $Panel/VBoxContainer
+
+# Geliştirme Havuzu (Dictionary: Ağırlık/Nadirlik vb eklenebilir, şimdilik isimler)
+var upgrade_pool = [
+	{"id": "max_health", "text": "Max Can +20", "weight": 10},
+	{"id": "regen", "text": "Can Yenileme +0.5", "weight": 8},
+	{"id": "armor", "text": "Hasar Azaltma +5%", "weight": 5},
+	{"id": "thorns", "text": "Dikenli Deri +5", "weight": 7},
+	{"id": "dodge", "text": "Kaçış Şansı +5%", "weight": 5},
+	{"id": "rope_len", "text": "İp Uzunluğu +100", "weight": 8},
+	{"id": "fire_rate", "text": "Atış Hızı +0.5", "weight": 10},
+	{"id": "bullet_count", "text": "Mermi Sayısı +1", "weight": 3},
+	{"id": "piercing", "text": "Delip Geçme +1", "weight": 4},
+	{"id": "damage", "text": "Mermi Hasarı +10", "weight": 9}
+]
+
+var buttons: Array[Button] = []
 
 func _ready() -> void:
 	panel.hide()
 	process_mode = Node.PROCESS_MODE_ALWAYS # UI runs even when paused
 
-	btn_mass.pressed.connect(_on_mass_pressed)
-	btn_stiffness.pressed.connect(_on_stiffness_pressed)
-	btn_orbital.pressed.connect(_on_orbital_pressed)
+	# Clear existing static buttons
+	for child in vbox.get_children():
+		child.queue_free()
+
+	# Create 3 dynamic buttons
+	for i in range(3):
+		var btn = Button.new()
+		btn.custom_minimum_size = Vector2(200, 50)
+		btn.pressed.connect(_on_button_pressed.bind(btn))
+		vbox.add_child(btn)
+		buttons.append(btn)
 
 func show_upgrades() -> void:
-	get_tree().paused = true # Pauses physics and standard process
-	# The prompt asked for Engine.time_scale = 0, we can do both or just timescale.
-	# get_tree().paused is usually cleaner for UI interactions in Godot.
+	get_tree().paused = true
 	Engine.time_scale = 0.0
+
+	_roll_upgrades()
 	panel.show()
 
-func _on_mass_pressed() -> void:
-	_resume_and_emit("mass")
+func _roll_upgrades() -> void:
+	# Gacha sistemi: Ağırlıklara göre 3 rastgele benzersiz seçenek seç
+	var available_upgrades = upgrade_pool.duplicate(true)
 
-func _on_stiffness_pressed() -> void:
-	_resume_and_emit("stiffness")
+	for btn in buttons:
+		if available_upgrades.is_empty():
+			btn.hide()
+			continue
 
-func _on_orbital_pressed() -> void:
-	_resume_and_emit("orbital")
+		btn.show()
+		var total_weight = 0
+		for upg in available_upgrades:
+			total_weight += upg["weight"]
+
+		var roll = randi() % total_weight
+		var current_weight = 0
+		var selected_index = -1
+
+		for i in range(available_upgrades.size()):
+			current_weight += available_upgrades[i]["weight"]
+			if roll < current_weight:
+				selected_index = i
+				break
+
+		var selected_upgrade = available_upgrades[selected_index]
+		btn.text = selected_upgrade["text"]
+		# Store the ID in metadata so we know what was clicked
+		btn.set_meta("upgrade_id", selected_upgrade["id"])
+
+		available_upgrades.remove_at(selected_index)
+
+func _on_button_pressed(btn: Button) -> void:
+	var upgrade_id = btn.get_meta("upgrade_id")
+	_resume_and_emit(upgrade_id)
 
 func _resume_and_emit(type: String) -> void:
 	panel.hide()
