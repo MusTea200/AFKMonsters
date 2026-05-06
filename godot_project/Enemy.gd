@@ -16,13 +16,12 @@ var progress_bar: ProgressBar
 func _ready() -> void:
 	current_health = max_health
 
-	# Attempt to find the user's manually added ProgressBar
-	for child in get_children():
-		if child is ProgressBar:
-			progress_bar = child
-			progress_bar.max_value = max_health
-			progress_bar.value = current_health
-			break
+
+	# Attempt to find the user's manually added ProgressBar named HealthBar
+	progress_bar = find_child("HealthBar", true, false) as ProgressBar
+	if progress_bar:
+		progress_bar.max_value = max_health
+		progress_bar.value = current_health
 
 	var scene_nodes = get_tree().current_scene.get_children()
 	for n in scene_nodes:
@@ -44,6 +43,11 @@ func _on_body_entered(body: Node2D) -> void:
 		# Kinetic Energy: Ek = 0.5 * m * v^2
 		var current_player_mass = body.mass
 		var player_kinetic_energy = 0.5 * current_player_mass * pow(player_vel, 2)
+
+		# Apply combo multiplier if player has it
+		if "combo_multiplier" in body:
+			player_kinetic_energy *= body.combo_multiplier
+
 		var threshold_kinetic_energy = 0.5 * current_player_mass * pow(velocity_threshold, 2)
 
 		if player_kinetic_energy >= threshold_kinetic_energy:
@@ -79,7 +83,7 @@ func _show_floating_damage(amount: float) -> void:
 	scene_root.add_child(label)
 	label.global_position = global_position + Vector2(randf_range(-20, 20), -30)
 
-	var tween = create_tween()
+	var tween = label.create_tween()
 	# Animate position up
 	tween.tween_property(label, "global_position", label.global_position + Vector2(0, -50), 1.0).set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
 	# Animate alpha to fade out at the same time
