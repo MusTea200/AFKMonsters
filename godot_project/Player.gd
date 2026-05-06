@@ -441,7 +441,7 @@ func _shoot_closest_enemy() -> void:
 			var current_angle = start_angle + (spread_angle * i if mermi_sayisi > 1 else 0.0)
 			var final_dir = base_dir.rotated(current_angle)
 
-			var bullet = bullet_scene.instantiate() as Bullet
+			var bullet = bullet_scene.instantiate()
 			bullet.global_position = global_position
 			bullet.direction = final_dir
 			bullet.damage = mermi_hasari * combo_multiplier # Apply combo to bullet!

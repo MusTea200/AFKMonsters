@@ -1,0 +1,66 @@
+[gd_scene load_steps=5 format=3 uid="uid://dl5sptk3qhjnt"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_e3hfg"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_ts0mk"]
+radial_segments = 4
+rings = 1
+
+[sub_resource type="SphereMesh" id="SphereMesh_ock5g"]
+radial_segments = 8
+rings = 2
+
+[sub_resource type="PrismMesh" id="PrismMesh_qs5to"]
+
+[node name="Magnet" type="Node2D"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_e3hfg")
+
+[node name="MeshInstance2D2" type="MeshInstance2D" parent="."]
+modulate = Color(0, 0.5411765, 1, 1)
+position = Vector2(6.9999995, 0)
+scale = Vector2(6.25, 10.000001)
+mesh = SubResource("CapsuleMesh_ts0mk")
+
+[node name="MeshInstance2D" type="MeshInstance2D" parent="."]
+modulate = Color(1, 0, 0, 1)
+position = Vector2(-7, 0)
+scale = Vector2(6.25, 10.000001)
+mesh = SubResource("CapsuleMesh_ts0mk")
+
+[node name="MeshInstance2D5" type="MeshInstance2D" parent="."]
+position = Vector2(-7, -6.605)
+scale = Vector2(7.24, 7.08)
+mesh = SubResource("SphereMesh_ock5g")
+
+[node name="MeshInstance2D6" type="MeshInstance2D" parent="."]
+position = Vector2(7, -6.605)
+scale = Vector2(7.24, 7.08)
+mesh = SubResource("SphereMesh_ock5g")
+
+[node name="MeshInstance2D7" type="MeshInstance2D" parent="."]
+modulate = Color(1, 0, 0, 1)
+position = Vector2(-4.89, 6.015)
+rotation = 0.48694685
+scale = Vector2(9.865, 9)
+mesh = SubResource("SphereMesh_ock5g")
+
+[node name="MeshInstance2D" type="MeshInstance2D" parent="MeshInstance2D7"]
+position = Vector2(0.435, -0.002)
+rotation = -3.1415927
+scale = Vector2(0.5, 0.5)
+mesh = SubResource("PrismMesh_qs5to")
+
+[node name="MeshInstance2D8" type="MeshInstance2D" parent="."]
+modulate = Color(0, 0.5411765, 1, 1)
+position = Vector2(4.89, 6.015)
+rotation = 0.48694685
+scale = Vector2(9.865, 9)
+mesh = SubResource("SphereMesh_ock5g")
+
+[node name="MeshInstance2D" type="MeshInstance2D" parent="MeshInstance2D8"]
+position = Vector2(-0.241, 0.403)
+rotation = 2.2078414
+scale = Vector2(0.5, 0.5)
+mesh = SubResource("PrismMesh_qs5to")

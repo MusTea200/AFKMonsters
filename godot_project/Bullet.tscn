@@ -1,4 +1,6 @@
-[gd_scene load_steps=5 format=3 uid="uid://biofvtsnwdm0s"]
+[gd_scene load_steps=6 format=3 uid="uid://biofvtsnwdm0s"]
+
+[ext_resource type="Script" uid="uid://sibdckpq2n60" path="res://Bullet.gd" id="1_ayd6b"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_x3e43"]
 
@@ -11,6 +13,7 @@ height = 11.144
 
 [node name="Bullet" type="Area2D"]
 rotation = 1.5710828
+script = ExtResource("1_ayd6b")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(0, 0.42)

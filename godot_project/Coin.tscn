@@ -1,0 +1,26 @@
+[gd_scene load_steps=4 format=3 uid="uid://b3nqewob6ynur"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_6wppn"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_h5dih"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_ou7jl"]
+lightmap_size_hint = Vector2i(12, 12)
+orientation = 2
+
+[node name="Coin" type="Node2D"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_6wppn")
+
+[node name="MeshInstance2D" type="MeshInstance2D" parent="."]
+modulate = Color(1, 1, 0, 1)
+scale = Vector2(19.925, 19.925)
+mesh = SubResource("SphereMesh_h5dih")
+
+[node name="MeshInstance2D2" type="MeshInstance2D" parent="."]
+modulate = Color(1, 0.735357, 0, 1)
+rotation = 0.5960942
+scale = Vector2(5.765, 5.765)
+skew = 0.38397244
+mesh = SubResource("PlaneMesh_ou7jl")
