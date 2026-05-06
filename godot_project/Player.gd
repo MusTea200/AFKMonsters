@@ -120,7 +120,7 @@ func _physics_process(delta: float) -> void:
 				var force_mag = stretch * 20.0 * stiffness_multiplier
 				apply_central_force(pull_dir * force_mag)
 	_update_ropes()
-	# Health Regen
+# Health Regen
 	if current_health < max_health and current_health > 0:
 		current_health += can_yenileme * delta
 		current_health = min(current_health, max_health)
