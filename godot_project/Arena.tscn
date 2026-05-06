@@ -51,3 +51,9 @@ position = Vector2(1962, 2103)
 [node name="Camera2D" type="Camera2D" parent="Player"]
 zoom = Vector2(0.5, 0.5)
 position_smoothing_enabled = true
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="ExpBar" type="ProgressBar" parent="CanvasLayer"]
+offset_right = 330.0
+offset_bottom = 27.0
