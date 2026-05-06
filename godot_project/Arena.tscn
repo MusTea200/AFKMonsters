@@ -6,6 +6,11 @@
 
 [node name="Arena" type="Node2D"]
 script = ExtResource("1_arena")
+min_distance_between_nodes = null
+enemy_spawn_rate = null
+spawn_radius = null
+cull_radius = null
+max_nodes_in_world = null
 
 [node name="Player" parent="." instance=ExtResource("2_u45fm")]
 position = Vector2(1962, 2103)
