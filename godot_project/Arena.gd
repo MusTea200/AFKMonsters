@@ -37,14 +37,14 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if not is_instance_valid(player_node):
 		return
-
+		
 	_cull_distant_objects()
 	_maintain_node_count()
 
 func _initial_node_spawn() -> void:
 	if not is_instance_valid(player_node):
 		return
-
+		
 	var player_pos = player_node.global_position
 	for i in range(max_nodes_in_world):
 		_try_spawn_node_around(player_pos, 0, spawn_radius)
@@ -52,12 +52,12 @@ func _initial_node_spawn() -> void:
 func _maintain_node_count() -> void:
 	if not is_instance_valid(player_node):
 		return
-
+		
 	var current_nodes = 0
 	for child in get_children():
 		if child is GrappleNode:
 			current_nodes += 1
-
+			
 	if current_nodes < max_nodes_in_world:
 		# Spawn new nodes just outside the immediate view, up to spawn_radius
 		_try_spawn_node_around(player_node.global_position, spawn_radius * 0.8, spawn_radius)
@@ -66,7 +66,7 @@ func _try_spawn_node_around(center: Vector2, min_rad: float, max_rad: float) -> 
 	var angle = randf() * 2.0 * PI
 	var dist = randf_range(min_rad, max_rad)
 	var potential_pos = center + Vector2(cos(angle), sin(angle)) * dist
-
+	
 	# Check distance against existing nodes
 	var is_valid = true
 	for child in get_children():
@@ -74,7 +74,7 @@ func _try_spawn_node_around(center: Vector2, min_rad: float, max_rad: float) -> 
 			if potential_pos.distance_to(child.global_position) < min_distance_between_nodes:
 				is_valid = false
 				break
-
+				
 	if is_valid:
 		if randf() < 0.1: # 10% chance to spawn a Magnet instead of GrappleNode
 			var magnet = magnet_scene.instantiate() as Magnet
@@ -99,7 +99,7 @@ func _setup_enemy_spawner() -> void:
 func _on_spawn_timer_timeout() -> void:
 	if not is_instance_valid(player_node):
 		return
-
+		
 	# Spawn enemy at a random angle at spawn_radius
 	var angle = randf() * 2.0 * PI
 	var spawn_pos = player_node.global_position + Vector2(cos(angle), sin(angle)) * spawn_radius
@@ -110,7 +110,7 @@ func _on_spawn_timer_timeout() -> void:
 
 func _cull_distant_objects() -> void:
 	var player_pos = player_node.global_position
-
+	
 	for child in get_children():
 		if child is GrappleNode or child is Enemy or child is Drop:
 			if child.global_position.distance_to(player_pos) > cull_radius:
@@ -123,10 +123,10 @@ func _unhandled_input(event: InputEvent) -> void:
 func _toggle_pause() -> void:
 	var new_pause_state = not get_tree().paused
 	get_tree().paused = new_pause_state
-
+	
 	if pause_menu:
 		pause_menu.visible = new_pause_state
-
+		
 		if new_pause_state and stats_label and is_instance_valid(player_node):
 			_update_stats_label()
 
@@ -143,5 +143,5 @@ func _update_stats_label() -> void:
 	stats_text += "Bullet Count: " + str(player_node.mermi_sayisi) + "\n"
 	stats_text += "Piercing: " + str(player_node.delip_gecme) + "\n"
 	stats_text += "Bullet Damage: " + str(player_node.mermi_hasari) + "\n"
-
+	
 	stats_label.text = stats_text

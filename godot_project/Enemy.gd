@@ -10,7 +10,7 @@ class_name Enemy
 
 var current_health: float
 var player_node: Player
-var drop_scene = preload("res://Drop.tscn")
+var coin_scene = preload("res://Coin.tscn")
 var progress_bar: ProgressBar
 
 func _ready() -> void:
@@ -43,11 +43,11 @@ func _on_body_entered(body: Node2D) -> void:
 		# Kinetic Energy: Ek = 0.5 * m * v^2
 		var current_player_mass = body.mass
 		var player_kinetic_energy = 0.5 * current_player_mass * pow(player_vel, 2)
-
+		
 		# Apply combo multiplier if player has it
 		if "combo_multiplier" in body:
 			player_kinetic_energy *= body.combo_multiplier
-
+			
 		var threshold_kinetic_energy = 0.5 * current_player_mass * pow(velocity_threshold, 2)
 
 		if player_kinetic_energy >= threshold_kinetic_energy:
@@ -56,11 +56,11 @@ func _on_body_entered(body: Node2D) -> void:
 		else:
 			# Slow player = player takes damage and bounces
 			body.take_damage(damage_amount)
-
+			
 			# Check for Thorns
 			if "dikenli_deri" in body and body.dikenli_deri > 0:
 				_take_damage(body.dikenli_deri)
-
+				
 			var bounce_dir = global_position.direction_to(body.global_position)
 			body.bounce_back(bounce_dir, bounce_force)
 
@@ -95,19 +95,21 @@ func _show_floating_damage(amount: float) -> void:
 	tween.tween_callback(label.queue_free)
 
 func _die() -> void:
-	_spawn_drop()
+	# Direct EXP
+	if is_instance_valid(player_node):
+		player_node.add_exp(35.0) # Base exp
+		
+	_spawn_coin()
 	queue_free()
 
-func _spawn_drop() -> void:
-	if drop_scene:
-		var drop = drop_scene.instantiate() as Drop
-		drop.global_position = global_position
-
+func _spawn_coin() -> void:
+	if coin_scene:
+		var coin = coin_scene.instantiate() as Coin
+		coin.global_position = global_position
+		# Randomize value maybe
 		if randf() < 0.2:
-			drop.drop_type = Drop.DropType.GOLD
-			drop.value = 5.0
+			coin.value = 5.0
+			coin.modulate = Color.GOLD
 		else:
-			drop.drop_type = Drop.DropType.EXP
-			drop.value = 35.0
-
-		get_tree().current_scene.call_deferred("add_child", drop)
+			coin.value = 1.0
+		get_tree().current_scene.call_deferred("add_child", coin)
