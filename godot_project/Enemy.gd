@@ -56,11 +56,13 @@ func _on_body_entered(body: Node2D) -> void:
 		else:
 			# Slow player = player takes damage and bounces
 			body.take_damage(damage_amount)
+
+			# Check for Thorns
+			if "dikenli_deri" in body and body.dikenli_deri > 0:
+				_take_damage(body.dikenli_deri)
+
 			var bounce_dir = global_position.direction_to(body.global_position)
 			body.bounce_back(bounce_dir, bounce_force)
-
-func take_orbital_damage(amount: float) -> void:
-	_take_damage(amount)
 
 func _take_damage(amount: float) -> void:
 	current_health -= amount
