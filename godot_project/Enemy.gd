@@ -43,6 +43,11 @@ func _on_body_entered(body: Node2D) -> void:
 		# Kinetic Energy: Ek = 0.5 * m * v^2
 		var current_player_mass = body.mass
 		var player_kinetic_energy = 0.5 * current_player_mass * pow(player_vel, 2)
+
+		# Apply combo multiplier if player has it
+		if "combo_multiplier" in body:
+			player_kinetic_energy *= body.combo_multiplier
+
 		var threshold_kinetic_energy = 0.5 * current_player_mass * pow(velocity_threshold, 2)
 
 		if player_kinetic_energy >= threshold_kinetic_energy:

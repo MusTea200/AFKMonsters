@@ -10,6 +10,14 @@ class_name Player
 
 var current_health: float
 var active_springs: Dictionary = {}
+var current_target_node: Node2D = null
+
+# Combo System
+var combo_multiplier: int = 1
+var combo_timer: float = 0.0
+var combo_speed_threshold: float = 800.0
+var combo_drop_threshold: float = 300.0
+var combo_label: Label
 
 # Economy & Level
 var exp: float = 0.0
@@ -50,6 +58,13 @@ func _ready() -> void:
 			camera = child
 			break
 
+	# Find ComboLabel
+	combo_label = get_tree().current_scene.find_child("ComboLabel", true, false) as Label
+	if is_instance_valid(combo_label):
+		combo_label.text = ""
+		combo_label.visible = false
+
+
 
 	var ui_scene = preload("res://LevelUpUI.tscn")
 	if ui_scene:
@@ -73,6 +88,8 @@ func _physics_process(delta: float) -> void:
 		apply_central_force(input_vector * move_force)
 
 	_update_ropes()
+	_update_targeting()
+	_update_combo(delta)
 	queue_redraw()
 
 # Limit the maximum velocity safely through physics integration
@@ -122,6 +139,7 @@ func _try_attach_spring(click_pos: Vector2) -> void:
 				closest_node = collider
 
 	if closest_node:
+		closest_node.modulate = Color(2.0, 2.0, 2.0) # Bright white
 		var dist_to_player = global_position.distance_to(closest_node.global_position)
 		if dist_to_player <= closest_node.max_rope_length:
 			_create_spring_joint(closest_node)
@@ -290,3 +308,70 @@ func _draw() -> void:
 		draw_line(p1, p2, Color(1, 1, 1, 0.5), 2.0)
 
 		current_angle += angle_step
+
+
+func _update_targeting() -> void:
+	var mouse_pos = get_global_mouse_position()
+	var space_state = get_world_2d().direct_space_state
+
+	var query = PhysicsShapeQueryParameters2D.new()
+	var circle_shape = CircleShape2D.new()
+	circle_shape.radius = grapple_radius
+
+	query.shape = circle_shape
+	query.transform = global_transform
+	query.collide_with_bodies = true
+
+	var results = space_state.intersect_shape(query)
+
+	var closest_node = null
+	var closest_dist = INF
+
+	for hit in results:
+		var collider = hit["collider"]
+		if collider is GrappleNode:
+			var dist_to_mouse = collider.global_position.distance_to(mouse_pos)
+			if dist_to_mouse < closest_dist:
+				closest_dist = dist_to_mouse
+				closest_node = collider
+
+	if current_target_node != closest_node:
+		if is_instance_valid(current_target_node):
+			current_target_node.modulate = Color.WHITE
+			current_target_node.scale = Vector2.ONE
+
+		current_target_node = closest_node
+
+		if is_instance_valid(current_target_node):
+			current_target_node.modulate = Color(1.0, 1.0, 0.0) # Yellow
+			current_target_node.scale = Vector2(1.2, 1.2)
+
+func _update_combo(delta: float) -> void:
+	var speed = linear_velocity.length()
+	if speed > combo_speed_threshold:
+		combo_timer += delta
+		if combo_timer >= 0.5:
+			combo_timer -= 0.5
+			combo_multiplier += 1
+			_animate_combo_label()
+	elif speed < combo_drop_threshold:
+		if combo_multiplier > 1:
+			combo_multiplier = 1
+			combo_timer = 0.0
+			_animate_combo_label()
+
+func _animate_combo_label() -> void:
+	if not is_instance_valid(combo_label):
+		return
+
+	if combo_multiplier > 1:
+		combo_label.text = "x" + str(combo_multiplier)
+		combo_label.visible = true
+	else:
+		combo_label.text = ""
+		combo_label.visible = false
+		return
+
+	var tween = create_tween()
+	combo_label.scale = Vector2(1.5, 1.5)
+	tween.tween_property(combo_label, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
