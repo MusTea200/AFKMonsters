@@ -3,14 +3,30 @@ class_name Player
 
 @export var move_force: float = 1000.0
 @export var max_speed: float = 1200.0
-@export var spring_damping: float = 0.5 # Lower damping for smoother swinging
-@export var slingshot_multiplier: float = 1.0 # Reduced since we rely on actual spring physics now
+
+
 @export var max_health: float = 100.0
 @export var grapple_radius: float = 600.0
 
 var current_health: float
 var active_springs: Dictionary = {}
 var current_target_node: Node2D = null
+
+# RPG Stats
+@export var can_yenileme: float = 1.0
+@export var hasar_azaltma: float = 0.0 # percentage (0.0 to 1.0)
+@export var dikenli_deri: float = 0.0
+@export var kacis_sansi: float = 0.0 # percentage (0.0 to 1.0)
+@export var ip_uzunlugu: float = 600.0 # Replaces grapple_radius for physical length
+@export var atis_hizi: float = 1.0 # Shots per second
+@export var mermi_sayisi: int = 1
+@export var delip_gecme: int = 0
+@export var mermi_hasari: float = 25.0
+
+var shoot_timer: float = 0.0
+var bullet_scene = preload("res://Bullet.tscn")
+var health_bar: ProgressBar
+
 
 # Combo System
 var combo_multiplier: int = 1
@@ -34,7 +50,7 @@ var camera: Camera2D
 # Upgrades
 var mass_multiplier: float = 1.0
 var stiffness_multiplier: float = 1.0
-var orbital_scene = preload("res://Orbital.tscn")
+
 
 # Reference to UI (You would typically inject this or autoload it)
 var level_up_ui: LevelUpUI
@@ -45,6 +61,12 @@ func _ready() -> void:
 	# Lower linear damp allows for more natural "Spider-Man" style swinging and gliding
 	linear_damp = 1.0
 	lock_rotation = true
+
+	health_bar = get_tree().current_scene.find_child("PlayerHealthBar", true, false) as ProgressBar
+	if is_instance_valid(health_bar):
+		health_bar.max_value = max_health
+		health_bar.value = current_health
+
 
 	# Find ExpBar and initialize
 	exp_bar = get_tree().current_scene.find_child("ExpBar", true, false) as ProgressBar
@@ -87,7 +109,30 @@ func _physics_process(delta: float) -> void:
 	if input_vector.length() > 0:
 		apply_central_force(input_vector * move_force)
 
+	# Apply custom rope physics
+	for node in active_springs.keys():
+		if is_instance_valid(node):
+			var dist = global_position.distance_to(node.global_position)
+			if dist > ip_uzunlugu:
+				var pull_dir = global_position.direction_to(node.global_position)
+				# Spring force = k * x. 'stiffness' from node, default 20.
+				var stretch = dist - ip_uzunlugu
+				var force_mag = stretch * 20.0 * stiffness_multiplier
+				apply_central_force(pull_dir * force_mag)
 	_update_ropes()
+# Health Regen
+	if current_health < max_health and current_health > 0:
+		current_health += can_yenileme * delta
+		current_health = min(current_health, max_health)
+		if is_instance_valid(health_bar):
+			health_bar.value = current_health
+
+	# Auto Shooting
+	shoot_timer += delta
+	if shoot_timer >= (1.0 / atis_hizi):
+		shoot_timer = 0.0
+		_shoot_closest_enemy()
+
 	_update_targeting()
 	_update_combo(delta)
 	queue_redraw()
@@ -158,75 +203,41 @@ func _try_attach_spring(click_pos: Vector2) -> void:
 				_create_spring_joint(collider, 20.0)
 				break
 func _create_spring_joint(target_body: Node2D, override_stiffness: float = -1.0) -> void:
-	var joint = DampedSpringJoint2D.new()
-	get_tree().current_scene.add_child(joint)
-
-	joint.global_position = global_position
-	var dir = global_position.direction_to(target_body.global_position)
-	joint.rotation = dir.angle() - PI / 2.0
-
-	var applied_stiffness = 20.0
-	if override_stiffness > 0:
-		applied_stiffness = override_stiffness
-	elif target_body is GrappleNode:
-		applied_stiffness = target_body.stiffness
-
-	joint.stiffness = applied_stiffness * stiffness_multiplier
-	joint.damping = spring_damping
-
-	var current_distance = global_position.distance_to(target_body.global_position)
-	joint.length = current_distance
-	joint.rest_length = 0.0
-
-	joint.node_a = joint.get_path_to(self)
-	joint.node_b = joint.get_path_to(target_body)
-
-	var line = Line2D.new()
-	line.width = 4.0
-	line.default_color = Color.WHITE
-	get_tree().current_scene.add_child(line)
-
-	active_springs[joint] = line
+	if not active_springs.has(target_body):
+		var line = Line2D.new()
+		line.width = 4.0
+		line.default_color = Color.WHITE
+		get_tree().current_scene.add_child(line)
+		active_springs[target_body] = line
 
 func _update_ropes() -> void:
-	var joints_to_remove = []
-	for joint in active_springs:
-		if is_instance_valid(joint):
-			var line = active_springs[joint]
-			var target_node = joint.get_node_or_null(joint.node_b)
-			if target_node and is_instance_valid(line):
-				var dist = global_position.distance_to(target_node.global_position)
-				var stretch = max(0.0, dist - joint.rest_length)
+	var nodes_to_remove = []
+	for node in active_springs:
+		if is_instance_valid(node):
+			var line = active_springs[node]
+			if is_instance_valid(line):
+				var dist = global_position.distance_to(node.global_position)
+				var stretch = max(0.0, dist - ip_uzunlugu)
 
 				line.clear_points()
 				line.add_point(global_position)
-				line.add_point(target_node.global_position)
+				line.add_point(node.global_position)
 
-				var tension_ratio = min(1.0, stretch / max(1.0, joint.length))
+				var tension_ratio = min(1.0, stretch / max(1.0, ip_uzunlugu * 0.5))
 				line.default_color = Color.WHITE.lerp(Color.RED, tension_ratio)
 		else:
-			joints_to_remove.append(joint)
+			nodes_to_remove.append(node)
 
-	for j in joints_to_remove:
-		if active_springs.has(j):
-			if is_instance_valid(active_springs[j]):
-				active_springs[j].queue_free()
-			active_springs.erase(j)
-
+	for n in nodes_to_remove:
+		if active_springs.has(n):
+			if is_instance_valid(active_springs[n]):
+				active_springs[n].queue_free()
+			active_springs.erase(n)
 func _release_slingshot() -> void:
-	if active_springs.is_empty():
-		return
-
-	# Just destroy the joints. The physics engine has already built up velocity
-	# due to the springs pulling the player over time.
-	for joint in active_springs:
-		if is_instance_valid(joint):
-			if is_instance_valid(active_springs[joint]):
-				active_springs[joint].queue_free()
-			joint.queue_free()
-
+	for node in active_springs:
+		if is_instance_valid(active_springs[node]):
+			active_springs[node].queue_free()
 	active_springs.clear()
-
 # Economy & Stats
 func add_exp(amount: float) -> void:
 	exp += amount
@@ -252,36 +263,64 @@ func _level_up() -> void:
 
 func _apply_upgrade(type: String) -> void:
 	match type:
+		"max_health":
+			max_health += 20.0
+			current_health += 20.0
+			if is_instance_valid(health_bar):
+				health_bar.max_value = max_health
+				health_bar.value = current_health
+		"regen":
+			can_yenileme += 0.5
+		"armor":
+			hasar_azaltma = min(hasar_azaltma + 0.05, 0.8) # Max 80%
+		"thorns":
+			dikenli_deri += 5.0
+		"dodge":
+			kacis_sansi = min(kacis_sansi + 0.05, 0.6) # Max 60%
+		"rope_len":
+			ip_uzunlugu += 100.0
+		"fire_rate":
+			atis_hizi += 0.5
+		"bullet_count":
+			mermi_sayisi += 1
+		"piercing":
+			delip_gecme += 1
+		"damage":
+			mermi_hasari += 10.0
+		# Fallbacks for old upgrades just in case
 		"mass":
 			mass_multiplier += 0.5
 			mass = 1.0 * mass_multiplier
 		"stiffness":
 			stiffness_multiplier += 0.5
-		"orbital":
-			if orbital_scene:
-				var orb = orbital_scene.instantiate()
-				add_child(orb)
-				_rearrange_orbitals()
-
-func _rearrange_orbitals() -> void:
-	var orbitals = []
-	for child in get_children():
-		if child is OrbitalPivot:
-			orbitals.append(child)
-
-	var count = orbitals.size()
-	if count == 0:
-		return
-
-	var angle_step = (PI * 2.0) / float(count)
-	for i in range(count):
-		orbitals[i].rotation = angle_step * i
 
 # Combat
 func take_damage(amount: float) -> void:
-	current_health -= amount
+	if randf() < kacis_sansi:
+		# Dodged!
+		_show_floating_text("Dodge!", Color.AQUA)
+		return
+
+	var actual_damage = amount * (1.0 - hasar_azaltma)
+	current_health -= actual_damage
+
+	if is_instance_valid(health_bar):
+		health_bar.value = current_health
+
 	if current_health <= 0:
 		print("Player died!")
+
+func _show_floating_text(text_str: String, color: Color) -> void:
+	var label = Label.new()
+	label.text = text_str
+	label.modulate = color
+	var scene_root = get_tree().current_scene
+	scene_root.add_child(label)
+	label.global_position = global_position + Vector2(randf_range(-20, 20), -30)
+	var tween = label.create_tween()
+	tween.tween_property(label, "global_position", label.global_position + Vector2(0, -50), 1.0).set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
+	tween.parallel().tween_property(label, "modulate:a", 0.0, 1.0)
+	tween.tween_callback(label.queue_free)
 
 func bounce_back(dir: Vector2, force: float) -> void:
 	linear_velocity = Vector2.ZERO
@@ -375,3 +414,36 @@ func _animate_combo_label() -> void:
 	var tween = create_tween()
 	combo_label.scale = Vector2(1.5, 1.5)
 	tween.tween_property(combo_label, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+
+func _shoot_closest_enemy() -> void:
+	if not bullet_scene:
+		return
+
+	var enemies = get_tree().get_nodes_in_group("enemies") # Wait, we don't have enemies group. We can find by class.
+	var closest_enemy = null
+	var closest_dist = INF
+	var scene_root = get_tree().current_scene
+
+	for child in scene_root.get_children():
+		if child is Enemy:
+			var dist = global_position.distance_to(child.global_position)
+			if dist < 1500.0: # Range limit
+				if dist < closest_dist:
+					closest_dist = dist
+					closest_enemy = child
+
+	if closest_enemy:
+		var base_dir = global_position.direction_to(closest_enemy.global_position)
+		var spread_angle = deg_to_rad(15.0)
+
+		var start_angle = -spread_angle * (mermi_sayisi - 1) / 2.0
+		for i in range(mermi_sayisi):
+			var current_angle = start_angle + (spread_angle * i if mermi_sayisi > 1 else 0.0)
+			var final_dir = base_dir.rotated(current_angle)
+
+			var bullet = bullet_scene.instantiate() as Bullet
+			bullet.global_position = global_position
+			bullet.direction = final_dir
+			bullet.damage = mermi_hasari * combo_multiplier # Apply combo to bullet!
+			bullet.pierce_count = delip_gecme
+			scene_root.add_child(bullet)

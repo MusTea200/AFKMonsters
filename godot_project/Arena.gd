@@ -11,14 +11,24 @@ var enemy_scene = preload("res://Enemy.tscn")
 var spawn_timer: Timer
 
 var player_node: Player
+var pause_menu: Control
+var stats_label: Label
+
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS # Ensure Arena can process ESC key when paused
 	# Find player
 	var scene_nodes = get_children()
 	for n in scene_nodes:
 		if n is Player:
 			player_node = n
 			break
+
+	# Setup Pause Menu
+	pause_menu = get_tree().current_scene.find_child("PauseMenu", true, false) as Control
+	if pause_menu:
+		pause_menu.hide()
+		stats_label = pause_menu.find_child("StatsLabel", true, false) as Label
 
 	_setup_enemy_spawner()
 	_initial_node_spawn()
@@ -108,3 +118,33 @@ func _cull_distant_objects() -> void:
 		if child is GrappleNode or child is Enemy or child is Drop:
 			if child.global_position.distance_to(player_pos) > cull_radius:
 				child.queue_free()
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel") or (event is InputEventKey and event.keycode == KEY_ESCAPE and event.pressed and not event.echo):
+		_toggle_pause()
+
+func _toggle_pause() -> void:
+	var new_pause_state = not get_tree().paused
+	get_tree().paused = new_pause_state
+
+	if pause_menu:
+		pause_menu.visible = new_pause_state
+
+		if new_pause_state and stats_label and is_instance_valid(player_node):
+			_update_stats_label()
+
+func _update_stats_label() -> void:
+	var stats_text = "[center][b]--- PLAYER STATS ---[/b][/center]\n\n"
+	stats_text += "Level: " + str(player_node.level) + "\n"
+	stats_text += "Health: " + str(round(player_node.current_health)) + " / " + str(player_node.max_health) + "\n"
+	stats_text += "Health Regen: " + str(player_node.can_yenileme) + " / sec\n"
+	stats_text += "Armor (Damage Reduction): " + str(player_node.hasar_azaltma * 100.0) + "%\n"
+	stats_text += "Thorns: " + str(player_node.dikenli_deri) + "\n"
+	stats_text += "Dodge Chance: " + str(player_node.kacis_sansi * 100.0) + "%\n"
+	stats_text += "Rope Length: " + str(player_node.ip_uzunlugu) + "\n"
+	stats_text += "Fire Rate: " + str(player_node.atis_hizi) + " / sec\n"
+	stats_text += "Bullet Count: " + str(player_node.mermi_sayisi) + "\n"
+	stats_text += "Piercing: " + str(player_node.delip_gecme) + "\n"
+	stats_text += "Bullet Damage: " + str(player_node.mermi_hasari) + "\n"
+
+	stats_label.text = stats_text
