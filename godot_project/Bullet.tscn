@@ -1,7 +1,37 @@
-[gd_scene format=3 uid="uid://biofvtsnwdm0s"]
+[gd_scene load_steps=5 format=3 uid="uid://biofvtsnwdm0s"]
 
-[node name="Bullet" type="Node2D"]
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_x3e43"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_ayd6b"]
+
+[sub_resource type="PrismMesh" id="PrismMesh_4s4u5"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_7281b"]
+height = 11.144
+
+[node name="Bullet" type="Area2D"]
+rotation = 1.5710828
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, 0.42)
+scale = Vector2(0.27, 0.34)
+shape = SubResource("CapsuleShape2D_x3e43")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="MermiUcu" type="MeshInstance2D" parent="."]
+modulate = Color(0.9752409, 0.6318643, 0, 1)
+position = Vector2(0, -1.925)
+scale = Vector2(4.535116, 5.1253414)
+mesh = SubResource("SphereMesh_ayd6b")
+
+[node name="MermiTaban" type="MeshInstance2D" parent="."]
+modulate = Color(0.70083064, 0.30468878, 0, 0.8745098)
+position = Vector2(0, 4.045)
+rotation = -3.1415925
+scale = Vector2(4.776, 1.526)
+mesh = SubResource("PrismMesh_4s4u5")
+
+[node name="MermiGovdeUst" type="MeshInstance2D" parent="."]
+modulate = Color(0.8509804, 0.54901963, 0, 1)
+position = Vector2(0, 1)
+scale = Vector2(4.774181, -0.62466305)
+mesh = SubResource("CapsuleMesh_7281b")
