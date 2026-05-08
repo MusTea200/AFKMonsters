@@ -24,7 +24,7 @@ var current_target_node: Node2D = null
 @export var mermi_hasari: float = 25.0
 
 var shoot_timer: float = 0.0
-var bullet_scene = preload("res://Bullet.tscn")
+@export var bullet_scene: PackedScene
 var health_bar: ProgressBar
 var balance_label: Label
 
@@ -257,9 +257,12 @@ func add_exp(amount: float) -> void:
 		_level_up()
 
 func add_gold(amount: float) -> void:
-	gold += amount
-	if is_instance_valid(balance_label):
-		balance_label.text = "Gold: " + str(gold)
+	gold += amount # Altını oyuncuya ekle
+	
+	# Arena'ya "Arayüzü güncelle" emrini gönder
+	var arena = get_tree().current_scene
+	if arena.has_method("update_balance_ui"):
+		arena.update_balance_ui()
 
 func _level_up() -> void:
 	exp -= next_level_exp
@@ -455,7 +458,7 @@ func _shoot_closest_enemy() -> void:
 			var current_angle = start_angle + (spread_angle * i if mermi_sayisi > 1 else 0.0)
 			var final_dir = base_dir.rotated(current_angle)
 			
-			var bullet = bullet_scene.instantiate() as Bullet
+			var bullet = bullet_scene.instantiate()
 			bullet.global_position = global_position
 			bullet.direction = final_dir
 			bullet.damage = mermi_hasari * combo_multiplier # Apply combo to bullet!

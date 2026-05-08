@@ -6,6 +6,7 @@
 radius = 72.00694
 
 [node name="Enemy" type="Area2D"]
+process_mode = 1
 script = ExtResource("1_enemy1")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]

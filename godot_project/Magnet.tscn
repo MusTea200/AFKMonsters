@@ -1,6 +1,8 @@
-[gd_scene load_steps=5 format=3 uid="uid://dl5sptk3qhjnt"]
+[gd_scene load_steps=6 format=3 uid="uid://dl5sptk3qhjnt"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_e3hfg"]
+[ext_resource type="Script" uid="uid://dpgv33vxeohjt" path="res://Magnet.gd" id="1_ts0mk"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_ts0mk"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_ts0mk"]
 radial_segments = 4
@@ -12,10 +14,13 @@ rings = 2
 
 [sub_resource type="PrismMesh" id="PrismMesh_qs5to"]
 
-[node name="Magnet" type="Node2D"]
+[node name="Magnet" type="Area2D"]
+scale = Vector2(5, 5)
+script = ExtResource("1_ts0mk")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-shape = SubResource("RectangleShape2D_e3hfg")
+scale = Vector2(15, 15)
+shape = SubResource("CircleShape2D_ts0mk")
 
 [node name="MeshInstance2D2" type="MeshInstance2D" parent="."]
 modulate = Color(0, 0.5411765, 1, 1)
@@ -42,7 +47,7 @@ mesh = SubResource("SphereMesh_ock5g")
 [node name="MeshInstance2D7" type="MeshInstance2D" parent="."]
 modulate = Color(1, 0, 0, 1)
 position = Vector2(-4.89, 6.015)
-rotation = 0.48694685
+rotation = 0.48694688
 scale = Vector2(9.865, 9)
 mesh = SubResource("SphereMesh_ock5g")
 
@@ -55,7 +60,7 @@ mesh = SubResource("PrismMesh_qs5to")
 [node name="MeshInstance2D8" type="MeshInstance2D" parent="."]
 modulate = Color(0, 0.5411765, 1, 1)
 position = Vector2(4.89, 6.015)
-rotation = 0.48694685
+rotation = 0.48694688
 scale = Vector2(9.865, 9)
 mesh = SubResource("SphereMesh_ock5g")
 

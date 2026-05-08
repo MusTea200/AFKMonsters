@@ -11,55 +11,51 @@ var enemy_scene = preload("res://Enemy.tscn")
 var magnet_scene = preload("res://Magnet.tscn")
 var spawn_timer: Timer
 
-var player_node: Player
+var player_node: Node2D
 var pause_menu: Control
-var stats_label: Label
-
+var stats_label # Türü serbest bıraktık (Label veya RichTextLabel olabilir)
+var balance_label: Label
 
 func _ready() -> void:
-	process_mode = Node.PROCESS_MODE_ALWAYS # Ensure Arena can process ESC key when paused
-	# Find player
-	var scene_nodes = get_children()
-	for n in scene_nodes:
-		if n is Player:
+	process_mode = Node.PROCESS_MODE_ALWAYS # Arena zaman dursa da çalışsın (ESC için)
+	
+	for n in get_children():
+		if n.name == "Player": 
 			player_node = n
 			break
 
-	# Setup Pause Menu
 	pause_menu = get_tree().current_scene.find_child("PauseMenu", true, false) as Control
 	if pause_menu:
 		pause_menu.hide()
-		stats_label = pause_menu.find_child("StatsLabel", true, false) as Label
+		pause_menu.process_mode = Node.PROCESS_MODE_ALWAYS # Menü oyun durunca donmasın
+		
+		stats_label = pause_menu.find_child("StatsLabel", true, false)
+		# Eğer StatsLabel RichTextLabel ise, BBCode'u otomatik aç!
+		if stats_label and "bbcode_enabled" in stats_label:
+			stats_label.bbcode_enabled = true
+
+	balance_label = get_tree().current_scene.find_child("BalanceLabel", true, false) as Label
+	update_balance_ui() 
 
 	_setup_enemy_spawner()
 	_initial_node_spawn()
 
 func _process(delta: float) -> void:
-	if not is_instance_valid(player_node):
-		return
+	if get_tree().paused or not is_instance_valid(player_node):
+		return # Oyun durduysa motoru hiç yorma
 		
 	_cull_distant_objects()
 	_maintain_node_count()
 
 func _initial_node_spawn() -> void:
-	if not is_instance_valid(player_node):
-		return
-		
-	var player_pos = player_node.global_position
+	if not is_instance_valid(player_node): return
 	for i in range(max_nodes_in_world):
-		_try_spawn_node_around(player_pos, 0, spawn_radius)
+		_try_spawn_node_around(player_node.global_position, 0, spawn_radius)
 
 func _maintain_node_count() -> void:
-	if not is_instance_valid(player_node):
-		return
-		
-	var current_nodes = 0
-	for child in get_children():
-		if child is GrappleNode:
-			current_nodes += 1
-			
+	if not is_instance_valid(player_node): return
+	var current_nodes = get_tree().get_nodes_in_group("grapple_nodes").size()
 	if current_nodes < max_nodes_in_world:
-		# Spawn new nodes just outside the immediate view, up to spawn_radius
 		_try_spawn_node_around(player_node.global_position, spawn_radius * 0.8, spawn_radius)
 
 func _try_spawn_node_around(center: Vector2, min_rad: float, max_rad: float) -> void:
@@ -67,40 +63,39 @@ func _try_spawn_node_around(center: Vector2, min_rad: float, max_rad: float) -> 
 	var dist = randf_range(min_rad, max_rad)
 	var potential_pos = center + Vector2(cos(angle), sin(angle)) * dist
 	
-	# Check distance against existing nodes
 	var is_valid = true
 	for child in get_children():
-		if child is GrappleNode or child is Magnet:
+		if child.is_in_group("grapple_nodes") or child.is_in_group("magnets"):
 			if potential_pos.distance_to(child.global_position) < min_distance_between_nodes:
 				is_valid = false
 				break
 				
 	if is_valid:
-		if randf() < 0.1: # 10% chance to spawn a Magnet instead of GrappleNode
-			var magnet = magnet_scene.instantiate() as Magnet
+		if randf() < 0.1: 
+			var magnet = magnet_scene.instantiate()
 			magnet.global_position = potential_pos
+			magnet.add_to_group("magnets")
 			add_child(magnet)
 		else:
 			_create_node_instance(potential_pos)
 
 func _create_node_instance(pos: Vector2) -> void:
-	var node_instance = grapple_node_scene.instantiate() as GrappleNode
+	var node_instance = grapple_node_scene.instantiate()
 	node_instance.global_position = pos
-	# Type is randomized in GrappleNode._ready() now
+	node_instance.add_to_group("grapple_nodes")
 	add_child(node_instance)
 
 func _setup_enemy_spawner() -> void:
 	spawn_timer = Timer.new()
 	spawn_timer.wait_time = enemy_spawn_rate
 	spawn_timer.autostart = true
+	spawn_timer.process_mode = Node.PROCESS_MODE_PAUSABLE # Timer oyun durunca dursun!
 	spawn_timer.timeout.connect(_on_spawn_timer_timeout)
 	add_child(spawn_timer)
 
 func _on_spawn_timer_timeout() -> void:
-	if not is_instance_valid(player_node):
+	if not is_instance_valid(player_node) or get_tree().paused:
 		return
-		
-	# Spawn enemy at a random angle at spawn_radius
 	var angle = randf() * 2.0 * PI
 	var spawn_pos = player_node.global_position + Vector2(cos(angle), sin(angle)) * spawn_radius
 
@@ -110,13 +105,12 @@ func _on_spawn_timer_timeout() -> void:
 
 func _cull_distant_objects() -> void:
 	var player_pos = player_node.global_position
-	
 	for child in get_children():
-		if child is GrappleNode or child is Enemy or child is Drop:
+		if child.is_in_group("grapple_nodes") or child.is_in_group("magnets") or "Enemy" in child.name or "Drop" in child.name:
 			if child.global_position.distance_to(player_pos) > cull_radius:
 				child.queue_free()
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel") or (event is InputEventKey and event.keycode == KEY_ESCAPE and event.pressed and not event.echo):
 		_toggle_pause()
 
@@ -126,22 +120,27 @@ func _toggle_pause() -> void:
 	
 	if pause_menu:
 		pause_menu.visible = new_pause_state
-		
-		if new_pause_state and stats_label and is_instance_valid(player_node):
+		if new_pause_state and is_instance_valid(player_node):
 			_update_stats_label()
 
 func _update_stats_label() -> void:
-	var stats_text = "[center][b]--- PLAYER STATS ---[/b][/center]\n\n"
-	stats_text += "Level: " + str(player_node.level) + "\n"
-	stats_text += "Health: " + str(round(player_node.current_health)) + " / " + str(player_node.max_health) + "\n"
-	stats_text += "Health Regen: " + str(player_node.can_yenileme) + " / sec\n"
-	stats_text += "Armor (Damage Reduction): " + str(player_node.hasar_azaltma * 100.0) + "%\n"
-	stats_text += "Thorns: " + str(player_node.dikenli_deri) + "\n"
-	stats_text += "Dodge Chance: " + str(player_node.kacis_sansi * 100.0) + "%\n"
-	stats_text += "Rope Length: " + str(player_node.ip_uzunlugu) + "\n"
-	stats_text += "Fire Rate: " + str(player_node.atis_hizi) + " / sec\n"
-	stats_text += "Bullet Count: " + str(player_node.mermi_sayisi) + "\n"
-	stats_text += "Piercing: " + str(player_node.delip_gecme) + "\n"
-	stats_text += "Bullet Damage: " + str(player_node.mermi_hasari) + "\n"
+	if not stats_label: return
 	
-	stats_label.text = stats_text
+	var stats_text = "[center][b]--- OYUNCU İSTATİSTİKLERİ ---[/b][/center]\n\n"
+	stats_text += "Seviye: " + str(player_node.get("level")) + "\n"
+	stats_text += "Can: " + str(round(player_node.get("current_health"))) + " / " + str(player_node.get("max_health")) + "\n"
+	stats_text += "Can Yenileme: " + str(player_node.get("can_yenileme")) + " / sn\n"
+	stats_text += "Zırh: %" + str(float(player_node.get("hasar_azaltma")) * 100.0) + "\n"
+	stats_text += "Dikenli Deri: " + str(player_node.get("dikenli_deri")) + "\n"
+	stats_text += "Kaçış Şansı: %" + str(float(player_node.get("kacis_sansi")) * 100.0) + "\n"
+	stats_text += "İp Uzunluğu: " + str(player_node.get("ip_uzunlugu")) + "\n"
+	stats_text += "Atış Hızı: " + str(player_node.get("atis_hizi")) + " / sn\n"
+	stats_text += "Mermi Sayısı: " + str(player_node.get("mermi_sayisi")) + "\n"
+	stats_text += "Delip Geçme: " + str(player_node.get("delip_gecme")) + "\n"
+	stats_text += "Mermi Hasarı: " + str(player_node.get("mermi_hasari")) + "\n"
+	
+	stats_label.text = stats_text # RichTextLabel ise kodların görünmesini engeller
+
+func update_balance_ui() -> void:
+	if is_instance_valid(player_node) and is_instance_valid(balance_label):
+		balance_label.text = "Para: " + str(player_node.get("gold"))
