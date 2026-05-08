@@ -28,7 +28,9 @@ var economy_comp: EconomyComponent
 var combat_comp: CombatComponent
 
 func _ready() -> void:
+	max_health = Global.perm_max_health
 	current_health = max_health
+	Global.start_run()
 	gravity_scale = 0.0
 	linear_damp = 1.0
 	lock_rotation = true

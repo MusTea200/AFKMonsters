@@ -98,7 +98,7 @@ func _create_node_instance(pos: Vector2) -> void:
 
 func _setup_enemy_spawner() -> void:
 	spawn_timer = Timer.new()
-	spawn_timer.wait_time = enemy_spawn_rate
+	spawn_timer.wait_time = enemy_spawn_rate * pow(0.95, Global.successful_loops)
 	spawn_timer.autostart = true
 	spawn_timer.process_mode = Node.PROCESS_MODE_PAUSABLE
 	spawn_timer.timeout.connect(_on_spawn_timer_timeout)

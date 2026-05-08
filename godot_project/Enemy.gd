@@ -172,23 +172,7 @@ func _show_floating_damage(amount: float) -> void:
 	tween.tween_callback(label.queue_free)
 
 func _die() -> void:
-	enemy_killed.emit(enemy_type)
-
-	if enemy_type == EnemyType.TANK:
-		var scene_path = "res://Enemy.tscn"
-		if ResourceLoader.exists(scene_path):
-			var packed_scene = load(scene_path)
-			for i in range(3):
-				var mini = packed_scene.instantiate()
-				mini.enemy_type = EnemyType.MINI_BUG
-				mini.move_speed = 300.0
-				mini.max_health = 20.0
-				mini.damage_amount = 5.0
-				# Scatter them slightly
-				var offset = Vector2(cos(i * 2.0 * PI / 3.0), sin(i * 2.0 * PI / 3.0)) * 50.0
-				mini.global_position = global_position + offset
-				get_tree().current_scene.call_deferred("add_child", mini)
-
+	Global.current_run_kills += 1
 	# Direct EXP
 	if is_instance_valid(player_node):
 		player_node.add_exp(35.0 * market_multiplier) # Base exp with market

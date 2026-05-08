@@ -22,6 +22,7 @@ var shoot_timer: Timer
 
 func initialize(_player: RigidBody2D) -> void:
 	player = _player
+	mermi_hasari = Global.perm_starting_damage
 
 	combo_label = get_tree().current_scene.find_child("ComboLabel", true, false) as Label
 	if is_instance_valid(combo_label):
@@ -51,7 +52,7 @@ func take_damage(amount: float) -> void:
 		player.health_bar.value = player.current_health
 
 	if player.current_health <= 0:
-		print("Player died!")
+		Global.end_run()
 
 func process_combat(delta: float) -> void:
 	_update_combo(delta)
