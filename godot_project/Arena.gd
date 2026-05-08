@@ -127,7 +127,7 @@ func _update_stats_label() -> void:
 	if not stats_label: return
 	
 	var stats_text = "[center][b]--- OYUNCU İSTATİSTİKLERİ ---[/b][/center]\n\n"
-	stats_text += "Seviye: " + str(player_node.get("level")) + "\n"
+	stats_text += "Seviye: " + str(player_node.get_node("EconomyComponent").level) + "\n"
 	stats_text += "Can: " + str(round(player_node.get("current_health"))) + " / " + str(player_node.get("max_health")) + "\n"
 	stats_text += "Can Yenileme: " + str(player_node.get("can_yenileme")) + " / sn\n"
 	stats_text += "Zırh: %" + str(float(player_node.get("hasar_azaltma")) * 100.0) + "\n"
@@ -143,4 +143,4 @@ func _update_stats_label() -> void:
 
 func update_balance_ui() -> void:
 	if is_instance_valid(player_node) and is_instance_valid(balance_label):
-		balance_label.text = str(int(player_node.get("gold")))
+		balance_label.text = str(int(player_node.get_node("EconomyComponent").gold))
