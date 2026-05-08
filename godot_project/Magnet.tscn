@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://dpgv33vxeohjt" path="res://Magnet.gd" id="1_ts0mk"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_ts0mk"]
+radius = 26.133389
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_ts0mk"]
 radial_segments = 4
@@ -19,7 +20,8 @@ scale = Vector2(5, 5)
 script = ExtResource("1_ts0mk")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-scale = Vector2(15, 15)
+modulate = Color(0, 1, 1, 1)
+scale = Vector2(30, 30)
 shape = SubResource("CircleShape2D_ts0mk")
 
 [node name="MeshInstance2D2" type="MeshInstance2D" parent="."]

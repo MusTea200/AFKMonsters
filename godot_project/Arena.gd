@@ -143,4 +143,4 @@ func _update_stats_label() -> void:
 
 func update_balance_ui() -> void:
 	if is_instance_valid(player_node) and is_instance_valid(balance_label):
-		balance_label.text = "Para: " + str(player_node.get("gold"))
+		balance_label.text = str(int(player_node.get("gold")))

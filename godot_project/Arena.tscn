@@ -1,8 +1,13 @@
-[gd_scene load_steps=4 format=3 uid="uid://darena1234"]
+[gd_scene load_steps=5 format=3 uid="uid://darena1234"]
 
 [ext_resource type="Script" uid="uid://dbwwkhi2388iv" path="res://Arena.gd" id="1_arena"]
 [ext_resource type="PackedScene" uid="uid://cx6g0q6j7l2vj" path="res://Player.tscn" id="2_u45fm"]
-[ext_resource type="PackedScene" uid="uid://b3nqewob6ynur" path="res://Coin.tscn" id="3_vbyki"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_u45fm"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_vbyki"]
+lightmap_size_hint = Vector2i(12, 12)
+orientation = 2
 
 [node name="Arena" type="Node2D"]
 process_mode = 3
@@ -43,22 +48,42 @@ anchor_left = 0.3654514
 anchor_top = 0.32766616
 anchor_right = 0.6458333
 anchor_bottom = 0.6012364
-offset_left = -37.0
-offset_top = -19.000015
-offset_right = 24.0
-offset_bottom = -4.999939
+offset_left = -357.0
+offset_top = -148.00002
+offset_right = 344.0
+offset_bottom = 187.00006
 grow_horizontal = 2
 grow_vertical = 2
 text = "Hello
 "
 
-[node name="Coin" parent="CanvasLayer" instance=ExtResource("3_vbyki")]
-position = Vector2(912, 48)
-scale = Vector2(2.5, 2.5)
+[node name="Coin" type="TextureRect" parent="CanvasLayer"]
+offset_left = 876.0
+offset_top = 38.0
+offset_right = 916.0
+offset_bottom = 78.0
+scale = Vector2(1.415, 1.415)
 
 [node name="BalanceLabel" type="Label" parent="CanvasLayer/Coin"]
-offset_left = 12.799999
-offset_top = -12.8
-offset_right = 52.8
-offset_bottom = 10.2
-text = "0"
+layout_mode = 0
+offset_left = 45.936413
+offset_top = -7.067138
+offset_right = 114.93642
+offset_bottom = 157.93286
+scale = Vector2(0.3, 0.3)
+theme_override_font_sizes/font_size = 120
+text = "1234567"
+
+[node name="MeshInstance2D" type="MeshInstance2D" parent="CanvasLayer/Coin"]
+modulate = Color(1, 1, 0, 1)
+position = Vector2(19.787987, 19.787989)
+scale = Vector2(39.620907, 39.57598)
+mesh = SubResource("SphereMesh_u45fm")
+
+[node name="MeshInstance2D2" type="MeshInstance2D" parent="CanvasLayer/Coin"]
+modulate = Color(1, 0.735357, 0, 1)
+position = Vector2(19.787983, 19.787985)
+rotation = 0.59609425
+scale = Vector2(11.785, 11.785)
+skew = 0.3839724
+mesh = SubResource("PlaneMesh_vbyki")

@@ -5,11 +5,13 @@ class_name Magnet
 var attracted_coins: Array = []
 var is_active: bool = false
 var player: Node2D
+var original_scale: Vector2
 
 func _ready() -> void:
 	area_entered.connect(_on_area_entered)
 	area_exited.connect(_on_area_exited)
 	player = get_tree().current_scene.find_child("Player", true, false)
+	original_scale = scale
 
 func _physics_process(delta: float) -> void:
 	if not is_instance_valid(player): return
@@ -18,13 +20,13 @@ func _physics_process(delta: float) -> void:
 	if global_position.distance_to(player.global_position) < 150.0:
 		if not is_active:
 			is_active = true
-			scale = Vector2(1.3, 1.3) # Aktifleştiğini belli etmek için büyür
-			modulate = Color.GOLD # Altın renginde parlar
+			scale = original_scale * 1.3 # Orijinal boyutunu (5) 1.3 ile çarparak büyütür
+			modulate = Color.GOLD
 	else:
 		if is_active:
 			is_active = false
-			scale = Vector2(1.0, 1.0) # Eski boyutuna döner
-			modulate = Color.WHITE # Eski rengine döner
+			scale = original_scale # Orijinal boyutu neyse (5) tam olarak ona geri döner
+			modulate = Color.WHITE
 
 	# Sadece mıknatıs aktifken paraları çek
 	if is_active:

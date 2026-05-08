@@ -393,13 +393,10 @@ func _update_targeting() -> void:
 				
 	if current_target_node != closest_node:
 		if is_instance_valid(current_target_node):
-			current_target_node.modulate = Color.WHITE
 			current_target_node.scale = Vector2.ONE
-			
 		current_target_node = closest_node
 		
 		if is_instance_valid(current_target_node):
-			current_target_node.modulate = Color(1.0, 1.0, 0.0) # Yellow
 			current_target_node.scale = Vector2(1.2, 1.2)
 
 func _update_combo(delta: float) -> void:
