@@ -1,6 +1,59 @@
 extends Area2D
 class_name Enemy
 
+
+enum EnemyType { NORMAL, SNIPER, TANK, MINI_BUG }
+enum State { CHASE, ATTACK }
+
+@export var enemy_type: EnemyType = EnemyType.NORMAL
+var state: State = State.CHASE
+var attack_timer: float = 0.0
+var has_enraged: bool = false
+var market_multiplier: float = 1.0
+
+signal enemy_killed(type)
+
+class EnemyBullet extends Area2D:
+    var direction: Vector2 = Vector2.ZERO
+    var speed: float = 600.0
+    var damage: float = 30.0
+    var _traveled_distance: float = 0.0
+
+    func _ready():
+        var collision_shape = CollisionShape2D.new()
+        var circle = CircleShape2D.new()
+        circle.radius = 10.0
+        collision_shape.shape = circle
+        add_child(collision_shape)
+
+        var polygon = Polygon2D.new()
+        polygon.color = Color(0, 1, 1) # Cyan
+        var points = PackedVector2Array()
+        for i in range(8):
+            var angle = i * PI / 4.0
+            points.append(Vector2(cos(angle), sin(angle)) * 10.0)
+        polygon.polygon = points
+        add_child(polygon)
+
+        area_entered.connect(_on_area_entered)
+        body_entered.connect(_on_body_entered)
+
+    func _process(delta: float):
+        var move_vec = direction * speed * delta
+        global_position += move_vec
+        _traveled_distance += move_vec.length()
+        if _traveled_distance >= 2000.0:
+            queue_free()
+
+    func _on_area_entered(area: Area2D) -> void:
+        # Avoid hitting other enemies
+        pass
+
+    func _on_body_entered(body: Node2D) -> void:
+        if body is Player:
+            body.take_damage(damage)
+            queue_free()
+
 @export var move_speed: float = 150.0
 @export var base_mass: float = 1.0
 @export var velocity_threshold: float = 800.0 # Pierce threshold
@@ -33,8 +86,28 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	if is_instance_valid(player_node):
+		var dist = global_position.distance_to(player_node.global_position)
 		var dir = global_position.direction_to(player_node.global_position)
-		global_position += dir * move_speed * delta
+
+		if enemy_type == EnemyType.SNIPER:
+			if dist <= 800.0:
+				state = State.ATTACK
+			else:
+				state = State.CHASE
+
+			if state == State.ATTACK:
+				attack_timer += delta
+				if attack_timer > 2.0:
+					attack_timer = 0.0
+					var bullet = EnemyBullet.new()
+					bullet.direction = dir
+					bullet.global_position = global_position
+					# Add as top-level so it doesn't move with enemy
+					get_tree().current_scene.add_child(bullet)
+			elif state == State.CHASE:
+				global_position += dir * move_speed * delta
+		else:
+			global_position += dir * move_speed * delta
 
 func _on_body_entered(body: Node2D) -> void:
 	if body is Player:
@@ -71,6 +144,10 @@ func _take_damage(amount: float) -> void:
 	if is_instance_valid(progress_bar):
 		progress_bar.value = current_health
 
+	if enemy_type == EnemyType.TANK and current_health / max_health < 0.2 and not has_enraged:
+		move_speed *= 2.0
+		has_enraged = true
+
 	if current_health <= 0:
 		_die()
 
@@ -95,9 +172,26 @@ func _show_floating_damage(amount: float) -> void:
 	tween.tween_callback(label.queue_free)
 
 func _die() -> void:
+	enemy_killed.emit(enemy_type)
+
+	if enemy_type == EnemyType.TANK:
+		var scene_path = "res://Enemy.tscn"
+		if ResourceLoader.exists(scene_path):
+			var packed_scene = load(scene_path)
+			for i in range(3):
+				var mini = packed_scene.instantiate()
+				mini.enemy_type = EnemyType.MINI_BUG
+				mini.move_speed = 300.0
+				mini.max_health = 20.0
+				mini.damage_amount = 5.0
+				# Scatter them slightly
+				var offset = Vector2(cos(i * 2.0 * PI / 3.0), sin(i * 2.0 * PI / 3.0)) * 50.0
+				mini.global_position = global_position + offset
+				get_tree().current_scene.call_deferred("add_child", mini)
+
 	# Direct EXP
 	if is_instance_valid(player_node):
-		player_node.add_exp(35.0) # Base exp
+		player_node.add_exp(35.0 * market_multiplier) # Base exp with market
 		
 	_spawn_coin()
 	queue_free()
@@ -108,8 +202,8 @@ func _spawn_coin() -> void:
 		coin.global_position = global_position
 		# Randomize value maybe
 		if randf() < 0.2:
-			coin.value = 5.0
+			coin.value = 5.0 * market_multiplier
 			coin.modulate = Color.GOLD
 		else:
-			coin.value = 1.0
+			coin.value = 1.0 * market_multiplier
 		get_tree().current_scene.call_deferred("add_child", coin)

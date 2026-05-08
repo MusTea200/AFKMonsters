@@ -16,6 +16,17 @@ var pause_menu: Control
 var stats_label # Türü serbest bıraktık (Label veya RichTextLabel olabilir)
 var balance_label: Label
 
+var kill_counts: Dictionary = {
+	0: 0, # NORMAL
+	1: 0, # SNIPER
+	2: 0  # TANK
+}
+var market_values: Dictionary = {
+	0: 1.0, # NORMAL
+	1: 1.0, # SNIPER
+	2: 1.0  # TANK
+}
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS # Arena zaman dursa da çalışsın (ESC için)
 	
@@ -89,9 +100,20 @@ func _setup_enemy_spawner() -> void:
 	spawn_timer = Timer.new()
 	spawn_timer.wait_time = enemy_spawn_rate
 	spawn_timer.autostart = true
-	spawn_timer.process_mode = Node.PROCESS_MODE_PAUSABLE # Timer oyun durunca dursun!
+	spawn_timer.process_mode = Node.PROCESS_MODE_PAUSABLE
 	spawn_timer.timeout.connect(_on_spawn_timer_timeout)
 	add_child(spawn_timer)
+
+	var market_timer = Timer.new()
+	market_timer.wait_time = 10.0
+	market_timer.autostart = true
+	market_timer.process_mode = Node.PROCESS_MODE_PAUSABLE
+	market_timer.timeout.connect(_evaluate_market)
+	add_child(market_timer)
+
+func _on_enemy_killed(enemy_type: int) -> void:
+	if kill_counts.has(enemy_type):
+		kill_counts[enemy_type] += 1
 
 func _on_spawn_timer_timeout() -> void:
 	if not is_instance_valid(player_node) or get_tree().paused:
@@ -101,6 +123,22 @@ func _on_spawn_timer_timeout() -> void:
 
 	var enemy_instance = enemy_scene.instantiate()
 	enemy_instance.global_position = spawn_pos
+
+	# Random type assignment (0=NORMAL, 1=SNIPER, 2=TANK)
+	var type = randi() % 3
+	enemy_instance.enemy_type = type
+	enemy_instance.market_multiplier = market_values[type]
+
+	# Attempt to set visual cue (Turquoise for SNIPER, Dark Red for TANK)
+	var poly = enemy_instance.find_child("Polygon2D", true, false)
+	if poly:
+		if type == 1:
+			poly.color = Color(0, 1, 1) # Turquoise
+		elif type == 2:
+			poly.color = Color(0.5, 0, 0) # Dark Red
+
+	enemy_instance.enemy_killed.connect(_on_enemy_killed)
+
 	add_child(enemy_instance)
 
 func _cull_distant_objects() -> void:
@@ -144,3 +182,28 @@ func _update_stats_label() -> void:
 func update_balance_ui() -> void:
 	if is_instance_valid(player_node) and is_instance_valid(balance_label):
 		balance_label.text = str(int(player_node.get_node("EconomyComponent").gold))
+
+func _evaluate_market() -> void:
+	var max_kills = -1
+	var min_kills = 999999
+	var max_type = -1
+	var min_type = -1
+
+	for type in kill_counts.keys():
+		var count = kill_counts[type]
+		if count > max_kills:
+			max_kills = count
+			max_type = type
+		if count < min_kills:
+			min_kills = count
+			min_type = type
+
+	if max_type != -1 and min_type != -1 and max_type != min_type:
+		# Over-farmed logic: decrease by 10%
+		market_values[max_type] = max(0.1, market_values[max_type] - 0.1)
+		# Under-farmed logic: increase by 10%
+		market_values[min_type] = min(3.0, market_values[min_type] + 0.1)
+
+	# Reset tracking
+	for type in kill_counts.keys():
+		kill_counts[type] = 0
