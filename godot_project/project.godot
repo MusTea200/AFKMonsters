@@ -53,3 +53,7 @@ ui_down={
 [rendering]
 
 renderer/rendering_method="mobile"
+
+[autoload]
+
+Global="*res://Global.gd"

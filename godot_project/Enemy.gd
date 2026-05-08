@@ -95,6 +95,7 @@ func _show_floating_damage(amount: float) -> void:
 	tween.tween_callback(label.queue_free)
 
 func _die() -> void:
+	Global.current_run_kills += 1
 	# Direct EXP
 	if is_instance_valid(player_node):
 		player_node.add_exp(35.0) # Base exp
