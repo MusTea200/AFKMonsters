@@ -22,7 +22,7 @@ func _process(delta: float) -> void:
 
 func _on_area_entered(area: Area2D) -> void:
 	if area is Enemy:
-		area._take_damage(damage) # Or call a public method if available
+		area._take_damage(damage, direction)
 		
 		if pierce_count > 0:
 			pierce_count -= 1

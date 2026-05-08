@@ -1,59 +1,6 @@
 extends Area2D
 class_name Enemy
 
-
-enum EnemyType { NORMAL, SNIPER, TANK, MINI_BUG }
-enum State { CHASE, ATTACK }
-
-@export var enemy_type: EnemyType = EnemyType.NORMAL
-var state: State = State.CHASE
-var attack_timer: float = 0.0
-var has_enraged: bool = false
-var market_multiplier: float = 1.0
-
-signal enemy_killed(type)
-
-class EnemyBullet extends Area2D:
-    var direction: Vector2 = Vector2.ZERO
-    var speed: float = 600.0
-    var damage: float = 30.0
-    var _traveled_distance: float = 0.0
-
-    func _ready():
-        var collision_shape = CollisionShape2D.new()
-        var circle = CircleShape2D.new()
-        circle.radius = 10.0
-        collision_shape.shape = circle
-        add_child(collision_shape)
-
-        var polygon = Polygon2D.new()
-        polygon.color = Color(0, 1, 1) # Cyan
-        var points = PackedVector2Array()
-        for i in range(8):
-            var angle = i * PI / 4.0
-            points.append(Vector2(cos(angle), sin(angle)) * 10.0)
-        polygon.polygon = points
-        add_child(polygon)
-
-        area_entered.connect(_on_area_entered)
-        body_entered.connect(_on_body_entered)
-
-    func _process(delta: float):
-        var move_vec = direction * speed * delta
-        global_position += move_vec
-        _traveled_distance += move_vec.length()
-        if _traveled_distance >= 2000.0:
-            queue_free()
-
-    func _on_area_entered(area: Area2D) -> void:
-        # Avoid hitting other enemies
-        pass
-
-    func _on_body_entered(body: Node2D) -> void:
-        if body is Player:
-            body.take_damage(damage)
-            queue_free()
-
 @export var move_speed: float = 150.0
 @export var base_mass: float = 1.0
 @export var velocity_threshold: float = 800.0 # Pierce threshold
@@ -66,7 +13,14 @@ var player_node: Player
 var coin_scene = preload("res://Coin.tscn")
 var progress_bar: ProgressBar
 
+# Juice Variables
+var knockback_velocity: Vector2 = Vector2.ZERO
+var knockback_decay: float = 10.0
+var audio_player: AudioStreamPlayer2D
+
 func _ready() -> void:
+	audio_player = AudioStreamPlayer2D.new()
+	add_child(audio_player)
 	current_health = max_health
 
 
@@ -85,29 +39,16 @@ func _ready() -> void:
 	body_entered.connect(_on_body_entered)
 
 func _process(delta: float) -> void:
+	var movement = Vector2.ZERO
 	if is_instance_valid(player_node):
-		var dist = global_position.distance_to(player_node.global_position)
 		var dir = global_position.direction_to(player_node.global_position)
+		movement = dir * move_speed * delta
 
-		if enemy_type == EnemyType.SNIPER:
-			if dist <= 800.0:
-				state = State.ATTACK
-			else:
-				state = State.CHASE
+	if knockback_velocity.length() > 0:
+		movement += knockback_velocity * delta
+		knockback_velocity = knockback_velocity.lerp(Vector2.ZERO, knockback_decay * delta)
 
-			if state == State.ATTACK:
-				attack_timer += delta
-				if attack_timer > 2.0:
-					attack_timer = 0.0
-					var bullet = EnemyBullet.new()
-					bullet.direction = dir
-					bullet.global_position = global_position
-					# Add as top-level so it doesn't move with enemy
-					get_tree().current_scene.add_child(bullet)
-			elif state == State.CHASE:
-				global_position += dir * move_speed * delta
-		else:
-			global_position += dir * move_speed * delta
+	global_position += movement
 
 func _on_body_entered(body: Node2D) -> void:
 	if body is Player:
@@ -137,19 +78,28 @@ func _on_body_entered(body: Node2D) -> void:
 			var bounce_dir = global_position.direction_to(body.global_position)
 			body.bounce_back(bounce_dir, bounce_force)
 
-func _take_damage(amount: float) -> void:
+func _take_damage(amount: float, knock_dir: Vector2 = Vector2.ZERO) -> void:
 	current_health -= amount
 	_show_floating_damage(amount)
+
+	# Knockback
+	if knock_dir != Vector2.ZERO:
+		knockback_velocity = knock_dir * 1500.0
+
+	# Hit Flash Tween
+	var tween = create_tween()
+	modulate = Color(10, 10, 10, 1)
+	tween.tween_property(self, "modulate", Color(1, 1, 1, 1), 0.1)
+
+	# Play Audio
+	audio_player.pitch_scale = randf_range(0.85, 1.15)
+	audio_player.play()
 
 	if is_instance_valid(progress_bar):
 		progress_bar.value = current_health
 
-	if enemy_type == EnemyType.TANK and current_health / max_health < 0.2 and not has_enraged:
-		move_speed *= 2.0
-		has_enraged = true
-
 	if current_health <= 0:
-		_die()
+		_die(knock_dir)
 
 func _show_floating_damage(amount: float) -> void:
 	var label = Label.new()
@@ -171,14 +121,47 @@ func _show_floating_damage(amount: float) -> void:
 	# Queue free after animation completes
 	tween.tween_callback(label.queue_free)
 
-func _die() -> void:
+func _die(knock_dir: Vector2 = Vector2.ZERO) -> void:
 	Global.current_run_kills += 1
+
+	HitstopManager.hitstop(0.05, 0.1)
+	CameraShake.add_trauma(0.4)
+
+	_spawn_death_particles(knock_dir)
+
 	# Direct EXP
 	if is_instance_valid(player_node):
-		player_node.add_exp(35.0 * market_multiplier) # Base exp with market
+		player_node.add_exp(35.0) # Base exp
 		
 	_spawn_coin()
 	queue_free()
+
+func _spawn_death_particles(dir: Vector2) -> void:
+	var particles = CPUParticles2D.new()
+	particles.emitting = false
+	particles.one_shot = true
+	particles.explosiveness = 1.0
+	particles.lifetime = 0.5
+	particles.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
+	particles.emission_sphere_radius = 10.0
+	particles.spread = 45.0
+	particles.initial_velocity_min = 200.0
+	particles.initial_velocity_max = 400.0
+	particles.direction = dir if dir != Vector2.ZERO else Vector2(0, -1)
+	particles.scale_amount_min = 4.0
+	particles.scale_amount_max = 8.0
+	particles.color = Color(1.0, 0.2, 0.2, 1.0)
+
+	get_tree().current_scene.add_child(particles)
+	particles.global_position = global_position
+	particles.emitting = true
+
+	var timer = Timer.new()
+	timer.wait_time = particles.lifetime
+	timer.one_shot = true
+	timer.autostart = true
+	timer.timeout.connect(particles.queue_free)
+	particles.add_child(timer)
 
 func _spawn_coin() -> void:
 	if coin_scene:
@@ -186,8 +169,8 @@ func _spawn_coin() -> void:
 		coin.global_position = global_position
 		# Randomize value maybe
 		if randf() < 0.2:
-			coin.value = 5.0 * market_multiplier
+			coin.value = 5.0
 			coin.modulate = Color.GOLD
 		else:
-			coin.value = 1.0 * market_multiplier
+			coin.value = 1.0
 		get_tree().current_scene.call_deferred("add_child", coin)

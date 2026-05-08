@@ -57,3 +57,5 @@ renderer/rendering_method="mobile"
 [autoload]
 
 Global="*res://Global.gd"
+HitstopManager="*res://HitstopManager.gd"
+CameraShake="*res://CameraShake.gd"
