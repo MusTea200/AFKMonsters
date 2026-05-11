@@ -102,6 +102,6 @@ func _resume_and_emit(type: String) -> void:
 	upgrade_selected.emit(type)
 
 func _on_reroll_pressed() -> void:
-	if is_instance_valid(player_node) and player_node.gold >= reroll_cost:
+	if is_instance_valid(player_node) and player_node.economy_comp.gold >= reroll_cost:
 		player_node.add_gold(-reroll_cost)
 		_roll_upgrades()

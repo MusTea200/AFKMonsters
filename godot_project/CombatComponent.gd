@@ -52,7 +52,7 @@ func take_damage(amount: float) -> void:
 		player.health_bar.value = player.current_health
 
 	if player.current_health <= 0:
-		Global.end_run()
+		player.economy_comp.finalize_run()
 
 func process_combat(delta: float) -> void:
 	_update_combo(delta)
@@ -114,14 +114,24 @@ func _shoot_closest_enemy() -> void:
 	var closest_dist = INF
 	var scene_root = get_tree().current_scene
 
+	# Sahnedeki tüm düğümleri tara
 	for child in scene_root.get_children():
-		if child is Node2D and child.has_method("take_damage") and "Enemy" in child.name:
+		# DİKKAT: İsim ("Enemy") kontrolünü kaldırdık.
+		# Sadece "_take_damage" metodu olan her şeyi düşman kabul ediyoruz!
+		if child is Node2D and child.has_method("_take_damage"):
+
+			# YENİ ZIRH: Düşman zaten öldüyse (canı 0 veya altındaysa) görmezden gel
+			var child_health = child.get("current_health")
+			if child_health != null and child_health <= 0:
+				continue # Bu düşmanla işimiz bitti, döngüdeki sonrakine geç!
+
 			var dist = player.global_position.distance_to(child.global_position)
-			if dist < 1500.0: # Range limit
+			if dist < 1500.0: # Menzil sınırı
 				if dist < closest_dist:
 					closest_dist = dist
 					closest_enemy = child
 
+	# Eğer geçerli ve hayatta olan bir düşman bulduysak ateş et
 	if closest_enemy:
 		var base_dir = player.global_position.direction_to(closest_enemy.global_position)
 		var spread_angle = deg_to_rad(15.0)

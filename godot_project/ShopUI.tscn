@@ -1,0 +1,159 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8etx0xem2gbr"]
+
+[ext_resource type="Script" uid="uid://b28x55xxx" path="res://ShopUI.gd" id="1_shopui"]
+
+[node name="ShopUI" type="CanvasLayer"]
+script = ExtResource("1_shopui")
+
+[node name="Panel" type="Panel" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+
+[node name="Header" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="CoinBalance" type="Label" parent="VBoxContainer/Header"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Döngü Parçacığı: 0"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="GridContainer" type="GridContainer" parent="VBoxContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/h_separation = 20
+theme_override_constants/v_separation = 20
+columns = 2
+
+[node name="ItemHealth" type="PanelContainer" parent="VBoxContainer/ScrollContainer/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+metadata/upgrade_type = "health"
+
+[node name="HBox" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/GridContainer/ItemHealth"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="Icon" type="ColorRect" parent="VBoxContainer/ScrollContainer/GridContainer/ItemHealth/HBox"]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+color = Color(0.9, 0.2, 0.2, 1)
+
+[node name="VBox" type="VBoxContainer" parent="VBoxContainer/ScrollContainer/GridContainer/ItemHealth/HBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="NameLabel" type="Label" parent="VBoxContainer/ScrollContainer/GridContainer/ItemHealth/HBox/VBox"]
+layout_mode = 2
+text = "Maksimum Can"
+
+[node name="LvlLabel" type="Label" parent="VBoxContainer/ScrollContainer/GridContainer/ItemHealth/HBox/VBox"]
+layout_mode = 2
+text = "Lvl 0"
+
+[node name="PriceLabel" type="Label" parent="VBoxContainer/ScrollContainer/GridContainer/ItemHealth/HBox/VBox"]
+layout_mode = 2
+text = "Fiyat: 100"
+
+[node name="BuyButton" type="Button" parent="VBoxContainer/ScrollContainer/GridContainer/ItemHealth/HBox"]
+layout_mode = 2
+size_flags_horizontal = 10
+text = "Satın Al"
+
+[node name="ItemDamage" type="PanelContainer" parent="VBoxContainer/ScrollContainer/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+metadata/upgrade_type = "damage"
+
+[node name="HBox" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/GridContainer/ItemDamage"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="Icon" type="ColorRect" parent="VBoxContainer/ScrollContainer/GridContainer/ItemDamage/HBox"]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+color = Color(0.2, 0.2, 0.9, 1)
+
+[node name="VBox" type="VBoxContainer" parent="VBoxContainer/ScrollContainer/GridContainer/ItemDamage/HBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="NameLabel" type="Label" parent="VBoxContainer/ScrollContainer/GridContainer/ItemDamage/HBox/VBox"]
+layout_mode = 2
+text = "Başlangıç Hasarı"
+
+[node name="LvlLabel" type="Label" parent="VBoxContainer/ScrollContainer/GridContainer/ItemDamage/HBox/VBox"]
+layout_mode = 2
+text = "Lvl 0"
+
+[node name="PriceLabel" type="Label" parent="VBoxContainer/ScrollContainer/GridContainer/ItemDamage/HBox/VBox"]
+layout_mode = 2
+text = "Fiyat: 150"
+
+[node name="BuyButton" type="Button" parent="VBoxContainer/ScrollContainer/GridContainer/ItemDamage/HBox"]
+layout_mode = 2
+size_flags_horizontal = 10
+text = "Satın Al"
+
+[node name="ItemMagnet" type="PanelContainer" parent="VBoxContainer/ScrollContainer/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+metadata/upgrade_type = "magnet"
+
+[node name="HBox" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/GridContainer/ItemMagnet"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="Icon" type="ColorRect" parent="VBoxContainer/ScrollContainer/GridContainer/ItemMagnet/HBox"]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+color = Color(0.8, 0.8, 0.1, 1)
+
+[node name="VBox" type="VBoxContainer" parent="VBoxContainer/ScrollContainer/GridContainer/ItemMagnet/HBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="NameLabel" type="Label" parent="VBoxContainer/ScrollContainer/GridContainer/ItemMagnet/HBox/VBox"]
+layout_mode = 2
+text = "Mıknatıs Alanı"
+
+[node name="LvlLabel" type="Label" parent="VBoxContainer/ScrollContainer/GridContainer/ItemMagnet/HBox/VBox"]
+layout_mode = 2
+text = "Lvl 0"
+
+[node name="PriceLabel" type="Label" parent="VBoxContainer/ScrollContainer/GridContainer/ItemMagnet/HBox/VBox"]
+layout_mode = 2
+text = "Fiyat: 200"
+
+[node name="BuyButton" type="Button" parent="VBoxContainer/ScrollContainer/GridContainer/ItemMagnet/HBox"]
+layout_mode = 2
+size_flags_horizontal = 10
+text = "Satın Al"
+
+[node name="Footer" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="StartRunButton" type="Button" parent="VBoxContainer/Footer"]
+custom_minimum_size = Vector2(200, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Yeni Döngü (Başla)"
+
+[connection signal="pressed" from="VBoxContainer/Footer/StartRunButton" to="." method="_on_start_run_pressed"]

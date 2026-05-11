@@ -127,17 +127,18 @@ func _update_stats_label() -> void:
 	if not stats_label: return
 	
 	var stats_text = "[center][b]--- OYUNCU İSTATİSTİKLERİ ---[/b][/center]\n\n"
-	stats_text += "Seviye: " + str(player_node.get_node("EconomyComponent").level) + "\n"
-	stats_text += "Can: " + str(round(player_node.get("current_health"))) + " / " + str(player_node.get("max_health")) + "\n"
-	stats_text += "Can Yenileme: " + str(player_node.get("can_yenileme")) + " / sn\n"
-	stats_text += "Zırh: %" + str(float(player_node.get("hasar_azaltma")) * 100.0) + "\n"
-	stats_text += "Dikenli Deri: " + str(player_node.get("dikenli_deri")) + "\n"
-	stats_text += "Kaçış Şansı: %" + str(float(player_node.get("kacis_sansi")) * 100.0) + "\n"
-	stats_text += "İp Uzunluğu: " + str(player_node.get("ip_uzunlugu")) + "\n"
-	stats_text += "Atış Hızı: " + str(player_node.get("atis_hizi")) + " / sn\n"
-	stats_text += "Mermi Sayısı: " + str(player_node.get("mermi_sayisi")) + "\n"
-	stats_text += "Delip Geçme: " + str(player_node.get("delip_gecme")) + "\n"
-	stats_text += "Mermi Hasarı: " + str(player_node.get("mermi_hasari")) + "\n"
+	stats_text += "Seviye: " + str(player_node.economy_comp.level) + "\n"
+	stats_text += "Can: " + str(round(player_node.current_health)) + " / " + str(player_node.max_health) + "\n"
+	stats_text += "Can Yenileme: " + str(player_node.combat_comp.can_yenileme) + " sn\n"
+	# Float -> float yapıldı ve combat_comp üzerinden çağrıldı
+	stats_text += "Zırh: %" + str(float(player_node.combat_comp.hasar_azaltma) * 100.0) + "\n"
+	stats_text += "Dikenli Deri: " + str(player_node.combat_comp.dikenli_deri) + "\n"
+	stats_text += "Kaçış Şansı: %" + str(float(player_node.combat_comp.kacis_sansi) * 100.0) + "\n"
+	stats_text += "İp Uzunluğu: " + str(player_node.ip_uzunlugu) + "\n"
+	stats_text += "Atış Hızı: " + str(player_node.combat_comp.atis_hizi) + " / sn\n"
+	stats_text += "Mermi Sayısı: " + str(player_node.combat_comp.mermi_sayisi) + "\n"
+	stats_text += "Delip Geçme: " + str(player_node.combat_comp.delip_gecme) + "\n"
+	stats_text += "Mermi Hasarı: " + str(player_node.combat_comp.mermi_hasari) + "\n"
 	
 	stats_label.text = stats_text # RichTextLabel ise kodların görünmesini engeller
 

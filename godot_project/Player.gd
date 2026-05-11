@@ -262,7 +262,7 @@ func _update_targeting() -> void:
 	
 	var query = PhysicsShapeQueryParameters2D.new()
 	var circle_shape = CircleShape2D.new()
-	circle_shape.radius = grapple_radius
+	circle_shape.radius = grapple_radius # 600 birimlik menzil
 	query.shape = circle_shape
 	query.transform = global_transform
 	query.collide_with_bodies = true
@@ -279,6 +279,19 @@ func _update_targeting() -> void:
 				closest_dist = dist_to_mouse
 				closest_node = collider
 				
+	# HEDEF DEĞİŞTİĞİNDE GÖRSEL EFEKTİ YÖNET
 	if current_target_node != closest_node:
-		# Removed scale / modulate adjustments for Color / UI Isolation
-		current_target_node = closest_node
+		# 1. Eski hedefin büyümesini geri al
+		if is_instance_valid(current_target_node):
+			# Eğer düğümün kendi original_scale değişkeni varsa onu kullan, yoksa 1.0 yap
+			var old_scale = current_target_node.get("original_scale") if current_target_node.has_method("get") and current_target_node.get("original_scale") != null else Vector2.ONE
+			current_target_node.scale = old_scale
+			current_target_node.modulate.v = 1.0 # Parlaklığı normale döndür
+
+		current_target_node = closest_node # Yeni hedefi kaydet
+
+		# 2. Yeni hedefi büyüt ve parlat
+		if is_instance_valid(current_target_node):
+			var new_scale = current_target_node.get("original_scale") if current_target_node.has_method("get") and current_target_node.get("original_scale") != null else Vector2.ONE
+			current_target_node.scale = new_scale * 1.3 # %30 büyüt
+			current_target_node.modulate.v = 1.5 # Daha parlak yap (HDR/Glow efekti için)
