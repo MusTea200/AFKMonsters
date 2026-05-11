@@ -116,10 +116,10 @@ func _shoot_closest_enemy() -> void:
 
 	# Sahnedeki tüm düğümleri tara
 	for child in scene_root.get_children():
-		# DİKKAT: İsim ("Enemy") kontrolünü kaldırdık. 
+		# DİKKAT: İsim ("Enemy") kontrolünü kaldırdık.
 		# Sadece "_take_damage" metodu olan her şeyi düşman kabul ediyoruz!
 		if child is Node2D and child.has_method("_take_damage"):
-			
+
 			# YENİ ZIRH: Düşman zaten öldüyse (canı 0 veya altındaysa) görmezden gel
 			var child_health = child.get("current_health")
 			if child_health != null and child_health <= 0:

@@ -1,194 +1,159 @@
-[gd_scene load_steps=4 format=3 uid="uid://c8etx0xem2gbr"]
+[gd_scene load_steps=2 format=3 uid="uid://c8etx0xem2gbr"]
 
-[sub_resource type="QuadMesh" id="QuadMesh_yuoc5"]
+[ext_resource type="Script" uid="uid://b28x55xxx" path="res://ShopUI.gd" id="1_shopui"]
 
-[sub_resource type="QuadMesh" id="QuadMesh_2ga4l"]
+[node name="ShopUI" type="CanvasLayer"]
+script = ExtResource("1_shopui")
 
-[sub_resource type="QuadMesh" id="QuadMesh_e0efb"]
-size = Vector2(41.5, 0.01)
+[node name="Panel" type="Panel" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 
-[node name="ShopUi" type="Node2D"]
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
 
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
+[node name="Header" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+alignment = 1
 
-[node name="AnaArka" type="MeshInstance2D" parent="CanvasLayer"]
-modulate = Color(0, 0.31521547, 0.5775778, 1)
-position = Vector2(552, 328)
-scale = Vector2(1152.5, 648.5)
-mesh = SubResource("QuadMesh_yuoc5")
+[node name="CoinBalance" type="Label" parent="VBoxContainer/Header"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Döngü Parçacığı: 0"
 
-[node name="cizgi1" type="MeshInstance2D" parent="CanvasLayer"]
-modulate = Color(1, 1, 1, 0.25)
-position = Vector2(360, 327.99997)
-scale = Vector2(9.605407, 648.5)
-mesh = SubResource("QuadMesh_2ga4l")
+[node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
 
-[node name="cizgi2" type="MeshInstance2D" parent="CanvasLayer/cizgi1"]
-position = Vector2(-26.5811, 0)
-scale = Vector2(0.85889053, 1)
-mesh = SubResource("QuadMesh_2ga4l")
+[node name="GridContainer" type="GridContainer" parent="VBoxContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/h_separation = 20
+theme_override_constants/v_separation = 20
+columns = 2
 
-[node name="cizgi3" type="MeshInstance2D" parent="CanvasLayer/cizgi1"]
-position = Vector2(-13.336212, 0)
-scale = Vector2(1.0207677, 1)
-mesh = SubResource("QuadMesh_2ga4l")
+[node name="ItemHealth" type="PanelContainer" parent="VBoxContainer/ScrollContainer/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+metadata/upgrade_type = "health"
 
-[node name="MeshInstance2D" type="MeshInstance2D" parent="CanvasLayer/cizgi1"]
-position = Vector2(-20.82161, -0.40709323)
-mesh = SubResource("QuadMesh_e0efb")
+[node name="HBox" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/GridContainer/ItemHealth"]
+layout_mode = 2
+theme_override_constants/separation = 15
 
-[node name="MeshInstance2D2" type="MeshInstance2D" parent="CanvasLayer/cizgi1"]
-position = Vector2(-20.82161, -0.19737853)
-scale = Vector2(0.99999994, 1)
-mesh = SubResource("QuadMesh_e0efb")
+[node name="Icon" type="ColorRect" parent="VBoxContainer/ScrollContainer/GridContainer/ItemHealth/HBox"]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+color = Color(0.9, 0.2, 0.2, 1)
 
-[node name="MeshInstance2D3" type="MeshInstance2D" parent="CanvasLayer/cizgi1"]
-position = Vector2(-20.821613, 4.705872e-08)
-scale = Vector2(0.9999999, 1)
-mesh = SubResource("QuadMesh_e0efb")
+[node name="VBox" type="VBoxContainer" parent="VBoxContainer/ScrollContainer/GridContainer/ItemHealth/HBox"]
+layout_mode = 2
+alignment = 1
 
-[node name="MeshInstance2D4" type="MeshInstance2D" parent="CanvasLayer/cizgi1"]
-position = Vector2(-20.82161, 0.19737862)
-scale = Vector2(0.9999999, 1)
-mesh = SubResource("QuadMesh_e0efb")
+[node name="NameLabel" type="Label" parent="VBoxContainer/ScrollContainer/GridContainer/ItemHealth/HBox/VBox"]
+layout_mode = 2
+text = "Maksimum Can"
 
-[node name="MeshInstance2D5" type="MeshInstance2D" parent="CanvasLayer/cizgi1"]
-position = Vector2(-20.82161, 0.39475718)
-scale = Vector2(0.9999999, 1)
-mesh = SubResource("QuadMesh_e0efb")
+[node name="LvlLabel" type="Label" parent="VBoxContainer/ScrollContainer/GridContainer/ItemHealth/HBox/VBox"]
+layout_mode = 2
+text = "Lvl 0"
 
-[node name="cizgi2" type="MeshInstance2D" parent="CanvasLayer"]
-modulate = Color(1, 1, 1, 0.25)
-position = Vector2(760.00006, 327.99997)
-scale = Vector2(9.605407, 648.5)
-mesh = SubResource("QuadMesh_2ga4l")
+[node name="PriceLabel" type="Label" parent="VBoxContainer/ScrollContainer/GridContainer/ItemHealth/HBox/VBox"]
+layout_mode = 2
+text = "Fiyat: 100"
 
-[node name="cizgi2" type="MeshInstance2D" parent="CanvasLayer/cizgi2"]
-position = Vector2(-26.5811, 0)
-scale = Vector2(0.85889053, 1)
-mesh = SubResource("QuadMesh_2ga4l")
+[node name="BuyButton" type="Button" parent="VBoxContainer/ScrollContainer/GridContainer/ItemHealth/HBox"]
+layout_mode = 2
+size_flags_horizontal = 10
+text = "Satın Al"
 
-[node name="cizgi3" type="MeshInstance2D" parent="CanvasLayer/cizgi2"]
-position = Vector2(-13.336212, 0)
-scale = Vector2(1.0207677, 1)
-mesh = SubResource("QuadMesh_2ga4l")
+[node name="ItemDamage" type="PanelContainer" parent="VBoxContainer/ScrollContainer/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+metadata/upgrade_type = "damage"
 
-[node name="MeshInstance2D" type="MeshInstance2D" parent="CanvasLayer/cizgi2"]
-position = Vector2(-20.82161, -0.40709323)
-mesh = SubResource("QuadMesh_e0efb")
+[node name="HBox" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/GridContainer/ItemDamage"]
+layout_mode = 2
+theme_override_constants/separation = 15
 
-[node name="MeshInstance2D2" type="MeshInstance2D" parent="CanvasLayer/cizgi2"]
-position = Vector2(-20.82161, -0.19737853)
-scale = Vector2(0.99999994, 1)
-mesh = SubResource("QuadMesh_e0efb")
+[node name="Icon" type="ColorRect" parent="VBoxContainer/ScrollContainer/GridContainer/ItemDamage/HBox"]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+color = Color(0.2, 0.2, 0.9, 1)
 
-[node name="MeshInstance2D3" type="MeshInstance2D" parent="CanvasLayer/cizgi2"]
-position = Vector2(-20.821613, 4.705872e-08)
-scale = Vector2(0.9999999, 1)
-mesh = SubResource("QuadMesh_e0efb")
+[node name="VBox" type="VBoxContainer" parent="VBoxContainer/ScrollContainer/GridContainer/ItemDamage/HBox"]
+layout_mode = 2
+alignment = 1
 
-[node name="MeshInstance2D4" type="MeshInstance2D" parent="CanvasLayer/cizgi2"]
-position = Vector2(-20.82161, 0.19737862)
-scale = Vector2(0.9999999, 1)
-mesh = SubResource("QuadMesh_e0efb")
+[node name="NameLabel" type="Label" parent="VBoxContainer/ScrollContainer/GridContainer/ItemDamage/HBox/VBox"]
+layout_mode = 2
+text = "Başlangıç Hasarı"
 
-[node name="MeshInstance2D5" type="MeshInstance2D" parent="CanvasLayer/cizgi2"]
-position = Vector2(-20.82161, 0.39475718)
-scale = Vector2(0.9999999, 1)
-mesh = SubResource("QuadMesh_e0efb")
+[node name="LvlLabel" type="Label" parent="VBoxContainer/ScrollContainer/GridContainer/ItemDamage/HBox/VBox"]
+layout_mode = 2
+text = "Lvl 0"
 
-[node name="cizgi3" type="MeshInstance2D" parent="CanvasLayer"]
-modulate = Color(1, 1, 1, 0.25)
-position = Vector2(1160.0001, 328)
-scale = Vector2(9.605407, 648.5)
-mesh = SubResource("QuadMesh_2ga4l")
+[node name="PriceLabel" type="Label" parent="VBoxContainer/ScrollContainer/GridContainer/ItemDamage/HBox/VBox"]
+layout_mode = 2
+text = "Fiyat: 150"
 
-[node name="cizgi2" type="MeshInstance2D" parent="CanvasLayer/cizgi3"]
-position = Vector2(-26.5811, 0)
-scale = Vector2(0.85889053, 1)
-mesh = SubResource("QuadMesh_2ga4l")
+[node name="BuyButton" type="Button" parent="VBoxContainer/ScrollContainer/GridContainer/ItemDamage/HBox"]
+layout_mode = 2
+size_flags_horizontal = 10
+text = "Satın Al"
 
-[node name="cizgi3" type="MeshInstance2D" parent="CanvasLayer/cizgi3"]
-position = Vector2(-13.336212, 0)
-scale = Vector2(1.0207677, 1)
-mesh = SubResource("QuadMesh_2ga4l")
+[node name="ItemMagnet" type="PanelContainer" parent="VBoxContainer/ScrollContainer/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+metadata/upgrade_type = "magnet"
 
-[node name="MeshInstance2D" type="MeshInstance2D" parent="CanvasLayer/cizgi3"]
-position = Vector2(-20.82161, -0.40709323)
-mesh = SubResource("QuadMesh_e0efb")
+[node name="HBox" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/GridContainer/ItemMagnet"]
+layout_mode = 2
+theme_override_constants/separation = 15
 
-[node name="MeshInstance2D2" type="MeshInstance2D" parent="CanvasLayer/cizgi3"]
-position = Vector2(-20.82161, -0.19737853)
-scale = Vector2(0.99999994, 1)
-mesh = SubResource("QuadMesh_e0efb")
+[node name="Icon" type="ColorRect" parent="VBoxContainer/ScrollContainer/GridContainer/ItemMagnet/HBox"]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+color = Color(0.8, 0.8, 0.1, 1)
 
-[node name="MeshInstance2D3" type="MeshInstance2D" parent="CanvasLayer/cizgi3"]
-position = Vector2(-20.821613, 4.705872e-08)
-scale = Vector2(0.9999999, 1)
-mesh = SubResource("QuadMesh_e0efb")
+[node name="VBox" type="VBoxContainer" parent="VBoxContainer/ScrollContainer/GridContainer/ItemMagnet/HBox"]
+layout_mode = 2
+alignment = 1
 
-[node name="MeshInstance2D4" type="MeshInstance2D" parent="CanvasLayer/cizgi3"]
-position = Vector2(-20.82161, 0.19737862)
-scale = Vector2(0.9999999, 1)
-mesh = SubResource("QuadMesh_e0efb")
+[node name="NameLabel" type="Label" parent="VBoxContainer/ScrollContainer/GridContainer/ItemMagnet/HBox/VBox"]
+layout_mode = 2
+text = "Mıknatıs Alanı"
 
-[node name="MeshInstance2D5" type="MeshInstance2D" parent="CanvasLayer/cizgi3"]
-position = Vector2(-20.82161, 0.39475718)
-scale = Vector2(0.9999999, 1)
-mesh = SubResource("QuadMesh_e0efb")
+[node name="LvlLabel" type="Label" parent="VBoxContainer/ScrollContainer/GridContainer/ItemMagnet/HBox/VBox"]
+layout_mode = 2
+text = "Lvl 0"
 
-[node name="Market" type="Panel" parent="CanvasLayer"]
-offset_left = 64.0
-offset_top = 64.0
-offset_right = 768.0
-offset_bottom = 536.0
+[node name="PriceLabel" type="Label" parent="VBoxContainer/ScrollContainer/GridContainer/ItemMagnet/HBox/VBox"]
+layout_mode = 2
+text = "Fiyat: 200"
 
-[node name="Item1" type="Button" parent="CanvasLayer/Market"]
-layout_mode = 0
-offset_left = 64.0
-offset_top = 64.0
-offset_right = 224.0
-offset_bottom = 320.0
+[node name="BuyButton" type="Button" parent="VBoxContainer/ScrollContainer/GridContainer/ItemMagnet/HBox"]
+layout_mode = 2
+size_flags_horizontal = 10
+text = "Satın Al"
 
-[node name="Item2" type="Button" parent="CanvasLayer/Market"]
-layout_mode = 0
-offset_left = 272.0
-offset_top = 64.0
-offset_right = 432.0
-offset_bottom = 320.0
+[node name="Footer" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+alignment = 1
 
-[node name="Item3" type="Button" parent="CanvasLayer/Market"]
-layout_mode = 0
-offset_left = 480.0
-offset_top = 64.0
-offset_right = 640.0
-offset_bottom = 320.0
+[node name="StartRunButton" type="Button" parent="VBoxContainer/Footer"]
+custom_minimum_size = Vector2(200, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Yeni Döngü (Başla)"
 
-[node name="CoinBalance" type="Panel" parent="CanvasLayer"]
-offset_left = 952.0
-offset_top = 40.0
-offset_right = 1080.0
-offset_bottom = 96.0
-
-[node name="Accept" type="Panel" parent="CanvasLayer"]
-offset_left = 640.0
-offset_top = 560.0
-offset_right = 768.0
-offset_bottom = 600.0
-
-[node name="Refuse" type="Panel" parent="CanvasLayer"]
-offset_left = 480.0
-offset_top = 560.0
-offset_right = 608.0
-offset_bottom = 600.0
-
-[node name="Inventory" type="Panel" parent="CanvasLayer"]
-offset_left = 800.0
-offset_top = 104.0
-offset_right = 1080.0
-offset_bottom = 488.0
-
-[node name="ItemList" type="ItemList" parent="CanvasLayer/Inventory"]
-layout_mode = 0
-offset_right = 280.0
-offset_bottom = 384.0
+[connection signal="pressed" from="VBoxContainer/Footer/StartRunButton" to="." method="_on_start_run_pressed"]

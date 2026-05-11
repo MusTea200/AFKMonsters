@@ -262,7 +262,7 @@ func _update_targeting() -> void:
 	
 	var query = PhysicsShapeQueryParameters2D.new()
 	var circle_shape = CircleShape2D.new()
-	circle_shape.radius = grapple_radius # 600 birimlik menzil 
+	circle_shape.radius = grapple_radius # 600 birimlik menzil
 	query.shape = circle_shape
 	query.transform = global_transform
 	query.collide_with_bodies = true
@@ -288,7 +288,7 @@ func _update_targeting() -> void:
 			current_target_node.scale = old_scale
 			current_target_node.modulate.v = 1.0 # Parlaklığı normale döndür
 
-		current_target_node = closest_node # Yeni hedefi kaydet 
+		current_target_node = closest_node # Yeni hedefi kaydet
 
 		# 2. Yeni hedefi büyüt ve parlat
 		if is_instance_valid(current_target_node):
