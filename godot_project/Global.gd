@@ -12,6 +12,17 @@ var successful_loops: int = 0
 var current_run_kills: int = 0
 var current_run_start_time: float = 0.0
 
+# Global.gd içine eklenecekler:
+var upgrade_levels = {
+	"health": 0,
+	"damage": 0,
+	"magnet": 0
+}
+
+func get_upgrade_cost(type: String) -> int:
+	var base_costs = {"health": 100, "damage": 150, "magnet": 200}
+	return int(base_costs[type] * pow(1.5, upgrade_levels[type]))
+
 func _ready() -> void:
 	load_game()
 
@@ -47,4 +58,4 @@ func end_run() -> void:
 	save_game()
 
 	# Restart
-	get_tree().reload_current_scene()
+	get_tree().change_scene_to_file("res://ShopUI.tscn")

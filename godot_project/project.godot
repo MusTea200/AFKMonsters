@@ -15,6 +15,12 @@ run/main_scene="uid://darena1234"
 config/features=PackedStringArray("4.5", "Mobile")
 config/icon="res://icon.svg"
 
+[autoload]
+
+Global="*res://Global.gd"
+HitstopManager="*res://HitstopManager.gd"
+CameraShake="*res://CameraShake.gd"
+
 [input]
 
 ui_left={
@@ -53,9 +59,3 @@ ui_down={
 [rendering]
 
 renderer/rendering_method="mobile"
-
-[autoload]
-
-Global="*res://Global.gd"
-HitstopManager="*res://HitstopManager.gd"
-CameraShake="*res://CameraShake.gd"

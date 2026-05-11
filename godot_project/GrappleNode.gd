@@ -79,7 +79,7 @@ func trigger_effect(player: Node2D) -> void:
 					var bullet = player.get("bullet_scene").instantiate()
 					bullet.global_position = global_position
 					bullet.direction = Vector2(cos(angle), sin(angle))
-					bullet.damage = player.get("mermi_hasari") * 0.5
+					bullet.damage = player.combat_comp.mermi_hasari * 0.5
 					bullet.pierce_count = 1
 					get_tree().current_scene.add_child(bullet)
 					

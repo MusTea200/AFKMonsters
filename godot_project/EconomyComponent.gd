@@ -87,3 +87,12 @@ func apply_upgrade(type: String) -> void:
 			player.mass = 1.0 * player.mass_multiplier
 		"stiffness":
 			player.stiffness_multiplier += 0.5
+# EconomyComponent.gd dosyasının en altına ekle:
+
+func finalize_run() -> void:
+	# 1. Turda toplanan altınları kalıcı bakiyeye (dongu_parcaciklari) aktar 
+	# Subway Surfers mantığında her altın 1 birim değerindedir
+	Global.dongu_parcaciklari += int(gold) 
+	
+	# 2. Global üzerinden öldürme bonuslarını hesapla ve verileri kaydet 
+	Global.end_run()

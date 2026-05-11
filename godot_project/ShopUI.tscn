@@ -1,0 +1,194 @@
+[gd_scene load_steps=4 format=3 uid="uid://c8etx0xem2gbr"]
+
+[sub_resource type="QuadMesh" id="QuadMesh_yuoc5"]
+
+[sub_resource type="QuadMesh" id="QuadMesh_2ga4l"]
+
+[sub_resource type="QuadMesh" id="QuadMesh_e0efb"]
+size = Vector2(41.5, 0.01)
+
+[node name="ShopUi" type="Node2D"]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="AnaArka" type="MeshInstance2D" parent="CanvasLayer"]
+modulate = Color(0, 0.31521547, 0.5775778, 1)
+position = Vector2(552, 328)
+scale = Vector2(1152.5, 648.5)
+mesh = SubResource("QuadMesh_yuoc5")
+
+[node name="cizgi1" type="MeshInstance2D" parent="CanvasLayer"]
+modulate = Color(1, 1, 1, 0.25)
+position = Vector2(360, 327.99997)
+scale = Vector2(9.605407, 648.5)
+mesh = SubResource("QuadMesh_2ga4l")
+
+[node name="cizgi2" type="MeshInstance2D" parent="CanvasLayer/cizgi1"]
+position = Vector2(-26.5811, 0)
+scale = Vector2(0.85889053, 1)
+mesh = SubResource("QuadMesh_2ga4l")
+
+[node name="cizgi3" type="MeshInstance2D" parent="CanvasLayer/cizgi1"]
+position = Vector2(-13.336212, 0)
+scale = Vector2(1.0207677, 1)
+mesh = SubResource("QuadMesh_2ga4l")
+
+[node name="MeshInstance2D" type="MeshInstance2D" parent="CanvasLayer/cizgi1"]
+position = Vector2(-20.82161, -0.40709323)
+mesh = SubResource("QuadMesh_e0efb")
+
+[node name="MeshInstance2D2" type="MeshInstance2D" parent="CanvasLayer/cizgi1"]
+position = Vector2(-20.82161, -0.19737853)
+scale = Vector2(0.99999994, 1)
+mesh = SubResource("QuadMesh_e0efb")
+
+[node name="MeshInstance2D3" type="MeshInstance2D" parent="CanvasLayer/cizgi1"]
+position = Vector2(-20.821613, 4.705872e-08)
+scale = Vector2(0.9999999, 1)
+mesh = SubResource("QuadMesh_e0efb")
+
+[node name="MeshInstance2D4" type="MeshInstance2D" parent="CanvasLayer/cizgi1"]
+position = Vector2(-20.82161, 0.19737862)
+scale = Vector2(0.9999999, 1)
+mesh = SubResource("QuadMesh_e0efb")
+
+[node name="MeshInstance2D5" type="MeshInstance2D" parent="CanvasLayer/cizgi1"]
+position = Vector2(-20.82161, 0.39475718)
+scale = Vector2(0.9999999, 1)
+mesh = SubResource("QuadMesh_e0efb")
+
+[node name="cizgi2" type="MeshInstance2D" parent="CanvasLayer"]
+modulate = Color(1, 1, 1, 0.25)
+position = Vector2(760.00006, 327.99997)
+scale = Vector2(9.605407, 648.5)
+mesh = SubResource("QuadMesh_2ga4l")
+
+[node name="cizgi2" type="MeshInstance2D" parent="CanvasLayer/cizgi2"]
+position = Vector2(-26.5811, 0)
+scale = Vector2(0.85889053, 1)
+mesh = SubResource("QuadMesh_2ga4l")
+
+[node name="cizgi3" type="MeshInstance2D" parent="CanvasLayer/cizgi2"]
+position = Vector2(-13.336212, 0)
+scale = Vector2(1.0207677, 1)
+mesh = SubResource("QuadMesh_2ga4l")
+
+[node name="MeshInstance2D" type="MeshInstance2D" parent="CanvasLayer/cizgi2"]
+position = Vector2(-20.82161, -0.40709323)
+mesh = SubResource("QuadMesh_e0efb")
+
+[node name="MeshInstance2D2" type="MeshInstance2D" parent="CanvasLayer/cizgi2"]
+position = Vector2(-20.82161, -0.19737853)
+scale = Vector2(0.99999994, 1)
+mesh = SubResource("QuadMesh_e0efb")
+
+[node name="MeshInstance2D3" type="MeshInstance2D" parent="CanvasLayer/cizgi2"]
+position = Vector2(-20.821613, 4.705872e-08)
+scale = Vector2(0.9999999, 1)
+mesh = SubResource("QuadMesh_e0efb")
+
+[node name="MeshInstance2D4" type="MeshInstance2D" parent="CanvasLayer/cizgi2"]
+position = Vector2(-20.82161, 0.19737862)
+scale = Vector2(0.9999999, 1)
+mesh = SubResource("QuadMesh_e0efb")
+
+[node name="MeshInstance2D5" type="MeshInstance2D" parent="CanvasLayer/cizgi2"]
+position = Vector2(-20.82161, 0.39475718)
+scale = Vector2(0.9999999, 1)
+mesh = SubResource("QuadMesh_e0efb")
+
+[node name="cizgi3" type="MeshInstance2D" parent="CanvasLayer"]
+modulate = Color(1, 1, 1, 0.25)
+position = Vector2(1160.0001, 328)
+scale = Vector2(9.605407, 648.5)
+mesh = SubResource("QuadMesh_2ga4l")
+
+[node name="cizgi2" type="MeshInstance2D" parent="CanvasLayer/cizgi3"]
+position = Vector2(-26.5811, 0)
+scale = Vector2(0.85889053, 1)
+mesh = SubResource("QuadMesh_2ga4l")
+
+[node name="cizgi3" type="MeshInstance2D" parent="CanvasLayer/cizgi3"]
+position = Vector2(-13.336212, 0)
+scale = Vector2(1.0207677, 1)
+mesh = SubResource("QuadMesh_2ga4l")
+
+[node name="MeshInstance2D" type="MeshInstance2D" parent="CanvasLayer/cizgi3"]
+position = Vector2(-20.82161, -0.40709323)
+mesh = SubResource("QuadMesh_e0efb")
+
+[node name="MeshInstance2D2" type="MeshInstance2D" parent="CanvasLayer/cizgi3"]
+position = Vector2(-20.82161, -0.19737853)
+scale = Vector2(0.99999994, 1)
+mesh = SubResource("QuadMesh_e0efb")
+
+[node name="MeshInstance2D3" type="MeshInstance2D" parent="CanvasLayer/cizgi3"]
+position = Vector2(-20.821613, 4.705872e-08)
+scale = Vector2(0.9999999, 1)
+mesh = SubResource("QuadMesh_e0efb")
+
+[node name="MeshInstance2D4" type="MeshInstance2D" parent="CanvasLayer/cizgi3"]
+position = Vector2(-20.82161, 0.19737862)
+scale = Vector2(0.9999999, 1)
+mesh = SubResource("QuadMesh_e0efb")
+
+[node name="MeshInstance2D5" type="MeshInstance2D" parent="CanvasLayer/cizgi3"]
+position = Vector2(-20.82161, 0.39475718)
+scale = Vector2(0.9999999, 1)
+mesh = SubResource("QuadMesh_e0efb")
+
+[node name="Market" type="Panel" parent="CanvasLayer"]
+offset_left = 64.0
+offset_top = 64.0
+offset_right = 768.0
+offset_bottom = 536.0
+
+[node name="Item1" type="Button" parent="CanvasLayer/Market"]
+layout_mode = 0
+offset_left = 64.0
+offset_top = 64.0
+offset_right = 224.0
+offset_bottom = 320.0
+
+[node name="Item2" type="Button" parent="CanvasLayer/Market"]
+layout_mode = 0
+offset_left = 272.0
+offset_top = 64.0
+offset_right = 432.0
+offset_bottom = 320.0
+
+[node name="Item3" type="Button" parent="CanvasLayer/Market"]
+layout_mode = 0
+offset_left = 480.0
+offset_top = 64.0
+offset_right = 640.0
+offset_bottom = 320.0
+
+[node name="CoinBalance" type="Panel" parent="CanvasLayer"]
+offset_left = 952.0
+offset_top = 40.0
+offset_right = 1080.0
+offset_bottom = 96.0
+
+[node name="Accept" type="Panel" parent="CanvasLayer"]
+offset_left = 640.0
+offset_top = 560.0
+offset_right = 768.0
+offset_bottom = 600.0
+
+[node name="Refuse" type="Panel" parent="CanvasLayer"]
+offset_left = 480.0
+offset_top = 560.0
+offset_right = 608.0
+offset_bottom = 600.0
+
+[node name="Inventory" type="Panel" parent="CanvasLayer"]
+offset_left = 800.0
+offset_top = 104.0
+offset_right = 1080.0
+offset_bottom = 488.0
+
+[node name="ItemList" type="ItemList" parent="CanvasLayer/Inventory"]
+layout_mode = 0
+offset_right = 280.0
+offset_bottom = 384.0
