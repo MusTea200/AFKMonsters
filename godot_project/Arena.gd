@@ -29,6 +29,13 @@ func _ready() -> void:
 		pause_menu.hide()
 		pause_menu.process_mode = Node.PROCESS_MODE_ALWAYS # Menü oyun durunca donmasın
 		
+		var return_btn = Button.new()
+		return_btn.text = "Return to Market"
+		return_btn.custom_minimum_size = Vector2(200, 60)
+		return_btn.position = Vector2(pause_menu.size.x / 2.0 - 100, pause_menu.size.y - 100)
+		pause_menu.add_child(return_btn)
+		return_btn.pressed.connect(self._on_return_market_pressed)
+
 		stats_label = pause_menu.find_child("StatsLabel", true, false)
 		# Eğer StatsLabel RichTextLabel ise, BBCode'u otomatik aç!
 		if stats_label and "bbcode_enabled" in stats_label:
@@ -145,3 +152,8 @@ func _update_stats_label() -> void:
 func update_balance_ui() -> void:
 	if is_instance_valid(player_node) and is_instance_valid(balance_label):
 		balance_label.text = str(int(player_node.get_node("EconomyComponent").gold))
+
+func _on_return_market_pressed() -> void:
+	Engine.time_scale = 1.0
+	get_tree().paused = false
+	get_tree().change_scene_to_file("res://ShopUI.tscn")

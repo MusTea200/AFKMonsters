@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="AFKMonsters"
-run/main_scene="uid://darena1234"
+run/main_scene="res://MainMenu.tscn"
 config/features=PackedStringArray("4.5", "Mobile")
 config/icon="res://icon.svg"
 
