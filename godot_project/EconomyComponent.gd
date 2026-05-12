@@ -94,3 +94,8 @@ func finalize_run() -> void:
 
 	# 2. Global üzerinden öldürme bonuslarını hesapla ve verileri kaydet
 	Global.end_run()
+
+func convert_gold_to_global() -> void:
+	if gold > 0:
+		Global.dongu_parcaciklari += int(gold)
+		gold = 0 # Prevent double counting
