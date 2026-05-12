@@ -8,7 +8,33 @@ var display_coins: int = 0
 func _ready() -> void:
 	display_coins = Global.dongu_parcaciklari
 	_update_coin_label(display_coins)
+	_setup_hover_effects()
 	_refresh_items()
+
+func _setup_hover_effects() -> void:
+	for item in item_container.get_children():
+		if item is PanelContainer:
+			# Make a unique copy of the stylebox so glow/shadow animates individually
+			var stylebox = item.get_theme_stylebox("panel").duplicate()
+			item.add_theme_stylebox_override("panel", stylebox)
+
+			item.mouse_entered.connect(self._on_item_hovered.bind(item, true))
+			item.mouse_exited.connect(self._on_item_hovered.bind(item, false))
+
+func _on_item_hovered(item: PanelContainer, is_hovered: bool) -> void:
+	var tween = create_tween()
+	tween.set_parallel(true)
+
+	var stylebox = item.get_theme_stylebox("panel") as StyleBoxFlat
+
+	if is_hovered:
+		tween.tween_property(item, "position:y", item.position.y - 5.0, 0.1)
+		if stylebox:
+			tween.tween_property(stylebox, "shadow_color:a", 0.5, 0.1) # Glow up
+	else:
+		tween.tween_property(item, "position:y", item.position.y + 5.0, 0.1)
+		if stylebox:
+			tween.tween_property(stylebox, "shadow_color:a", 0.0, 0.1) # Glow down
 
 func _update_coin_label(val: int) -> void:
 	coin_label.text = "Döngü Parçacığı: " + str(val)
@@ -27,12 +53,30 @@ func _refresh_items() -> void:
 		var current_lvl = Global.upgrade_levels.get(type, 0)
 		var cost = Global.get_upgrade_cost(type)
 
-		var lvl_lbl = item.get_node("HBox/VBox/LvlLabel") as Label
+		var lvl_bar = item.get_node("HBox/VBox/LvlBar") as HBoxContainer
 		var price_lbl = item.get_node("HBox/VBox/PriceLabel") as Label
 		var buy_btn = item.get_node("HBox/BuyButton") as Button
+		var icon_color = item.get_node("HBox/Icon").color if item.has_node("HBox/Icon") else Color(0,1,1,1)
 
-		lvl_lbl.text = "Lvl " + str(current_lvl)
 		price_lbl.text = "Fiyat: " + str(cost)
+
+		# Clear existing level pips
+		for child in lvl_bar.get_children():
+			child.queue_free()
+
+		# Add new level pips
+		for i in range(current_lvl):
+			var pip = ColorRect.new()
+			pip.custom_minimum_size = Vector2(10, 10)
+			pip.color = icon_color # Match icon color
+			lvl_bar.add_child(pip)
+
+			# Add empty pip if level 0
+		if current_lvl == 0:
+			var empty_lbl = Label.new()
+			empty_lbl.text = "Lvl 0"
+			empty_lbl.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5, 1))
+			lvl_bar.add_child(empty_lbl)
 
 		# Sinyali temizle ki tekrar tekrar bağlanmasın
 		if buy_btn.pressed.is_connected(self._on_buy_pressed):
