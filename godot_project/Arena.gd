@@ -154,6 +154,12 @@ func update_balance_ui() -> void:
 		balance_label.text = str(int(player_node.get_node("EconomyComponent").gold))
 
 func _on_return_market_pressed() -> void:
+	if is_instance_valid(player_node) and player_node.has_node("EconomyComponent"):
+		var eco = player_node.get_node("EconomyComponent")
+		eco.convert_gold_to_global()
+
+	Global.save_game()
+
 	Engine.time_scale = 1.0
 	get_tree().paused = false
 	get_tree().change_scene_to_file("res://ShopUI.tscn")
