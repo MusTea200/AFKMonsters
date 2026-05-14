@@ -98,6 +98,14 @@ func _try_spawn_node_around(center: Vector2, min_rad: float, max_rad: float) -> 
 
 func _create_node_instance(pos: Vector2) -> void:
 	var node_instance = grapple_node_scene.instantiate()
+
+	# 10% chance to spawn Redzone instead of a normal node
+	if randf() < 0.1:
+		var rz = load("res://Redzone.gd").new()
+		rz.global_position = pos
+		add_child(rz)
+		return
+
 	node_instance.global_position = pos
 	node_instance.add_to_group("grapple_nodes")
 	add_child(node_instance)
@@ -108,7 +116,6 @@ func _create_node_instance(pos: Vector2) -> void:
 		var rman = load("res://RouletteMan.gd").new()
 		rman.target_node = node_instance
 		add_child(rman)
-
 
 func _setup_enemy_spawner() -> void:
 	spawn_timer = Timer.new()
@@ -125,7 +132,6 @@ func _on_spawn_timer_timeout() -> void:
 	var spawn_pos = player_node.global_position + Vector2(cos(angle), sin(angle)) * spawn_radius
 
 	for i in range(current_spawn_multiplier):
-		var angle = randf() * 2.0 * PI
 		var final_pos = spawn_pos + Vector2(cos(angle), sin(angle)) * randf_range(0, 200)
 		var enemy_instance = enemy_scene.instantiate()
 		enemy_instance.global_position = final_pos
@@ -201,6 +207,23 @@ func _check_time_events() -> void:
 		spawn_timer.wait_time = spawn_timer.wait_time / 3.0
 		_show_center_warning("SÜRÜ BASKINI!")
 
+
+	# 4 minutes: Flappy Chase (DeathLine)
+	if arena_time >= 240.0 and not get_meta("deathline_spawned", false):
+		set_meta("deathline_spawned", true)
+		var dl = load("res://DeathLine.gd").new()
+		dl.global_position = player_node.global_position + Vector2(-3000, 0) # Start way behind
+		add_child(dl)
+		_show_center_warning("ÖLÜM ÇİZGİSİ YAKLAŞIYOR!")
+
+	# 1 minute: Speed Merchant
+	if arena_time >= 60.0 and not get_meta("speed_merchant_spawned", false):
+		set_meta("speed_merchant_spawned", true)
+		var sm = load("res://SpeedMerchant.gd").new()
+		sm.global_position = player_node.global_position + Vector2(1000, 0)
+		add_child(sm)
+		_show_center_warning("HIZLI TÜCCARI YAKALA!")
+
 	# Boss at 5 minutes (300s)
 	if arena_time >= 300.0 and not boss_triggered:
 		boss_triggered = true
@@ -229,6 +252,7 @@ func _spawn_boss() -> void:
 	boss.max_health = 1000.0 * pow(1.5, Global.successful_loops) # HUGE HP
 	boss.move_speed = 100.0
 	boss.base_mass = 5.0
+	boss.is_boss = true
 	# Note: Off-screen indicator would require a separate UI script,
 	# but we keep it simple by just having a big enemy tracking us.
 	add_child(boss)

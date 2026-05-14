@@ -93,6 +93,7 @@ func finalize_run() -> void:
 	# Subway Surfers mantığında her altın 1 birim değerindedir
 
 	# 2. Global üzerinden öldürme bonuslarını hesapla ve verileri kaydet
+	convert_gold_to_global()
 	Global.end_run()
 
 func convert_gold_to_global() -> void:

@@ -15,6 +15,12 @@ var warning_label: Label
 var shader_rect: ColorRect
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
+
+	var audio_player = AudioStreamPlayer2D.new()
+	audio_player.name = "PhoneAudio"
+	add_child(audio_player)
+
 	var sprite = Sprite2D.new()
 	sprite.texture = load("res://icon.svg")
 	sprite.modulate = Color(1.0, 0.5, 0.0) # Orange
@@ -32,6 +38,7 @@ func _ready() -> void:
 	warning_label = Label.new()
 	warning_label.text = "Benimle ayni yonde don!"
 	warning_label.position = Vector2(-50, -50)
+	warning_label.visible = false
 	add_child(warning_label)
 
 	# Full screen shader rect
@@ -64,6 +71,12 @@ func _track_player_rotation() -> void:
 
 	# If player is attached to THIS node
 	if player.active_springs.has(target_node):
+		if warning_label.visible == false:
+			warning_label.visible = true
+			var audio = get_node("PhoneAudio") as AudioStreamPlayer2D
+			audio.pitch_scale = randf_range(1.5, 2.5) # Toy phone pitch
+			audio.play()
+
 		total_player_rotation += angle_diff
 
 		var progress = abs(total_player_rotation) / target_rotations
@@ -72,6 +85,7 @@ func _track_player_rotation() -> void:
 		if abs(total_player_rotation) >= target_rotations:
 			_trigger_roulette_event()
 	else:
+		warning_label.visible = false
 		total_player_rotation = 0.0
 		shader_rect.color.a = 0.0
 
@@ -100,6 +114,23 @@ func _trigger_roulette_event() -> void:
 	Global.roulette_universe_unlocked = true
 	Global.save_game()
 
+	# Vortex Effect
+	var vortex = Sprite2D.new()
+	vortex.texture = load("res://icon.svg") # Placeholder for vortex
+	vortex.modulate = Color(0.5, 0.0, 1.0, 0.8)
+	vortex.scale = Vector2(0.1, 0.1)
+	get_tree().current_scene.find_child("CanvasLayer", true, false).add_child(vortex)
+	vortex.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+
+	var v_tween = create_tween()
+	v_tween.set_parallel(true)
+	v_tween.tween_property(vortex, "scale", Vector2(100.0, 100.0), 2.0).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
+	v_tween.tween_property(vortex, "rotation", 10.0 * PI, 2.0).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
+	v_tween.chain().tween_callback(self._show_roulette_ui.bind(vortex))
+	get_tree().paused = true
+
+func _show_roulette_ui(vortex: Node) -> void:
+	vortex.queue_free()
 	var ui = Panel.new()
 	ui.custom_minimum_size = Vector2(400, 300)
 	ui.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
@@ -119,7 +150,7 @@ func _trigger_roulette_event() -> void:
 	var close = Button.new()
 	close.text = "Çıkış"
 	close.position = Vector2(100, 150)
-	close.pressed.connect(ui.queue_free)
+	close.pressed.connect(_close_ui.bind(ui))
 	ui.add_child(close)
 
 	get_tree().current_scene.find_child("CanvasLayer", true, false).add_child(ui)
@@ -139,5 +170,10 @@ func _spin(ui: Panel) -> void:
 			Global.dongu_parcaciklari += 50
 			print("Kalıcı 50 Döngü Parçacığı")
 
-		ui.queue_free()
-		get_tree().paused = false
+		_close_ui(ui)
+	else:
+		print("Yetersiz bakiye!")
+
+func _close_ui(ui: Panel) -> void:
+	ui.queue_free()
+	get_tree().paused = false
