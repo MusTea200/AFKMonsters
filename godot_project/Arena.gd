@@ -125,7 +125,6 @@ func _on_spawn_timer_timeout() -> void:
 	var spawn_pos = player_node.global_position + Vector2(cos(angle), sin(angle)) * spawn_radius
 
 	for i in range(current_spawn_multiplier):
-		var angle = randf() * 2.0 * PI
 		var final_pos = spawn_pos + Vector2(cos(angle), sin(angle)) * randf_range(0, 200)
 		var enemy_instance = enemy_scene.instantiate()
 		enemy_instance.global_position = final_pos
