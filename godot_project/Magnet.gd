@@ -65,11 +65,13 @@ func _trigger_mimic_trap() -> void:
 		player.apply_stun(2.0)
 
 	var scene_root = get_tree().current_scene
-	var spread = 360.0 / 5.0
-	for i in range(5):
+	var num_enemies = 10
+	var radius = 250.0
+	var spread = 360.0 / float(num_enemies)
+	for i in range(num_enemies):
 		var enemy = enemy_scene.instantiate()
 		var angle = deg_to_rad(spread * i)
-		enemy.global_position = global_position + Vector2(cos(angle), sin(angle)) * 100.0
+		enemy.global_position = global_position + Vector2(cos(angle), sin(angle)) * radius
 		enemy.move_speed = 300.0 # Hızlı düşman
 		scene_root.add_child(enemy)
 

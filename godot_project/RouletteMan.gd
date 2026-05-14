@@ -131,6 +131,23 @@ func _trigger_roulette_event() -> void:
 
 func _show_roulette_ui(vortex: Node) -> void:
 	vortex.queue_free()
+
+	var canvas = get_tree().current_scene.find_child("CanvasLayer", true, false)
+
+	# Cyberpunk Unlocked Notification
+	var notif = Label.new()
+	notif.text = ">> WHEEL UNIVERSE PERMANENTLY UNLOCKED <<"
+	notif.add_theme_font_size_override("font_size", 32)
+	notif.modulate = Color(0.0, 1.0, 1.0, 1.0) # Cyan
+	notif.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	canvas.add_child(notif)
+	notif.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	notif.position.y -= 150
+
+	var tw = create_tween()
+	tw.tween_property(notif, "modulate:a", 0.0, 3.0).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
+	tw.tween_callback(notif.queue_free)
+
 	var ui = Panel.new()
 	ui.custom_minimum_size = Vector2(400, 300)
 	ui.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
