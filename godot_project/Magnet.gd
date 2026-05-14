@@ -7,7 +7,13 @@ var is_active: bool = false
 var player: Node2D
 var original_scale: Vector2
 
+var is_mimic: bool = false
+var enemy_scene = preload("res://Enemy.tscn")
+
 func _ready() -> void:
+	if randf() < 0.2:
+		is_mimic = true
+
 	area_entered.connect(_on_area_entered)
 	area_exited.connect(_on_area_exited)
 	player = get_tree().current_scene.find_child("Player", true, false)
@@ -19,6 +25,10 @@ func _physics_process(delta: float) -> void:
 	# ŞALTER KONTROLÜ: Oyuncu 150 birim yakındaysa aç, uzaklaşınca kapat!
 	if global_position.distance_to(player.global_position) < 150.0:
 		if not is_active:
+			if is_mimic:
+				_trigger_mimic_trap()
+				return
+
 			is_active = true
 			scale = original_scale * 1.3 # Orijinal boyutunu (5) 1.3 ile çarparak büyütür
 			modulate = Color.GOLD
@@ -49,3 +59,20 @@ func _on_area_entered(area: Area2D) -> void:
 func _on_area_exited(area: Area2D) -> void:
 	if attracted_coins.has(area):
 		attracted_coins.erase(area)
+
+func _trigger_mimic_trap() -> void:
+	if is_instance_valid(player) and player.has_method("apply_stun"):
+		player.apply_stun(2.0)
+
+	var scene_root = get_tree().current_scene
+	var spread = 360.0 / 5.0
+	for i in range(5):
+		var enemy = enemy_scene.instantiate()
+		var angle = deg_to_rad(spread * i)
+		enemy.global_position = global_position + Vector2(cos(angle), sin(angle)) * 100.0
+		enemy.move_speed = 300.0 # Hızlı düşman
+		scene_root.add_child(enemy)
+
+	# Patlama efekti
+	CameraShake.add_trauma(0.5)
+	queue_free()

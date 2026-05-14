@@ -15,6 +15,12 @@ var player_node: Node2D
 var pause_menu: Control
 var stats_label # Türü serbest bıraktık (Label veya RichTextLabel olabilir)
 var balance_label: Label
+var arena_time: float = 0.0
+var horde_triggered: bool = false
+var boss_triggered: bool = false
+var current_spawn_multiplier: int = 1
+var is_horde_mode: bool = false
+
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS # Arena zaman dursa da çalışsın (ESC için)
@@ -50,6 +56,10 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if get_tree().paused or not is_instance_valid(player_node):
 		return # Oyun durduysa motoru hiç yorma
+	if not get_tree().paused:
+		arena_time += delta
+		_check_time_events()
+
 		
 	_cull_distant_objects()
 	_maintain_node_count()
@@ -92,6 +102,14 @@ func _create_node_instance(pos: Vector2) -> void:
 	node_instance.add_to_group("grapple_nodes")
 	add_child(node_instance)
 
+	# 5% chance to spawn RouletteMan on a node
+	if randf() < 0.05 and not get_meta("roulette_spawned", false):
+		set_meta("roulette_spawned", true)
+		var rman = load("res://RouletteMan.gd").new()
+		rman.target_node = node_instance
+		add_child(rman)
+
+
 func _setup_enemy_spawner() -> void:
 	spawn_timer = Timer.new()
 	spawn_timer.wait_time = enemy_spawn_rate * pow(0.95, Global.successful_loops)
@@ -106,9 +124,14 @@ func _on_spawn_timer_timeout() -> void:
 	var angle = randf() * 2.0 * PI
 	var spawn_pos = player_node.global_position + Vector2(cos(angle), sin(angle)) * spawn_radius
 
-	var enemy_instance = enemy_scene.instantiate()
-	enemy_instance.global_position = spawn_pos
-	add_child(enemy_instance)
+	for i in range(current_spawn_multiplier):
+		var angle = randf() * 2.0 * PI
+		var final_pos = spawn_pos + Vector2(cos(angle), sin(angle)) * randf_range(0, 200)
+		var enemy_instance = enemy_scene.instantiate()
+		enemy_instance.global_position = final_pos
+		if is_horde_mode:
+			enemy_instance.move_speed = 150.0 * 1.2
+		add_child(enemy_instance)
 
 func _cull_distant_objects() -> void:
 	var player_pos = player_node.global_position
@@ -163,3 +186,57 @@ func _on_return_market_pressed() -> void:
 	Engine.time_scale = 1.0
 	get_tree().paused = false
 	get_tree().change_scene_to_file("res://ShopUI.tscn")
+
+func _check_time_events() -> void:
+	# Merchant at 2 minutes (120s)
+	if arena_time >= 120.0 and not get_meta("merchant_spawned", false):
+		set_meta("merchant_spawned", true)
+		_spawn_merchant()
+
+	# Horde at 3 minutes (180s)
+	if arena_time >= 180.0 and not horde_triggered:
+		horde_triggered = true
+		is_horde_mode = true
+		current_spawn_multiplier = 3
+		spawn_timer.wait_time = spawn_timer.wait_time / 3.0
+		_show_center_warning("SÜRÜ BASKINI!")
+
+	# Boss at 5 minutes (300s)
+	if arena_time >= 300.0 and not boss_triggered:
+		boss_triggered = true
+		_spawn_boss()
+		_show_center_warning("BOSS BELİRDİ!")
+
+func _show_center_warning(msg: String) -> void:
+	var lbl = Label.new()
+	lbl.text = msg
+	lbl.modulate = Color.RED
+	lbl.add_theme_font_size_override("font_size", 48)
+	get_tree().current_scene.find_child("CanvasLayer", true, false).add_child(lbl)
+	lbl.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+
+	var tween = create_tween()
+	tween.tween_property(lbl, "scale", Vector2(1.5, 1.5), 0.5)
+	tween.tween_property(lbl, "modulate:a", 0.0, 1.5).set_delay(1.0)
+	tween.tween_callback(lbl.queue_free)
+
+func _spawn_boss() -> void:
+	var angle = randf() * 2.0 * PI
+	var spawn_pos = player_node.global_position + Vector2(cos(angle), sin(angle)) * spawn_radius
+	var boss = enemy_scene.instantiate()
+	boss.global_position = spawn_pos
+	boss.scale = Vector2(3.0, 3.0)
+	boss.max_health = 1000.0 * pow(1.5, Global.successful_loops) # HUGE HP
+	boss.move_speed = 100.0
+	boss.base_mass = 5.0
+	# Note: Off-screen indicator would require a separate UI script,
+	# but we keep it simple by just having a big enemy tracking us.
+	add_child(boss)
+
+func _spawn_merchant() -> void:
+	var merchant = load("res://Merchant.gd").new()
+	var angle = randf() * 2.0 * PI
+	var dist = randf_range(1000.0, 2000.0)
+	merchant.global_position = player_node.global_position + Vector2(cos(angle), sin(angle)) * dist
+	add_child(merchant)
+	_show_center_warning("TÜCCAR GELDİ!")
