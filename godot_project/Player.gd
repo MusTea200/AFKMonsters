@@ -16,6 +16,8 @@ var current_target_node: Node2D = null
 var health_bar: ProgressBar
 
 var camera: Camera2D
+var is_stunned: bool = false
+var stun_icon: Sprite2D
 @export var min_zoom: float = 0.5
 @export var max_zoom: float = 3.0
 @export var zoom_speed: float = 0.1
@@ -68,6 +70,12 @@ func _ready() -> void:
 		level_up_ui.upgrade_selected.connect(economy_comp.apply_upgrade)
 
 func _physics_process(delta: float) -> void:
+	if is_stunned:
+		linear_velocity = linear_velocity.move_toward(Vector2.ZERO, 50.0 * delta)
+		if stun_icon:
+			stun_icon.rotation += 5.0 * delta
+		return
+
 	var input_vector = Vector2.ZERO
 
 	if Input.is_key_pressed(KEY_D) or Input.is_action_pressed("ui_right"):
@@ -127,6 +135,8 @@ func _integrate_forces(state: PhysicsDirectBodyState2D) -> void:
 					state.linear_velocity += pull_dir * outward_vel
 
 func _unhandled_input(event: InputEvent) -> void:
+	if is_stunned: return
+
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 			_try_attach_spring(get_global_mouse_position())
@@ -295,3 +305,22 @@ func _update_targeting() -> void:
 			var new_scale = current_target_node.get("original_scale") if current_target_node.has_method("get") and current_target_node.get("original_scale") != null else Vector2.ONE
 			current_target_node.scale = new_scale * 1.3 # %30 büyüt
 			current_target_node.modulate.v = 1.5 # Daha parlak yap (HDR/Glow efekti için)
+
+func apply_stun(duration: float) -> void:
+	if is_stunned: return
+	is_stunned = true
+	_release_slingshot()
+
+	# Create visual stun effect
+	stun_icon = Sprite2D.new()
+	# Fallback to godot icon if no special stun icon exists
+	stun_icon.texture = load("res://icon.svg")
+	stun_icon.scale = Vector2(0.3, 0.3)
+	stun_icon.modulate = Color(1.0, 1.0, 0.0, 0.8)
+	stun_icon.position = Vector2(0, -60)
+	add_child(stun_icon)
+
+	await get_tree().create_timer(duration).timeout
+	is_stunned = false
+	if is_instance_valid(stun_icon):
+		stun_icon.queue_free()

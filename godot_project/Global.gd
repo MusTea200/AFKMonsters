@@ -7,6 +7,7 @@ var dongu_parcaciklari: int = 0
 var perm_max_health: float = 100.0
 var perm_starting_damage: float = 25.0
 var successful_loops: int = 0
+var roulette_universe_unlocked: bool = false
 
 # Geçici run verileri
 var current_run_kills: int = 0
@@ -32,6 +33,7 @@ func save_game() -> void:
 	config.set_value("Stats", "perm_max_health", perm_max_health)
 	config.set_value("Stats", "perm_starting_damage", perm_starting_damage)
 	config.set_value("Stats", "successful_loops", successful_loops)
+	config.set_value("Stats", "roulette_universe_unlocked", roulette_universe_unlocked)
 	config.set_value("Stats", "upgrade_levels", upgrade_levels)
 	config.save(save_path)
 
@@ -42,6 +44,7 @@ func load_game() -> void:
 		perm_max_health = config.get_value("Stats", "perm_max_health", 100.0)
 		perm_starting_damage = config.get_value("Stats", "perm_starting_damage", 25.0)
 		successful_loops = config.get_value("Stats", "successful_loops", 0)
+		roulette_universe_unlocked = config.get_value("Stats", "roulette_universe_unlocked", false)
 		upgrade_levels = config.get_value("Stats", "upgrade_levels", {"health": 0, "damage": 0, "magnet": 0})
 
 func start_run() -> void:

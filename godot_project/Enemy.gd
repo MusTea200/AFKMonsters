@@ -42,6 +42,13 @@ func _process(delta: float) -> void:
 	var movement = Vector2.ZERO
 	if is_instance_valid(player_node):
 		var dir = global_position.direction_to(player_node.global_position)
+
+		# Roulette Universe Movement modifier
+		if Global.roulette_universe_unlocked and randf() < 0.3:
+			# Curve the path (elliptical/circular approach)
+			var tangent = Vector2(-dir.y, dir.x)
+			dir = (dir + tangent * 0.5).normalized()
+
 		movement = dir * move_speed * delta
 
 	if knockback_velocity.length() > 0:
