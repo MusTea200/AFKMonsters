@@ -17,6 +17,7 @@ var health_bar: ProgressBar
 
 var camera: Camera2D
 var is_stunned: bool = false
+var is_jammed: bool = false
 var stun_icon: Sprite2D
 @export var min_zoom: float = 0.5
 @export var max_zoom: float = 3.0

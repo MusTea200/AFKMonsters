@@ -17,6 +17,9 @@ var progress_bar: ProgressBar
 var knockback_velocity: Vector2 = Vector2.ZERO
 var knockback_decay: float = 10.0
 var audio_player: AudioStreamPlayer2D
+var is_boss: bool = false
+var jammer_visual: ColorRect
+
 
 func _ready() -> void:
 	audio_player = AudioStreamPlayer2D.new()
@@ -25,6 +28,14 @@ func _ready() -> void:
 
 
 	# Attempt to find the user's manually added ProgressBar named HealthBar
+	if is_boss:
+		jammer_visual = ColorRect.new()
+		jammer_visual.color = Color(0.8, 0, 0, 0.2)
+		jammer_visual.custom_minimum_size = Vector2(2000, 2000)
+		jammer_visual.position = Vector2(-1000, -1000)
+		jammer_visual.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(jammer_visual)
+
 	progress_bar = find_child("HealthBar", true, false) as ProgressBar
 	if progress_bar:
 		progress_bar.max_value = max_health
@@ -44,10 +55,13 @@ func _process(delta: float) -> void:
 		var dir = global_position.direction_to(player_node.global_position)
 
 		# Roulette Universe Movement modifier
-		if Global.roulette_universe_unlocked and randf() < 0.3:
-			# Curve the path (elliptical/circular approach)
+		if Global.roulette_universe_unlocked:
+			# Lissajous / Chaotic Elliptical approach
+			var t = Time.get_ticks_msec() * 0.002
+			var lissajous_offset = Vector2(sin(3.0 * t), sin(2.0 * t)) * 0.8
+
 			var tangent = Vector2(-dir.y, dir.x)
-			dir = (dir + tangent * 0.5).normalized()
+			dir = (dir + tangent * lissajous_offset.x + dir * lissajous_offset.y).normalized()
 
 		movement = dir * move_speed * delta
 
@@ -56,6 +70,15 @@ func _process(delta: float) -> void:
 		knockback_velocity = knockback_velocity.lerp(Vector2.ZERO, knockback_decay * delta)
 
 	global_position += movement
+
+	if is_boss and is_instance_valid(player_node):
+		if global_position.distance_to(player_node.global_position) < 1000.0:
+			player_node.is_jammed = true
+			if is_instance_valid(jammer_visual): jammer_visual.visible = true
+		else:
+			player_node.is_jammed = false
+			if is_instance_valid(jammer_visual): jammer_visual.visible = false
+
 
 func _on_body_entered(body: Node2D) -> void:
 	if body is Player:
@@ -132,6 +155,10 @@ func _die(knock_dir: Vector2 = Vector2.ZERO) -> void:
 	Global.current_run_kills += 1
 
 	HitstopManager.hitstop(0.05, 0.1)
+
+	if is_boss and is_instance_valid(player_node):
+		player_node.is_jammed = false
+
 	CameraShake.add_trauma(0.4)
 
 	_spawn_death_particles(knock_dir)

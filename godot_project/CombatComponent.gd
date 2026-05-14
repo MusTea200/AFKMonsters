@@ -134,7 +134,7 @@ func _shoot_closest_enemy() -> void:
 	# Eğer geçerli ve hayatta olan bir düşman bulduysak ateş et
 	if closest_enemy:
 		var base_dir = player.global_position.direction_to(closest_enemy.global_position)
-		var spread_angle = deg_to_rad(15.0)
+		var spread_angle = 0.0 if player.is_jammed else deg_to_rad(15.0)
 
 		var start_angle = -spread_angle * (mermi_sayisi - 1) / 2.0
 		for i in range(mermi_sayisi):

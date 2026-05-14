@@ -24,7 +24,7 @@ func _physics_process(delta: float) -> void:
 	
 	# ŞALTER KONTROLÜ: Oyuncu 150 birim yakındaysa aç, uzaklaşınca kapat!
 	if global_position.distance_to(player.global_position) < 150.0:
-		if not is_active:
+		if not is_active and not player.is_jammed:
 			if is_mimic:
 				_trigger_mimic_trap()
 				return
