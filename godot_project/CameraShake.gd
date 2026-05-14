@@ -13,7 +13,7 @@ func _process(delta: float) -> void:
 		time += delta * 50.0 # Sarsıntı hızı
 
 func add_trauma(amount: float) -> void:
-	trauma = min(trauma + amount, 1.0)
+	trauma = min(trauma + amount, 0.6)
 
 func shake() -> void:
 	var camera = get_viewport().get_camera_2d()
