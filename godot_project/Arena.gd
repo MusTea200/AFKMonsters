@@ -149,12 +149,13 @@ func _on_spawn_timer_timeout() -> void:
 		var final_pos = spawn_pos + Vector2(cos(angle), sin(angle)) * randf_range(0, 200)
 		var enemy_instance = enemy_scene.instantiate()
 		enemy_instance.global_position = final_pos
+		enemy_instance.max_health *= difficulty_multiplier
 		if is_horde_mode:
 			enemy_instance.move_speed = 150.0 * 1.2
-		enemy_instance.max_health *= difficulty_multiplier
-	enemy_instance.move_speed *= (1.0 + (difficulty_multiplier - 1.0) * 0.5)
-	enemy_instance.damage_amount *= difficulty_multiplier
-	add_child(enemy_instance)
+		else:
+			enemy_instance.move_speed *= (1.0 + (difficulty_multiplier - 1.0) * 0.5)
+			enemy_instance.damage_amount *= difficulty_multiplier
+		add_child(enemy_instance)
 
 func _cull_distant_objects() -> void:
 	var player_pos = player_node.global_position
