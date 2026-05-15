@@ -35,7 +35,7 @@ func _process(delta: float) -> void:
 		if not debuff_active:
 			_apply_debuff()
 
-		visual.modulate.a = min(0.8, 0.3 + (inside_time * 0.1))
+		visual.modulate.a = min(0.5, 0.3 + (inside_time * 0.1))
 	else:
 		if debuff_active:
 			debuff_timer -= delta

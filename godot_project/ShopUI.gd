@@ -99,6 +99,12 @@ func _on_buy_pressed(type: String, item_node: Node) -> void:
 				Global.perm_max_health += 20.0
 			"damage":
 				Global.perm_starting_damage += 10.0
+			"speed":
+				Global.base_speed += 100.0
+			"shield":
+				Global.shield_capacity += 1
+			"orbital":
+				Global.orbital_count += 1
 
 		Global.save_game()
 

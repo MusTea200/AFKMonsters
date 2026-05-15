@@ -120,7 +120,7 @@ func _trigger_roulette_event() -> void:
 	vortex.modulate = Color(0.5, 0.0, 1.0, 0.8)
 	vortex.scale = Vector2(0.1, 0.1)
 	get_tree().current_scene.find_child("CanvasLayer", true, false).add_child(vortex)
-	vortex.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	vortex.global_position = get_viewport_rect().size / 2.0
 
 	var v_tween = create_tween()
 	v_tween.set_parallel(true)

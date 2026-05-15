@@ -18,6 +18,13 @@ var health_bar: ProgressBar
 var camera: Camera2D
 var is_stunned: bool = false
 var is_jammed: bool = false
+var shield_charges: int = 0
+var orbit_count: int = 0
+var orbit_radius: float = 120.0
+var orbital_angle_offset: float = 0.0
+
+var orbitals: Array = []
+
 var stun_icon: Sprite2D
 @export var min_zoom: float = 0.5
 @export var max_zoom: float = 3.0
@@ -32,6 +39,10 @@ var combat_comp: CombatComponent
 
 func _ready() -> void:
 	max_health = Global.perm_max_health
+	max_speed = Global.base_speed
+	shield_charges = Global.shield_capacity
+	orbit_count = Global.orbital_count
+	_create_orbitals()
 	current_health = max_health
 	Global.start_run()
 	gravity_scale = 0.0
@@ -118,6 +129,16 @@ func _physics_process(delta: float) -> void:
 	_update_ropes()
 	combat_comp.process_combat(delta)
 	_update_targeting()
+	# Update Orbitals Geometry
+	if orbitals.size() > 0:
+		var speed_factor = linear_velocity.length() / max_speed
+		var rot_speed = 2.0 + speed_factor * 8.0 # Faster when moving
+		orbital_angle_offset += rot_speed * delta
+
+		for i in range(orbitals.size()):
+			var angle = orbital_angle_offset + (i * 2.0 * PI / orbitals.size())
+			orbitals[i].global_position = global_position + Vector2(cos(angle), sin(angle)) * orbit_radius
+
 	queue_redraw()
 
 func _integrate_forces(state: PhysicsDirectBodyState2D) -> void:
@@ -325,3 +346,40 @@ func apply_stun(duration: float) -> void:
 	is_stunned = false
 	if is_instance_valid(stun_icon):
 		stun_icon.queue_free()
+
+func _create_orbitals() -> void:
+	for i in range(orbit_count):
+		var orb = Area2D.new()
+		var col = CollisionShape2D.new()
+		var shape = CircleShape2D.new()
+		shape.radius = 15.0
+		col.shape = shape
+		orb.add_child(col)
+
+		var mesh = MeshInstance2D.new()
+		var quad = QuadMesh.new()
+		quad.size = Vector2(20, 20)
+		mesh.mesh = quad
+		mesh.modulate = Color(0.0, 1.0, 1.0, 0.8) # Cyan Neon
+		orb.add_child(mesh)
+
+		orb.area_entered.connect(self._on_orbital_hit.bind(orb))
+		get_tree().current_scene.call_deferred("add_child", orb)
+		orbitals.append(orb)
+
+func _on_orbital_hit(area: Area2D, orb: Area2D) -> void:
+	if area is Enemy:
+		area._take_damage(combat_comp.mermi_hasari * 2.0)
+
+		# Juice: Sparks
+		var sparks = CPUParticles2D.new()
+		sparks.emitting = false
+		sparks.one_shot = true
+		sparks.lifetime = 0.3
+		sparks.spread = 180.0
+		sparks.initial_velocity_min = 100.0
+		sparks.initial_velocity_max = 200.0
+		sparks.color = Color.CYAN
+		get_tree().current_scene.add_child(sparks)
+		sparks.global_position = orb.global_position
+		sparks.emitting = true
