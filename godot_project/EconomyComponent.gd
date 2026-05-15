@@ -90,10 +90,21 @@ func apply_upgrade(type: String) -> void:
 # EconomyComponent.gd dosyasının en altına ekle:
 
 func finalize_run() -> void:
-	# Subway Surfers mantığında her altın 1 birim değerindedir
+	var arena = get_tree().current_scene
+	if is_instance_valid(arena) and "remaining_time" in arena:
+		var rt = arena.remaining_time
+		if rt < 0:
+			var overtime = abs(rt)
+			var base_time_mins = arena.base_time_limit / 60.0
+			# S_0 = 30 * 3^((T_base - 10)/5)
+			var s_0 = 30.0 * pow(3.0, (base_time_mins - 10.0) / 5.0)
 
-	# 2. Global üzerinden öldürme bonuslarını hesapla ve verileri kaydet
-	convert_gold_to_global()
+			# Exponential growth: s_0 * 2^(overtime)
+			var inflation_reward = int(s_0 * pow(2.0, overtime))
+
+			print("OVERTIME REWARD: ", inflation_reward)
+			Global.dongu_parcaciklari += inflation_reward
+
 	Global.end_run()
 
 func convert_gold_to_global() -> void:

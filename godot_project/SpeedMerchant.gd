@@ -172,6 +172,17 @@ func _buy_perm(ui: PanelContainer) -> void:
 			Global.save_game()
 			_close_shop(ui)
 
+func _buy_time(ui: PanelContainer) -> void:
+	if is_instance_valid(player) and player.has_node("EconomyComponent"):
+		var eco = player.get_node("EconomyComponent")
+		if eco.gold >= 300:
+			eco.add_gold(-300)
+			var arena = get_tree().current_scene
+			if is_instance_valid(arena) and "remaining_time" in arena:
+				arena.remaining_time += 60.0
+			_close_shop(ui)
+
+
 func _close_shop(ui: PanelContainer) -> void:
 	Engine.time_scale = 1.0
 	ui.queue_free()

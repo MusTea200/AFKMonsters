@@ -105,6 +105,8 @@ func _on_buy_pressed(type: String, item_node: Node) -> void:
 				Global.shield_capacity += 1
 			"orbital":
 				Global.orbital_count += 1
+			"clock":
+				Global.extended_core_clock += 1
 
 		Global.save_game()
 

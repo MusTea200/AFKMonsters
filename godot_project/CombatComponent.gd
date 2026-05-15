@@ -69,6 +69,23 @@ func process_combat(delta: float) -> void:
 		if is_instance_valid(player.health_bar):
 			player.health_bar.value = player.current_health
 
+	# Update Momentum UI and VFX every frame based on velocity
+	var speed_ratio = player.linear_velocity.length() / player.max_speed
+	var momentum_mult = 1.0 + (speed_ratio * 2.0)
+
+	if is_instance_valid(player.momentum_label):
+		player.momentum_label.text = "MOMENTUM: " + str(snapped(momentum_mult, 0.1)) + "x"
+		if momentum_mult > 1.5:
+			var tw = create_tween()
+			tw.tween_property(player.momentum_label, "scale", Vector2(1.2, 1.2), 0.1)
+			tw.tween_property(player.momentum_label, "scale", Vector2(1.0, 1.0), 0.1)
+
+	if is_instance_valid(player.speed_lines):
+		var mat = player.speed_lines.material as ShaderMaterial
+		if mat:
+			var intensity = max(0.0, speed_ratio - 0.5) * 2.0
+			mat.set_shader_parameter("speed_multiplier", intensity)
+
 func _update_combo(delta: float) -> void:
 	var speed = player.linear_velocity.length()
 	if speed > combo_speed_threshold:
@@ -145,8 +162,7 @@ func _shoot_closest_enemy() -> void:
 		var speed_ratio = player.linear_velocity.length() / player.max_speed
 		var momentum_mult = 1.0 + (speed_ratio * 2.0) # Up to 3x damage
 
-		if momentum_mult > 1.5:
-			_show_floating_text("MOMENTUM +" + str(snapped(momentum_mult, 0.1)) + "x", Color(1.0, 0.0, 1.0))
+
 
 		var start_angle = -spread_angle * (mermi_sayisi - 1) / 2.0
 		for i in range(mermi_sayisi):
