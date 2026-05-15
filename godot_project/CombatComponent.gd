@@ -40,6 +40,11 @@ func update_fire_rate() -> void:
 		shoot_timer.start()
 
 func take_damage(amount: float) -> void:
+	if player.shield_charges > 0:
+		player.shield_charges -= 1
+		_show_floating_text("PHASE SHIELD!", Color.CYAN)
+		return
+
 	if randf() < kacis_sansi:
 		# Dodged!
 		_show_floating_text("Dodge!", Color.AQUA)
@@ -136,6 +141,13 @@ func _shoot_closest_enemy() -> void:
 		var base_dir = player.global_position.direction_to(closest_enemy.global_position)
 		var spread_angle = 0.0 if player.is_jammed else deg_to_rad(15.0)
 
+		# Momentum Multiplier
+		var speed_ratio = player.linear_velocity.length() / player.max_speed
+		var momentum_mult = 1.0 + (speed_ratio * 2.0) # Up to 3x damage
+
+		if momentum_mult > 1.5:
+			_show_floating_text("MOMENTUM +" + str(snapped(momentum_mult, 0.1)) + "x", Color(1.0, 0.0, 1.0))
+
 		var start_angle = -spread_angle * (mermi_sayisi - 1) / 2.0
 		for i in range(mermi_sayisi):
 			var current_angle = start_angle + (spread_angle * i if mermi_sayisi > 1 else 0.0)
@@ -144,6 +156,7 @@ func _shoot_closest_enemy() -> void:
 			var bullet = player.bullet_scene.instantiate()
 			bullet.global_position = player.global_position
 			bullet.direction = final_dir
-			bullet.damage = mermi_hasari * combo_multiplier
+			# Apply combo and momentum
+			bullet.damage = mermi_hasari * combo_multiplier * momentum_mult
 			bullet.pierce_count = delip_gecme
 			scene_root.add_child(bullet)

@@ -98,15 +98,19 @@ func _on_body_entered(body: Node2D) -> void:
 			# Fast player = massive damage equivalent to their kinetic energy
 			_take_damage(player_kinetic_energy)
 		else:
-			# Slow player = player takes damage and bounces
-			body.take_damage(damage_amount)
-			
-			# Check for Thorns
-			if "dikenli_deri" in body and body.dikenli_deri > 0:
-				_take_damage(body.dikenli_deri)
+			# Phase Shield check: If player has shield, don't bounce them, let them pass
+			if "shield_charges" in body and body.shield_charges > 0:
+				body.take_damage(damage_amount) # This will consume a charge but NOT bounce
+			else:
+				# Slow player = player takes damage and bounces
+				body.take_damage(damage_amount)
 				
-			var bounce_dir = global_position.direction_to(body.global_position)
-			body.bounce_back(bounce_dir, bounce_force)
+				# Check for Thorns
+				if "dikenli_deri" in body and body.dikenli_deri > 0:
+					_take_damage(body.dikenli_deri)
+
+				var bounce_dir = global_position.direction_to(body.global_position)
+				body.bounce_back(bounce_dir, bounce_force)
 
 func _take_damage(amount: float, knock_dir: Vector2 = Vector2.ZERO) -> void:
 	current_health -= amount
