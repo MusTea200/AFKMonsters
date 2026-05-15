@@ -21,6 +21,14 @@ var boss_triggered: bool = false
 var current_spawn_multiplier: int = 1
 var is_horde_mode: bool = false
 
+var countdown_label: Label
+var base_time_limit: float = 600.0 # 10 minutes
+var remaining_time: float = 600.0
+var difficulty_multiplier: float = 1.0
+var last_minute_checked: int = 10
+var last_20s_checked: int = 3
+
+
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS # Arena zaman dursa da çalışsın (ESC için)
@@ -48,7 +56,9 @@ func _ready() -> void:
 			stats_label.bbcode_enabled = true
 
 	balance_label = get_tree().current_scene.find_child("BalanceLabel", true, false) as Label
-	update_balance_ui() 
+	update_balance_ui()
+	_ready_countdown()
+
 
 	_setup_enemy_spawner()
 	_initial_node_spawn()
@@ -59,6 +69,10 @@ func _process(delta: float) -> void:
 	if not get_tree().paused:
 		arena_time += delta
 		_check_time_events()
+		remaining_time -= delta
+		_update_countdown_ui()
+		_check_dynamic_difficulty()
+
 
 		
 	_cull_distant_objects()
@@ -137,11 +151,18 @@ func _on_spawn_timer_timeout() -> void:
 		enemy_instance.global_position = final_pos
 		if is_horde_mode:
 			enemy_instance.move_speed = 150.0 * 1.2
-		add_child(enemy_instance)
+		enemy_instance.max_health *= difficulty_multiplier
+	enemy_instance.move_speed *= (1.0 + (difficulty_multiplier - 1.0) * 0.5)
+	enemy_instance.damage_amount *= difficulty_multiplier
+	add_child(enemy_instance)
 
 func _cull_distant_objects() -> void:
 	var player_pos = player_node.global_position
 	for child in get_children():
+		# Do NOT cull important mechanics
+		if child is RouletteMan or child is Merchant or child is SpeedMerchant or child is DeathLine:
+			continue
+
 		if child.is_in_group("grapple_nodes") or child.is_in_group("magnets") or "Enemy" in child.name or "Drop" in child.name:
 			if child.global_position.distance_to(player_pos) > cull_radius:
 				child.queue_free()
@@ -177,6 +198,18 @@ func _update_stats_label() -> void:
 	stats_text += "Mermi Hasarı: " + str(player_node.combat_comp.mermi_hasari) + "\n"
 	
 	stats_label.text = stats_text # RichTextLabel ise kodların görünmesini engeller
+
+
+func _ready_countdown() -> void:
+	countdown_label = Label.new()
+	countdown_label.add_theme_font_size_override("font_size", 48)
+	countdown_label.add_theme_color_override("font_color", Color.WHITE)
+	countdown_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	countdown_label.position = Vector2(get_viewport_rect().size.x / 2.0 - 100, 20)
+	get_tree().current_scene.find_child("CanvasLayer", true, false).add_child(countdown_label)
+
+	base_time_limit += Global.extended_core_clock * 60.0 # +1 minute per upgrade
+	remaining_time = base_time_limit
 
 func update_balance_ui() -> void:
 	if is_instance_valid(player_node) and is_instance_valid(balance_label):
@@ -264,3 +297,35 @@ func _spawn_merchant() -> void:
 	merchant.global_position = player_node.global_position + Vector2(cos(angle), sin(angle)) * dist
 	add_child(merchant)
 	_show_center_warning("TÜCCAR GELDİ!")
+
+func _update_countdown_ui() -> void:
+	if remaining_time > 0:
+		var mins = int(remaining_time) / 60
+		var secs = int(remaining_time) % 60
+		countdown_label.text = "%02d:%02d" % [mins, secs]
+
+		if remaining_time <= 60.0:
+			countdown_label.add_theme_color_override("font_color", Color.RED)
+	else:
+		var overtime = abs(remaining_time)
+		var secs = int(overtime) % 60
+		countdown_label.text = "OVERTIME: %02d" % [secs]
+		countdown_label.add_theme_color_override("font_color", Color.MAGENTA)
+
+func _check_dynamic_difficulty() -> void:
+	if remaining_time > 60.0:
+		var current_minute = int(remaining_time) / 60
+		if current_minute < last_minute_checked:
+			last_minute_checked = current_minute
+			_increase_difficulty()
+
+	elif remaining_time > 0.0:
+		var current_20s = int(remaining_time) / 20
+		if current_20s < last_20s_checked:
+			last_20s_checked = current_20s
+			_increase_difficulty()
+			_show_center_warning("ZORLUK ARTIYOR!")
+
+func _increase_difficulty() -> void:
+	difficulty_multiplier *= 1.15
+	spawn_timer.wait_time = max(0.1, spawn_timer.wait_time / 1.15)

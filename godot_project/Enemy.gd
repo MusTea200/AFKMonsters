@@ -18,6 +18,13 @@ var knockback_velocity: Vector2 = Vector2.ZERO
 var knockback_decay: float = 10.0
 var audio_player: AudioStreamPlayer2D
 var is_boss: bool = false
+enum EnemyType { CIRCLE, TRIANGLE_RANGED, SQUARE_GHOST }
+var type: EnemyType = EnemyType.CIRCLE
+
+var ghost_timer: float = 0.0
+var is_ghosting: bool = false
+var shoot_timer: float = 0.0
+
 var jammer_visual: ColorRect
 
 
@@ -25,6 +32,16 @@ func _ready() -> void:
 	audio_player = AudioStreamPlayer2D.new()
 	add_child(audio_player)
 	current_health = max_health
+	# Randomize Type
+	if not is_boss:
+		var rand_val = randf()
+		if rand_val < 0.2:
+			type = EnemyType.TRIANGLE_RANGED
+			modulate = Color.ORANGE
+		elif rand_val < 0.4:
+			type = EnemyType.SQUARE_GHOST
+			modulate = Color.PURPLE
+
 
 
 	# Attempt to find the user's manually added ProgressBar named HealthBar
@@ -52,6 +69,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	var movement = Vector2.ZERO
 	if is_instance_valid(player_node):
+		var dist = global_position.distance_to(player_node.global_position)
 		var dir = global_position.direction_to(player_node.global_position)
 
 		# Roulette Universe Movement modifier
@@ -59,11 +77,31 @@ func _process(delta: float) -> void:
 			# Lissajous / Chaotic Elliptical approach
 			var t = Time.get_ticks_msec() * 0.002
 			var lissajous_offset = Vector2(sin(3.0 * t), sin(2.0 * t)) * 0.8
-
 			var tangent = Vector2(-dir.y, dir.x)
 			dir = (dir + tangent * lissajous_offset.x + dir * lissajous_offset.y).normalized()
 
-		movement = dir * move_speed * delta
+		match type:
+			EnemyType.CIRCLE:
+				movement = dir * move_speed * delta
+			EnemyType.TRIANGLE_RANGED:
+				if dist > 400.0:
+					movement = dir * move_speed * delta
+				else:
+					# Stay away and shoot
+					movement = -dir * move_speed * 0.5 * delta
+					shoot_timer += delta
+					if shoot_timer > 2.0:
+						shoot_timer = 0.0
+						_shoot_plasma(dir)
+			EnemyType.SQUARE_GHOST:
+				ghost_timer += delta
+				if ghost_timer > 3.0:
+					ghost_timer = 0.0
+					is_ghosting = !is_ghosting
+					modulate.a = 0.3 if is_ghosting else 1.0
+
+				if not is_ghosting:
+					movement = dir * move_speed * delta
 
 	if knockback_velocity.length() > 0:
 		movement += knockback_velocity * delta
@@ -78,7 +116,6 @@ func _process(delta: float) -> void:
 		else:
 			player_node.is_jammed = false
 			if is_instance_valid(jammer_visual): jammer_visual.visible = false
-
 
 func _on_body_entered(body: Node2D) -> void:
 	if body is Player:
@@ -113,6 +150,9 @@ func _on_body_entered(body: Node2D) -> void:
 				body.bounce_back(bounce_dir, bounce_force)
 
 func _take_damage(amount: float, knock_dir: Vector2 = Vector2.ZERO) -> void:
+	if type == EnemyType.SQUARE_GHOST and is_ghosting:
+		return # Immune while ghosting
+
 	current_health -= amount
 	_show_floating_damage(amount)
 
@@ -212,3 +252,32 @@ func _spawn_coin() -> void:
 		else:
 			coin.value = 1.0
 		get_tree().current_scene.call_deferred("add_child", coin)
+
+func _shoot_plasma(dir: Vector2) -> void:
+	var plasma = Area2D.new()
+	var col = CollisionShape2D.new()
+	var shape = CircleShape2D.new()
+	shape.radius = 10.0
+	col.shape = shape
+	plasma.add_child(col)
+
+	var mesh = MeshInstance2D.new()
+	var quad = QuadMesh.new()
+	quad.size = Vector2(20, 20)
+	mesh.mesh = quad
+	mesh.modulate = Color.ORANGE
+	plasma.add_child(mesh)
+
+	plasma.global_position = global_position
+	get_tree().current_scene.add_child(plasma)
+
+	# Basic projectile movement via tween since we don't have a dedicated enemy bullet script
+	var tw = create_tween()
+	tw.tween_property(plasma, "global_position", plasma.global_position + dir * 1000.0, 2.0)
+	tw.tween_callback(plasma.queue_free)
+
+	plasma.body_entered.connect(func(body):
+		if body is Player or body.name == "Player":
+			body.take_damage(damage_amount)
+			plasma.queue_free()
+	)

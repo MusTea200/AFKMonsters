@@ -9,6 +9,7 @@ var perm_starting_damage: float = 25.0
 var base_speed: float = 1200.0
 var shield_capacity: int = 0
 var orbital_count: int = 0
+var extended_core_clock: int = 0
 var successful_loops: int = 0
 var roulette_universe_unlocked: bool = false
 
@@ -23,11 +24,12 @@ var upgrade_levels = {
 	"magnet": 0,
 	"speed": 0,
 	"shield": 0,
-	"orbital": 0
+	"orbital": 0,
+	"clock": 0
 }
 
 func get_upgrade_cost(type: String) -> int:
-	var base_costs = {"health": 100, "damage": 150, "magnet": 200, "speed": 120, "shield": 500, "orbital": 300}
+	var base_costs = {"health": 100, "damage": 150, "magnet": 200, "speed": 120, "shield": 500, "orbital": 300, "clock": 1000}
 	return int(base_costs[type] * pow(1.5, upgrade_levels[type]))
 
 func _ready() -> void:
@@ -41,6 +43,7 @@ func save_game() -> void:
 	config.set_value("Stats", "base_speed", base_speed)
 	config.set_value("Stats", "shield_capacity", shield_capacity)
 	config.set_value("Stats", "orbital_count", orbital_count)
+	config.set_value("Stats", "extended_core_clock", extended_core_clock)
 	config.set_value("Stats", "successful_loops", successful_loops)
 	config.set_value("Stats", "roulette_universe_unlocked", roulette_universe_unlocked)
 	config.set_value("Stats", "upgrade_levels", upgrade_levels)
@@ -55,9 +58,10 @@ func load_game() -> void:
 		base_speed = config.get_value("Stats", "base_speed", 1200.0)
 		shield_capacity = config.get_value("Stats", "shield_capacity", 0)
 		orbital_count = config.get_value("Stats", "orbital_count", 0)
+		extended_core_clock = config.get_value("Stats", "extended_core_clock", 0)
 		successful_loops = config.get_value("Stats", "successful_loops", 0)
 		roulette_universe_unlocked = config.get_value("Stats", "roulette_universe_unlocked", false)
-		upgrade_levels = config.get_value("Stats", "upgrade_levels", {"health": 0, "damage": 0, "magnet": 0, "speed": 0, "shield": 0, "orbital": 0})
+		upgrade_levels = config.get_value("Stats", "upgrade_levels", {"health": 0, "damage": 0, "magnet": 0, "speed": 0, "shield": 0, "orbital": 0, "clock": 0})
 
 func start_run() -> void:
 	current_run_kills = 0
