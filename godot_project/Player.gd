@@ -55,22 +55,8 @@ func _ready() -> void:
 
 	var canvas = get_tree().current_scene.find_child("CanvasLayer", true, false)
 	if canvas:
-		momentum_label = Label.new()
-		momentum_label.add_theme_font_size_override("font_size", 24)
-		momentum_label.add_theme_color_override("font_color", Color(1.0, 0.0, 1.0)) # Magenta
-		momentum_label.position = Vector2(20, 20)
-		momentum_label.text = "MOMENTUM: 1.0x"
-		canvas.add_child(momentum_label)
-
-		speed_lines = ColorRect.new()
-		speed_lines.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		speed_lines.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var mat = ShaderMaterial.new()
-		mat.shader = load("res://SpeedLines.gdshader")
-		speed_lines.material = mat
-		canvas.add_child(speed_lines)
-		# Move speed lines to background of UI
-		canvas.move_child(speed_lines, 0)
+		momentum_label = canvas.find_child("MomentumLabel", true, false) as Label
+		speed_lines = canvas.find_child("SpeedLines", true, false) as ColorRect
 
 	health_bar = get_tree().current_scene.find_child("PlayerHealthBar", true, false) as ProgressBar
 	if is_instance_valid(health_bar):

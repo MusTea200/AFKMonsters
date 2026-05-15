@@ -3,6 +3,15 @@
 [ext_resource type="Script" uid="uid://dbwwkhi2388iv" path="res://Arena.gd" id="1_arena"]
 [ext_resource type="PackedScene" uid="uid://cx6g0q6j7l2vj" path="res://Player.tscn" id="2_u45fm"]
 
+[ext_resource type="Shader" uid="uid://cxspeedlines123" path="res://SpeedLines.gdshader" id="3_spdlines"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_spd"]
+shader = ExtResource("3_spdlines")
+shader_parameter/line_color = Color(1, 1, 1, 0.5)
+shader_parameter/speed_multiplier = 0.0
+shader_parameter/line_density = 50.0
+shader_parameter/line_length = 0.5
+
 [sub_resource type="SphereMesh" id="SphereMesh_u45fm"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_vbyki"]
@@ -21,6 +30,24 @@ zoom = Vector2(0.5, 0.5)
 position_smoothing_enabled = true
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
+[node name="SpeedLines" type="ColorRect" parent="CanvasLayer"]
+material = SubResource("ShaderMaterial_spd")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="MomentumLabel" type="Label" parent="CanvasLayer"]
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 236.0
+offset_bottom = 54.0
+theme_override_colors/font_color = Color(1, 0, 1, 1)
+theme_override_font_sizes/font_size = 24
+text = "MOMENTUM: 1.0x"
+
 
 [node name="ExpBar" type="ProgressBar" parent="CanvasLayer"]
 offset_left = 1.0

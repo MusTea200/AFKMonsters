@@ -75,10 +75,7 @@ func process_combat(delta: float) -> void:
 
 	if is_instance_valid(player.momentum_label):
 		player.momentum_label.text = "MOMENTUM: " + str(snapped(momentum_mult, 0.1)) + "x"
-		if momentum_mult > 1.5:
-			var tw = create_tween()
-			tw.tween_property(player.momentum_label, "scale", Vector2(1.2, 1.2), 0.1)
-			tw.tween_property(player.momentum_label, "scale", Vector2(1.0, 1.0), 0.1)
+
 
 	if is_instance_valid(player.speed_lines):
 		var mat = player.speed_lines.material as ShaderMaterial
@@ -136,33 +133,25 @@ func _shoot_closest_enemy() -> void:
 	var closest_dist = INF
 	var scene_root = get_tree().current_scene
 
-	# Sahnedeki tüm düğümleri tara
 	for child in scene_root.get_children():
-		# DİKKAT: İsim ("Enemy") kontrolünü kaldırdık.
-		# Sadece "_take_damage" metodu olan her şeyi düşman kabul ediyoruz!
-		if child is Node2D and child.has_method("_take_damage"):
-
-			# YENİ ZIRH: Düşman zaten öldüyse (canı 0 veya altındaysa) görmezden gel
-			var child_health = child.get("current_health")
-			if child_health != null and child_health <= 0:
-				continue # Bu düşmanla işimiz bitti, döngüdeki sonrakine geç!
-
+		if child is Node2D and child.has_method("take_damage") and "Enemy" in child.name:
 			var dist = player.global_position.distance_to(child.global_position)
-			if dist < 1500.0: # Menzil sınırı
+			if dist < 1500.0: # Range limit
 				if dist < closest_dist:
 					closest_dist = dist
 					closest_enemy = child
 
-	# Eğer geçerli ve hayatta olan bir düşman bulduysak ateş et
 	if closest_enemy:
 		var base_dir = player.global_position.direction_to(closest_enemy.global_position)
 		var spread_angle = 0.0 if player.is_jammed else deg_to_rad(15.0)
 
-		# Momentum Multiplier
 		var speed_ratio = player.linear_velocity.length() / player.max_speed
-		var momentum_mult = 1.0 + (speed_ratio * 2.0) # Up to 3x damage
+		var momentum_mult = 1.0 + (speed_ratio * 2.0)
 
-
+		if is_instance_valid(player.momentum_label):
+			var tw = create_tween()
+			tw.tween_property(player.momentum_label, "scale", Vector2(1.3, 1.3), 0.1)
+			tw.tween_property(player.momentum_label, "scale", Vector2(1.0, 1.0), 0.1)
 
 		var start_angle = -spread_angle * (mermi_sayisi - 1) / 2.0
 		for i in range(mermi_sayisi):
