@@ -3,6 +3,24 @@ extends Node
 var save_path = "user://savegame.cfg"
 
 # Kalıcı veriler
+enum InputType { KEYBOARD, JOYPAD, TOUCH }
+enum ControlMode { AUTO, FORCE_KEYBOARD, FORCE_JOYPAD, FORCE_TOUCH }
+
+var current_input_type: InputType = InputType.KEYBOARD
+var settings_control_mode: ControlMode = ControlMode.AUTO
+
+func _unhandled_input(event: InputEvent) -> void:
+	if settings_control_mode != ControlMode.AUTO: return
+
+	if event is InputEventKey or event is InputEventMouse:
+		current_input_type = InputType.KEYBOARD
+	elif event is InputEventJoypadButton or event is InputEventJoypadMotion:
+		# Ignore small deadzone stick twitches
+		if event is InputEventJoypadMotion and abs(event.axis_value) < 0.2: return
+		current_input_type = InputType.JOYPAD
+	elif event is InputEventScreenTouch or event is InputEventScreenDrag:
+		current_input_type = InputType.TOUCH
+
 var dongu_parcaciklari: int = 0
 var perm_max_health: float = 100.0
 var perm_starting_damage: float = 25.0
@@ -47,6 +65,7 @@ func save_game() -> void:
 	config.set_value("Stats", "successful_loops", successful_loops)
 	config.set_value("Stats", "roulette_universe_unlocked", roulette_universe_unlocked)
 	config.set_value("Stats", "upgrade_levels", upgrade_levels)
+	config.set_value("Settings", "control_mode", settings_control_mode)
 	config.save(save_path)
 
 func load_game() -> void:
@@ -62,6 +81,7 @@ func load_game() -> void:
 		successful_loops = config.get_value("Stats", "successful_loops", 0)
 		roulette_universe_unlocked = config.get_value("Stats", "roulette_universe_unlocked", false)
 		upgrade_levels = config.get_value("Stats", "upgrade_levels", {"health": 0, "damage": 0, "magnet": 0, "speed": 0, "shield": 0, "orbital": 0, "clock": 0})
+		settings_control_mode = config.get_value("Settings", "control_mode", ControlMode.AUTO)
 
 func start_run() -> void:
 	current_run_kills = 0

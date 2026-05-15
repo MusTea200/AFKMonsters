@@ -38,6 +38,15 @@ func _process(delta: float) -> void:
 		player = get_tree().current_scene.find_child("Player", true, false)
 		return
 
+	# Omni-Input Dynamic Label
+	match Global.current_input_type:
+		Global.InputType.KEYBOARD:
+			interact_label.text = "[E] GİZLİ MARKET"
+		Global.InputType.JOYPAD:
+			interact_label.text = "[X/Kare] GİZLİ MARKET"
+		Global.InputType.TOUCH:
+			interact_label.text = "[DOKUN] GİZLİ MARKET"
+
 	# Evade player
 	if global_position.distance_to(player.global_position) < flee_radius:
 		var flee_dir = player.global_position.direction_to(global_position)
@@ -49,7 +58,18 @@ func _process(delta: float) -> void:
 		global_position += Vector2(cos(Time.get_ticks_msec()*0.001), sin(Time.get_ticks_msec()*0.001)) * 50.0 * delta
 
 func _unhandled_input(event: InputEvent) -> void:
-	if can_interact and not is_shop_open and event.is_action_pressed("interact") and not event.is_echo():
+	if not can_interact or is_shop_open: return
+
+	var interacted = false
+
+	if event is InputEventKey and event.keycode == KEY_E and event.pressed and not event.echo:
+		interacted = true
+	elif event is InputEventJoypadButton and event.button_index == JOY_BUTTON_X and event.pressed:
+		interacted = true
+	elif event is InputEventScreenTouch and event.pressed:
+		interacted = true
+
+	if interacted:
 		_open_speed_shop()
 
 func _on_area_entered(area: Area2D) -> void:
