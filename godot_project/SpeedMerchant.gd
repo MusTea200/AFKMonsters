@@ -49,7 +49,7 @@ func _process(delta: float) -> void:
 		global_position += Vector2(cos(Time.get_ticks_msec()*0.001), sin(Time.get_ticks_msec()*0.001)) * 50.0 * delta
 
 func _unhandled_input(event: InputEvent) -> void:
-	if can_interact and not is_shop_open and event is InputEventKey and event.keycode == KEY_E and event.pressed and not event.echo:
+	if can_interact and not is_shop_open and event.is_action_pressed("interact") and not event.is_echo():
 		_open_speed_shop()
 
 func _on_area_entered(area: Area2D) -> void:
