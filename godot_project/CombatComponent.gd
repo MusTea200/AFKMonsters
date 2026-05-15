@@ -148,11 +148,6 @@ func _shoot_closest_enemy() -> void:
 		var speed_ratio = player.linear_velocity.length() / player.max_speed
 		var momentum_mult = 1.0 + (speed_ratio * 2.0)
 
-		if is_instance_valid(player.momentum_label):
-			var tw = create_tween()
-			tw.tween_property(player.momentum_label, "scale", Vector2(1.3, 1.3), 0.1)
-			tw.tween_property(player.momentum_label, "scale", Vector2(1.0, 1.0), 0.1)
-
 		var start_angle = -spread_angle * (mermi_sayisi - 1) / 2.0
 		for i in range(mermi_sayisi):
 			var current_angle = start_angle + (spread_angle * i if mermi_sayisi > 1 else 0.0)
