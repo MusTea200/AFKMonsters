@@ -202,12 +202,7 @@ func _update_stats_label() -> void:
 
 
 func _ready_countdown() -> void:
-	countdown_label = Label.new()
-	countdown_label.add_theme_font_size_override("font_size", 48)
-	countdown_label.add_theme_color_override("font_color", Color.WHITE)
-	countdown_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
-	countdown_label.position = Vector2(get_viewport_rect().size.x / 2.0 - 100, 20)
-	get_tree().current_scene.find_child("CanvasLayer", true, false).add_child(countdown_label)
+	countdown_label = get_tree().current_scene.find_child("CountdownLabel", true, false) as Label
 
 	base_time_limit += Global.extended_core_clock * 60.0 # +1 minute per upgrade
 	remaining_time = base_time_limit
