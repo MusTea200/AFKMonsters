@@ -143,6 +143,12 @@ func _shoot_closest_enemy() -> void:
 
 	if closest_enemy:
 		var base_dir = player.global_position.direction_to(closest_enemy.global_position)
+
+		# Omni-Input Check
+		if Global.current_input_type == Global.InputType.JOYPAD:
+			var joy_aim = Vector2(Input.get_joy_axis(0, JOY_AXIS_RIGHT_X), Input.get_joy_axis(0, JOY_AXIS_RIGHT_Y))
+			if joy_aim.length() > 0.5:
+				base_dir = joy_aim.normalized() # Override auto-aim if player is manually aiming with stick
 		var spread_angle = 0.0 if player.is_jammed else deg_to_rad(15.0)
 
 		var speed_ratio = player.linear_velocity.length() / player.max_speed

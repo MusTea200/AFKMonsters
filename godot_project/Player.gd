@@ -97,18 +97,8 @@ func _physics_process(delta: float) -> void:
 			stun_icon.rotation += 5.0 * delta
 		return
 
-	var input_vector = Vector2.ZERO
+	var input_vector = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
 
-	if Input.is_key_pressed(KEY_D) or Input.is_action_pressed("ui_right"):
-		input_vector.x += 1
-	if Input.is_key_pressed(KEY_A) or Input.is_action_pressed("ui_left"):
-		input_vector.x -= 1
-	if Input.is_key_pressed(KEY_S) or Input.is_action_pressed("ui_down"):
-		input_vector.y += 1
-	if Input.is_key_pressed(KEY_W) or Input.is_action_pressed("ui_up"):
-		input_vector.y -= 1
-
-	input_vector = input_vector.normalized()
 	if input_vector.length() > 0:
 		apply_central_force(input_vector * move_force)
 
@@ -137,6 +127,14 @@ func _physics_process(delta: float) -> void:
 	
 	_update_ropes()
 	combat_comp.process_combat(delta)
+
+	# Omni-Input Gamepad Grapple Aim
+	if Global.current_input_type == Global.InputType.JOYPAD:
+		var aim_dir = Vector2(Input.get_joy_axis(0, JOY_AXIS_RIGHT_X), Input.get_joy_axis(0, JOY_AXIS_RIGHT_Y))
+		if aim_dir.length() > 0.2:
+			_try_attach_spring_dir(aim_dir.normalized())
+		else:
+			_release_slingshot() # Release if analog stick returns to center
 	_update_targeting()
 	# Update Orbitals Geometry
 	if orbitals.size() > 0:
@@ -392,3 +390,31 @@ func _on_orbital_hit(area: Area2D, orb: Area2D) -> void:
 		get_tree().current_scene.add_child(sparks)
 		sparks.global_position = orb.global_position
 		sparks.emitting = true
+
+func _try_attach_spring_dir(dir: Vector2) -> void:
+	var target_pos = global_position + dir * grapple_radius
+	var space_state = get_world_2d().direct_space_state
+	var query = PhysicsShapeQueryParameters2D.new()
+	var circle_shape = CircleShape2D.new()
+	circle_shape.radius = grapple_radius
+
+	query.shape = circle_shape
+	query.transform = global_transform
+	query.collide_with_bodies = true
+
+	var results = space_state.intersect_shape(query)
+	var closest_node = null
+	var closest_angle_diff = INF
+
+	for hit in results:
+		var collider = hit["collider"]
+		if collider is GrappleNode:
+			var node_dir = global_position.direction_to(collider.global_position)
+			var angle_diff = abs(dir.angle_to(node_dir))
+			# If within 45 degrees of aiming stick
+			if angle_diff < deg_to_rad(45.0) and angle_diff < closest_angle_diff:
+				closest_angle_diff = angle_diff
+				closest_node = collider
+
+	if closest_node:
+		_create_spring_joint(closest_node)
