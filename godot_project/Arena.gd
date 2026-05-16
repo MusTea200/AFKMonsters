@@ -45,6 +45,38 @@ func _ready() -> void:
 			player_node = n
 			break
 
+
+	# Mobil Kontrolleri Dinamik Olarak Ekle
+	if OS.has_feature("mobile") or Global.current_input_type == Global.InputType.TOUCH:
+		var canvas = get_tree().current_scene.find_child("CanvasLayer", true, false)
+		if canvas:
+			var viewport_size = get_viewport_rect().size
+
+			# Sol Joystick (Hareket)
+			var left_joy = VirtualJoystick.new()
+			left_joy.name = "LeftJoystick"
+			left_joy.position = Vector2(100, viewport_size.y - 300)
+			canvas.add_child(left_joy)
+			Global.left_joystick = left_joy
+
+			# Sağ Joystick (Nişan/Ateş)
+			var right_joy = VirtualJoystick.new()
+			right_joy.name = "RightJoystick"
+			right_joy.position = Vector2(viewport_size.x - 300, viewport_size.y - 300)
+			canvas.add_child(right_joy)
+			Global.right_joystick = right_joy
+
+			# Etkileşim (Kanca/Sapan) Butonu
+			var action_btn = TouchScreenButton.new()
+			var shape = CircleShape2D.new()
+			shape.radius = 80.0
+			action_btn.shape = shape
+			action_btn.position = Vector2(viewport_size.x - 150, viewport_size.y - 450)
+			action_btn.action = "ui_accept" # TBD: Player'a bağla
+			canvas.add_child(action_btn)
+
+			# Modifiye edilmiş Neon Buton Çizimi (CanvasItem _draw override)
+			# (Buton efekti için şimdilik basit bıraktık, TouchScreenButton _draw overridable değil)
 	pause_menu = get_tree().current_scene.find_child("PauseMenu", true, false) as Control
 	if pause_menu:
 		pause_menu.hide()
