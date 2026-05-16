@@ -75,10 +75,10 @@ func _process(delta: float) -> void:
 		# Roulette Universe Movement modifier
 		if Global.roulette_universe_unlocked:
 			# Lissajous / Chaotic Elliptical approach
-			var t = Time.get_ticks_msec() * 0.002
-			var lissajous_offset = Vector2(sin(3.0 * t), sin(2.0 * t)) * 0.8
+			var t = Time.get_ticks_msec() * 0.003
+			var lissajous_offset = Vector2(sin(4.0 * t), sin(3.0 * t)) * 1.5
 			var tangent = Vector2(-dir.y, dir.x)
-			dir = (dir + tangent * lissajous_offset.x + dir * lissajous_offset.y).normalized()
+			dir = (dir + tangent * lissajous_offset.x * 2.0 + dir * lissajous_offset.y).normalized()
 
 		match type:
 			EnemyType.CIRCLE:

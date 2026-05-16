@@ -6,6 +6,13 @@ extends Node2D
 @export var cull_radius: float = 2500.0
 @export var max_nodes_in_world: int = 30
 
+# Procedural Chunk & Persistence
+var map_seed: int = 12345
+var chunk_size: float = 2000.0
+var active_chunks: Dictionary = {}
+var persisted_data: Dictionary = {} # { Vector2_chunk_id: [ {type, pos, data} ] }
+
+
 var grapple_node_scene = preload("res://GrappleNode.tscn")
 var enemy_scene = preload("res://Enemy.tscn")
 var magnet_scene = preload("res://Magnet.tscn")
@@ -43,12 +50,28 @@ func _ready() -> void:
 		pause_menu.hide()
 		pause_menu.process_mode = Node.PROCESS_MODE_ALWAYS # Menü oyun durunca donmasın
 		
+
+		var btn_settings = Button.new()
+		btn_settings.text = "Settings"
+		btn_settings.position = Vector2(pause_menu.size.x / 2.0 - 100, pause_menu.size.y - 300)
+		btn_settings.custom_minimum_size = Vector2(200, 50)
+		pause_menu.add_child(btn_settings)
+		btn_settings.pressed.connect(self._open_settings_menu)
+
+		var btn_main = Button.new()
+		btn_main.text = "Main Menu"
+		btn_main.position = Vector2(pause_menu.size.x / 2.0 - 100, pause_menu.size.y - 200)
+		btn_main.custom_minimum_size = Vector2(200, 50)
+		pause_menu.add_child(btn_main)
+		btn_main.pressed.connect(func(): get_tree().paused = false; get_tree().change_scene_to_file("res://MainMenu.tscn"))
+
 		var return_btn = Button.new()
 		return_btn.text = "Return to Market"
 		return_btn.custom_minimum_size = Vector2(200, 60)
 		return_btn.position = Vector2(pause_menu.size.x / 2.0 - 100, pause_menu.size.y - 100)
 		pause_menu.add_child(return_btn)
 		return_btn.pressed.connect(self._on_return_market_pressed)
+
 
 		stats_label = pause_menu.find_child("StatsLabel", true, false)
 		# Eğer StatsLabel RichTextLabel ise, BBCode'u otomatik aç!
@@ -159,27 +182,80 @@ func _on_spawn_timer_timeout() -> void:
 
 func _cull_distant_objects() -> void:
 	var player_pos = player_node.global_position
+	var current_chunk = Vector2(floor(player_pos.x / chunk_size), floor(player_pos.y / chunk_size))
+
 	for child in get_children():
 		# Do NOT cull important mechanics
 		if child is RouletteMan or child is Merchant or child is SpeedMerchant or child is DeathLine:
 			continue
 
-		if child.is_in_group("grapple_nodes") or child.is_in_group("magnets") or "Enemy" in child.name or "Drop" in child.name:
+		if child.is_in_group("grapple_nodes") or child.is_in_group("magnets") or "Enemy" in child.name or "Drop" in child.name or "Coin" in child.name:
 			if child.global_position.distance_to(player_pos) > cull_radius:
+				# Persistence: Save state before removing
+				var c_id = Vector2(floor(child.global_position.x / chunk_size), floor(child.global_position.y / chunk_size))
+				if not persisted_data.has(c_id):
+					persisted_data[c_id] = []
+
+				var obj_type = "Node"
+				if child.is_in_group("magnets"): obj_type = "Magnet"
+				elif "Coin" in child.name: obj_type = "Coin"
+				elif "Enemy" in child.name: obj_type = "Enemy"
+
+				# Sadece destekledigimiz tipleri persist edelim, gerisini dogrudan silelim
+				if obj_type in ["Node", "Magnet", "Coin", "Enemy"]:
+					persisted_data[c_id].append({
+						"type": obj_type,
+						"pos": child.global_position
+					})
+
 				child.queue_free()
+
+	_load_nearby_chunks(current_chunk)
+
+func _load_nearby_chunks(center_chunk: Vector2) -> void:
+	# Check 3x3 grid around player
+	for x in range(-1, 2):
+		for y in range(-1, 2):
+			var c_id = center_chunk + Vector2(x, y)
+			if persisted_data.has(c_id) and persisted_data[c_id].size() > 0:
+				for data in persisted_data[c_id]:
+					_respawn_persisted_object(data)
+				persisted_data[c_id].clear() # Temizle ki cift spawn olmasin
+
+func _respawn_persisted_object(data: Dictionary) -> void:
+	if data["type"] == "Magnet":
+		var m = magnet_scene.instantiate()
+		m.global_position = data["pos"]
+		m.add_to_group("magnets")
+		add_child(m)
+	elif data["type"] == "Node":
+		var n = grapple_node_scene.instantiate()
+		n.global_position = data["pos"]
+		n.add_to_group("grapple_nodes")
+		add_child(n)
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel") or (event is InputEventKey and event.keycode == KEY_ESCAPE and event.pressed and not event.echo):
 		_toggle_pause()
 
 func _toggle_pause() -> void:
-	var new_pause_state = not get_tree().paused
-	get_tree().paused = new_pause_state
+	if get_meta("is_resuming", false): return # Block ESC spam during countdown
 	
-	if pause_menu:
-		pause_menu.visible = new_pause_state
-		if new_pause_state and is_instance_valid(player_node):
-			_update_stats_label()
+	var new_pause_state = not get_tree().paused
+	if new_pause_state:
+		# Pausing
+		get_tree().paused = true
+		if pause_menu: pause_menu.visible = true
+		if is_instance_valid(player_node): _update_stats_label()
+	else:
+		# Unpausing - Multiplayer 5 second sync logic
+		if pause_menu: pause_menu.visible = false
+		_show_center_warning("5 SANİYE İÇİNDE DEVAM EDİYOR...")
+		set_meta("is_resuming", true)
+		# Note: Real implementation uses RPCs, this is simulation
+		await get_tree().create_timer(5.0, true, false, true).timeout
+		set_meta("is_resuming", false)
+		get_tree().paused = false
 
 func _update_stats_label() -> void:
 	if not stats_label: return
@@ -210,6 +286,76 @@ func _ready_countdown() -> void:
 func update_balance_ui() -> void:
 	if is_instance_valid(player_node) and is_instance_valid(balance_label):
 		balance_label.text = str(int(player_node.get_node("EconomyComponent").gold))
+
+
+func _open_settings_menu() -> void:
+	var settings_panel = Panel.new()
+	settings_panel.process_mode = Node.PROCESS_MODE_ALWAYS # FIX: Allows UI to work while paused
+	settings_panel.custom_minimum_size = Vector2(400, 400)
+	settings_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+
+	var vbox = VBoxContainer.new()
+	vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	settings_panel.add_child(vbox)
+
+	var title = Label.new()
+	title.text = "SETTINGS"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+
+	# Sensitivity
+	var sens_hbox = HBoxContainer.new()
+	var sens_lbl = Label.new()
+	sens_lbl.text = "Sensitivity:"
+	var sens_slider = HSlider.new()
+	sens_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sens_slider.min_value = 0.1
+	sens_slider.max_value = 2.0
+	sens_slider.step = 0.1
+	sens_slider.value = Global.settings_sensitivity
+	sens_slider.value_changed.connect(func(v): Global.settings_sensitivity = v)
+	sens_hbox.add_child(sens_lbl)
+	sens_hbox.add_child(sens_slider)
+	vbox.add_child(sens_hbox)
+
+	# V-Sync
+	var vsync_btn = CheckButton.new()
+	vsync_btn.text = "V-Sync"
+	vsync_btn.button_pressed = Global.settings_vsync
+	vsync_btn.toggled.connect(func(toggled):
+		Global.settings_vsync = toggled
+		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED if toggled else DisplayServer.VSYNC_DISABLED)
+	)
+	vbox.add_child(vsync_btn)
+
+	# Audio Volume
+	var vol_hbox = HBoxContainer.new()
+	var vol_lbl = Label.new()
+	vol_lbl.text = "Master Volume:"
+	var vol_slider = HSlider.new()
+	vol_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vol_slider.min_value = 0.0
+	vol_slider.max_value = 1.0
+	vol_slider.step = 0.1
+	vol_slider.value = Global.settings_volume
+	vol_slider.value_changed.connect(func(v):
+		Global.settings_volume = v
+		AudioServer.set_bus_volume_db(0, linear_to_db(v))
+	)
+	vol_hbox.add_child(vol_lbl)
+	vol_hbox.add_child(vol_slider)
+	vbox.add_child(vol_hbox)
+
+	var save_btn = Button.new()
+	save_btn.text = "Save & Close"
+	save_btn.pressed.connect(func():
+		Global.save_game()
+		settings_panel.queue_free()
+	)
+	vbox.add_child(save_btn)
+
+	get_tree().current_scene.find_child("CanvasLayer", true, false).add_child(settings_panel)
+
 
 func _on_return_market_pressed() -> void:
 	if is_instance_valid(player_node) and player_node.has_node("EconomyComponent"):
