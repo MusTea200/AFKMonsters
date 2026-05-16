@@ -8,6 +8,11 @@ enum ControlMode { AUTO, FORCE_KEYBOARD, FORCE_JOYPAD, FORCE_TOUCH }
 
 var current_input_type: InputType = InputType.KEYBOARD
 var settings_control_mode: ControlMode = ControlMode.AUTO
+var settings_sensitivity: float = 1.0
+var settings_vsync: bool = true
+var settings_volume: float = 1.0
+var settings_resolution: Vector2 = Vector2(1920, 1080)
+
 
 func _unhandled_input(event: InputEvent) -> void:
 	if settings_control_mode != ControlMode.AUTO: return
