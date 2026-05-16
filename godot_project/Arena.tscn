@@ -3,6 +3,8 @@
 [ext_resource type="Script" uid="uid://dbwwkhi2388iv" path="res://Arena.gd" id="1_arena"]
 [ext_resource type="PackedScene" uid="uid://cx6g0q6j7l2vj" path="res://Player.tscn" id="2_u45fm"]
 [ext_resource type="Shader" uid="uid://d168ggsij0fgm" path="res://SpeedLines.gdshader" id="3_spdlines"]
+[ext_resource type="Script" path="res://VirtualJoystick.gd" id="res://VirtualJoystick.gd"]
+[ext_resource type="Script" path="res://NeonButton.gd" id="res://NeonButton.gd"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_spd"]
 shader = ExtResource("3_spdlines")
@@ -30,6 +32,52 @@ position_smoothing_enabled = true
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 [node name="MobileControls" type="CanvasLayer" parent="."]
+
+[node name="LeftJoystick" type="Control" parent="MobileControls"]
+layout_mode = 3
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 100.0
+offset_top = -300.0
+offset_right = 340.0
+offset_bottom = -60.0
+grow_vertical = 0
+script = ExtResource("res://VirtualJoystick.gd")
+
+[node name="RightJoystick" type="Control" parent="MobileControls"]
+layout_mode = 3
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -340.0
+offset_top = -300.0
+offset_right = -100.0
+offset_bottom = -60.0
+grow_horizontal = 0
+grow_vertical = 0
+script = ExtResource("res://VirtualJoystick.gd")
+
+[node name="GrappleBtn" type="TouchScreenButton" parent="MobileControls"]
+position = Vector2(800, 350)
+action = "ui_accept"
+script = ExtResource("res://NeonButton.gd")
+base_color = Color(0, 1, 1, 0.6)
+radius = 70.0
+label_text = "HOOK"
+
+[node name="ReleaseBtn" type="TouchScreenButton" parent="MobileControls"]
+position = Vector2(660, 680)
+script = ExtResource("res://NeonButton.gd")
+base_color = Color(1, 0, 0.5, 0.6)
+radius = 60.0
+label_text = "CUT"
+
+[node name="PauseBtn" type="TouchScreenButton" parent="MobileControls"]
+position = Vector2(50, 50)
+action = "ui_cancel"
 
 [node name="SpeedLines" type="ColorRect" parent="CanvasLayer"]
 material = SubResource("ShaderMaterial_spd")
@@ -62,12 +110,13 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -112.0
-offset_top = -20.0
-offset_right = 112.0
-offset_bottom = 14.0
+offset_left = 120.0
+offset_top = -124.0
+offset_right = 344.0
+offset_bottom = -90.0
 grow_horizontal = 2
 grow_vertical = 2
+rotation = 0.43633232
 theme_override_colors/font_color = Color(1, 0, 1, 1)
 theme_override_font_sizes/font_size = 24
 text = "MOMENTUM: 1.0x"
