@@ -36,6 +36,10 @@ var extended_core_clock: int = 0
 var successful_loops: int = 0
 var roulette_universe_unlocked: bool = false
 
+# UI Referansları
+var left_joystick: VirtualJoystick = null
+var right_joystick: VirtualJoystick = null
+
 # Geçici run verileri
 var current_run_kills: int = 0
 var current_run_start_time: float = 0.0

@@ -129,26 +129,45 @@ func _shoot_closest_enemy() -> void:
 	if not is_instance_valid(player) or not player.bullet_scene or player.is_stunned:
 		return
 
-	var closest_enemy = null
-	var closest_dist = INF
 	var scene_root = get_tree().current_scene
+	var manual_aim_dir = Vector2.ZERO
 
-	for child in scene_root.get_children():
-		if child is Node2D and child.has_method("take_damage") and "Enemy" in child.name:
-			var dist = player.global_position.distance_to(child.global_position)
-			if dist < 1500.0: # Range limit
-				if dist < closest_dist:
-					closest_dist = dist
-					closest_enemy = child
+	# Omni-Input Check: Priority to Manual Aim
+	if Global.current_input_type == Global.InputType.JOYPAD:
+		var joy_aim = Vector2(Input.get_joy_axis(0, JOY_AXIS_RIGHT_X), Input.get_joy_axis(0, JOY_AXIS_RIGHT_Y))
+		if joy_aim.length() > 0.5:
+			manual_aim_dir = joy_aim.normalized()
+	elif (Global.current_input_type == Global.InputType.TOUCH or OS.has_feature("mobile")) and Global.right_joystick:
+		if Global.right_joystick.is_dragging:
+			var touch_aim = Global.right_joystick.get_joystick_vector()
+			if touch_aim.length() > 0.1:
+				manual_aim_dir = touch_aim.normalized()
+	elif Global.current_input_type == Global.InputType.KEYBOARD and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+		# Optional: allow mouse drag to shoot in a direction in PC. For now fallback to closest enemy if not manually aiming.
+		pass
 
-	if closest_enemy:
-		var base_dir = player.global_position.direction_to(closest_enemy.global_position)
+	var final_base_dir = Vector2.ZERO
 
-		# Omni-Input Check
-		if Global.current_input_type == Global.InputType.JOYPAD:
-			var joy_aim = Vector2(Input.get_joy_axis(0, JOY_AXIS_RIGHT_X), Input.get_joy_axis(0, JOY_AXIS_RIGHT_Y))
-			if joy_aim.length() > 0.5:
-				base_dir = joy_aim.normalized() # Override auto-aim if player is manually aiming with stick
+	if manual_aim_dir != Vector2.ZERO:
+		# Manual aim overrides closest enemy
+		final_base_dir = manual_aim_dir
+	else:
+		# Auto-aim if no manual input
+		var closest_enemy = null
+		var closest_dist = INF
+
+		for child in scene_root.get_children():
+			if child is Node2D and child.has_method("take_damage") and "Enemy" in child.name:
+				var dist = player.global_position.distance_to(child.global_position)
+				if dist < 1500.0: # Range limit
+					if dist < closest_dist:
+						closest_dist = dist
+						closest_enemy = child
+
+		if closest_enemy:
+			final_base_dir = player.global_position.direction_to(closest_enemy.global_position)
+
+	if final_base_dir != Vector2.ZERO:
 		var spread_angle = 0.0 if player.is_jammed else deg_to_rad(15.0)
 
 		var speed_ratio = player.linear_velocity.length() / player.max_speed
@@ -157,7 +176,7 @@ func _shoot_closest_enemy() -> void:
 		var start_angle = -spread_angle * (mermi_sayisi - 1) / 2.0
 		for i in range(mermi_sayisi):
 			var current_angle = start_angle + (spread_angle * i if mermi_sayisi > 1 else 0.0)
-			var final_dir = base_dir.rotated(current_angle)
+			var final_dir = final_base_dir.rotated(current_angle)
 
 			var bullet = player.bullet_scene.instantiate()
 			bullet.global_position = player.global_position

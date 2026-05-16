@@ -99,6 +99,11 @@ func _physics_process(delta: float) -> void:
 
 	var input_vector = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
 
+	if Global.left_joystick and Global.left_joystick.is_dragging:
+		var joy_vec = Global.left_joystick.get_joystick_vector()
+		if joy_vec.length() > 0.1:
+			input_vector = joy_vec
+
 	if input_vector.length() > 0:
 		apply_central_force(input_vector * move_force)
 
@@ -164,6 +169,23 @@ func _integrate_forces(state: PhysicsDirectBodyState2D) -> void:
 					state.linear_velocity += pull_dir * outward_vel
 
 func _unhandled_input(event: InputEvent) -> void:
+	# Mobile Action Button hook
+	if event.is_action_pressed("ui_accept"):
+		if Global.right_joystick and Global.right_joystick.is_dragging:
+			var aim_dir = Global.right_joystick.get_joystick_vector().normalized()
+			if aim_dir.length() > 0.1:
+				_try_attach_spring_dir(aim_dir)
+				return
+		elif Global.left_joystick and Global.left_joystick.is_dragging:
+			var move_dir = Global.left_joystick.get_joystick_vector().normalized()
+			if move_dir.length() > 0.1:
+				_try_attach_spring_dir(move_dir)
+				return
+		# Fallback to mouse position if UI accept is pressed but no joystick is dragging
+		_try_attach_spring(get_global_mouse_position())
+	elif event.is_action_released("ui_accept"):
+		_release_slingshot()
+
 	if is_stunned: return
 
 	if event is InputEventMouseButton:
