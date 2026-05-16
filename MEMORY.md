@@ -64,3 +64,16 @@ Mobil cihazlarda testler sırasında tespit edilen "mermilerin ateşlenmemesi" s
 - Cihazlar arası tutarlı görünüm için ekran genişletme (Stretch Mode - Canvas Items) kod ile entegre edildi.
 - Mobil UI'a; sol üstte neon tasarımlı Pause (ESC muadili) butonu, sağ alta ise "İp Koparma" (Release Rope) aksiyonu eklendi.
 - `Global.use_manual_aim_joystick` değişkeni sayesinde oyunculara sağ joystick'i gizleme ve tamamen Auto-Aim kullanma özgürlüğü sunuldu.
+
+## 📱 Arayüz İyileştirmesi: Görünür Mobil Butonlar (Neon UI)
+### Tasarım ve Mimari
+- Mobil cihazlarda (Örn: Poco) oyuncuların aksiyon yeteneklerini körlemesine tetiklemesini önlemek için, fiziksel olarak görünür, estetik siber butonlar (İp Atma ve İp Koparma) entegre edildi.
+- **Node Mimarisi:** Godot'nun varsayılan, Sprite gerektiren `TouchScreenButton` yapısı yerine, dinamik olarak `_draw()` fonksiyonuyla kendi geometrisini çizen ve animasyonları kodla yöneten özel bir nesne/script (`NeonButton`) kullanıldı. Bu sayede harici texture/resim dosyasına ihtiyaç duymadan sonsuz ölçeklenebilir (ve az yer kaplayan) vektörel neon butonlar yaratıldı.
+
+### Sinyal ve Lojik Bağlantısı
+- **İp Atma Butonu (Grapple):** Neon Turkuaz rengiyle sağ tarafa yerleştirildi. Basıldığı an `Player.gd` içerisindeki `_try_attach_spring_dir` (veya fare/joystick vektörü) tetiklenir.
+- **İp Koparma Butonu (Release):** Neon Kırmızı/Pembe tonlarıyla İp Atma butonunun altına yerleştirildi. Doğrudan `player_node._release_slingshot()` fonksiyonunu tetikler.
+
+### Performans, Güvenlik ve Gelecek Planları
+- Butonlar, yalnızca cihaz dokunmatik olduğunda `Arena.gd`'nin `_ready` fonksiyonunda doğar. Masaüstü/PC performansına veya kalabalık ekran görünümüne (Clutter) sıfır etkisi vardır.
+- Yaratıcı oyun alanı dokunuşu olarak: Butonlara basıldığında (pressed) mikro düzeyde `scale` büzülmesi ve anlık opaklık artışı sağlanarak tactile (dokunsal) bir geri bildirim (Juice) verildi.
