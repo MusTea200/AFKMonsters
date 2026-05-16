@@ -155,7 +155,11 @@ func take_damage(amount: float, knock_dir: Vector2 = Vector2.ZERO) -> void:
 		return # Immune while ghosting
 
 	current_health -= amount
-	HitstopManager.hitstop(0.02, 0.2)
+	if is_boss:
+		HitstopManager.hitstop(0.02, 0.2)
+
+	if CameraShake:
+		CameraShake.add_trauma(0.1)
 	_show_floating_damage(amount)
 
 	# Knockback
@@ -164,6 +168,9 @@ func take_damage(amount: float, knock_dir: Vector2 = Vector2.ZERO) -> void:
 
 	# Hit Flash Tween
 	var tween = create_tween()
+	# Micro-shrink juice
+	tween.parallel().tween_property(self, "scale", scale * 0.8, 0.05)
+	tween.tween_property(self, "scale", scale, 0.1).set_trans(Tween.TRANS_BOUNCE)
 	modulate = Color(10, 10, 10, 1)
 	tween.tween_property(self, "modulate", Color(1, 1, 1, 1), 0.1)
 

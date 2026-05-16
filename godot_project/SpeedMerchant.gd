@@ -2,7 +2,7 @@ extends Area2D
 class_name SpeedMerchant
 
 var player: Node2D
-var move_speed: float = 800.0
+var move_speed: float = 500.0
 var flee_radius: float = 1200.0
 var can_interact: bool = false
 var is_shop_open: bool = false

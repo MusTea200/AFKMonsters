@@ -46,3 +46,21 @@ Mobil cihazlarda testler sırasında tespit edilen "mermilerin ateşlenmemesi" s
 - Gözü yoran tam ekran flaş (`CanvasLayer` ve `ColorRect` altyapısı) tamamen koddan söküldü.
 - Yerine, silah ateşlendiğinde sadece oyuncu karakterinin (`Player`) lokasyonunda çok kısa bir süreliğine doğup sönen (0.1 sn), yumuşak geçişli neon turkuaz bir lokal "Namlu Kıvılcımı" (Lokal Muzzle Flash / CPUParticles2D veya küçük bir Node2D çizimi) entegre edildi.
 - Oyuncuya vuruş hissini veren ama göz yormayan mikroskobik ölçekli `recoil` (geri tepme) animasyonu ise korundu.
+
+## ⚡ Sistem Mimarisi İyileştirmeleri (VFX, UI & Mobil Ölçekleme)
+### Savaş Döngüsü Hitstop Revizyonu
+- Genel mermi çarpmalarında oluşan ve oyunun ritmini baltalayan `Engine.time_scale` duraksamaları (Hitstop) tamamen kaldırıldı.
+- Vuruş hissiyatı (Juice); kamerada mikro sarsıntı (Camera Shake) ve düşman sprite'ında anlık renk sapması (beyazlama) ve büzülme ile korundu. Yalnızca Boss sınıfı düşmanlarda hitstop aktif bırakıldı.
+
+### Off-Screen Indicator (Ekran Kenarı Takip)
+- Önemli varlıklar (Boss, Merchant, SpeedMerchant, RouletteMan) ekranın dışına çıktığında kaybolmalarını önlemek için dinamik bir ok sistemi (Off-Screen Indicator) kuruldu. Projeksiyon matematiği ile kameranın `viewport_rect` sınırları hesaplanıp objenin gidiş yönüne göre ok pürüzsüzce kilitlenmektedir.
+- SpeedMerchant'ın hızı oyuncunun yetişebileceği insancıl bir seviyeye çekildi.
+
+### Arcade Görsel Kimliği (Momentum & Redzone)
+- **Momentum UI:** Hantal merkezi yazı, siber-arcade hissiyatını verecek şekilde açılı (-15 derece) ve dinamik boyutlu (momentum arttıkça büyüyen ve titreyen) bir kombo etiketine dönüştürüldü.
+- **Redzone:** Klasik yeşil debuff renk değişimi yerine; ekranı kaplayan kırmızı siber vignette efekti, "WARNING: OVERHEAT DEBUFF" yazısı ve harekette kayganlık (buzlanma - sürtünme kaybı) hissi veren fiziksel bir modifikasyon eklendi.
+
+### Mobil Ölçekleme ve Arayüz Kontrolleri (Mobile Hardening)
+- Cihazlar arası tutarlı görünüm için ekran genişletme (Stretch Mode - Canvas Items) kod ile entegre edildi.
+- Mobil UI'a; sol üstte neon tasarımlı Pause (ESC muadili) butonu, sağ alta ise "İp Koparma" (Release Rope) aksiyonu eklendi.
+- `Global.use_manual_aim_joystick` değişkeni sayesinde oyunculara sağ joystick'i gizleme ve tamamen Auto-Aim kullanma özgürlüğü sunuldu.

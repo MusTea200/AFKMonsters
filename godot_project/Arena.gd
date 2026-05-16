@@ -38,6 +38,8 @@ var last_20s_checked: int = 3
 
 
 func _ready() -> void:
+	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+	get_tree().root.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_EXPAND
 	process_mode = Node.PROCESS_MODE_ALWAYS # Arena zaman dursa da çalışsın (ESC için)
 	
 	for n in get_children():
@@ -60,11 +62,12 @@ func _ready() -> void:
 			Global.left_joystick = left_joy
 
 			# Sağ Joystick (Nişan/Ateş)
-			var right_joy = VirtualJoystick.new()
-			right_joy.name = "RightJoystick"
-			right_joy.position = Vector2(viewport_size.x - 300, viewport_size.y - 300)
-			canvas.add_child(right_joy)
-			Global.right_joystick = right_joy
+			if Global.use_manual_aim_joystick:
+				var right_joy = VirtualJoystick.new()
+				right_joy.name = "RightJoystick"
+				right_joy.position = Vector2(viewport_size.x - 300, viewport_size.y - 300)
+				canvas.add_child(right_joy)
+				Global.right_joystick = right_joy
 
 			# Etkileşim (Kanca/Sapan) Butonu
 			var action_btn = TouchScreenButton.new()
@@ -73,6 +76,15 @@ func _ready() -> void:
 			action_btn.shape = shape
 			action_btn.position = Vector2(viewport_size.x - 150, viewport_size.y - 450)
 			action_btn.action = "ui_accept" # TBD: Player'a bağla
+
+			# Duraklatma Butonu (Mobil ESC)
+			var pause_btn = TouchScreenButton.new()
+			var p_shape = RectangleShape2D.new()
+			p_shape.size = Vector2(100, 100)
+			pause_btn.shape = p_shape
+			pause_btn.position = Vector2(50, 50)
+			pause_btn.action = "ui_cancel" # ESC muadili
+			canvas.add_child(pause_btn)
 			canvas.add_child(action_btn)
 
 			# Modifiye edilmiş Neon Buton Çizimi (CanvasItem _draw override)
@@ -462,12 +474,14 @@ func _spawn_boss() -> void:
 	boss.move_speed = 100.0
 	boss.base_mass = 5.0
 	boss.is_boss = true
+	_attach_indicator(boss)
 	# Note: Off-screen indicator would require a separate UI script,
 	# but we keep it simple by just having a big enemy tracking us.
 	add_child(boss)
 
 func _spawn_merchant() -> void:
 	var merchant = load("res://Merchant.gd").new()
+	_attach_indicator(merchant)
 	var angle = randf() * 2.0 * PI
 	var dist = randf_range(1000.0, 2000.0)
 	merchant.global_position = player_node.global_position + Vector2(cos(angle), sin(angle)) * dist
@@ -505,3 +519,9 @@ func _check_dynamic_difficulty() -> void:
 func _increase_difficulty() -> void:
 	difficulty_multiplier *= 1.15
 	spawn_timer.wait_time = max(0.1, spawn_timer.wait_time / 1.15)
+
+func _attach_indicator(target_node: Node2D) -> void:
+	var ind = load("res://OffScreenIndicator.gd").new()
+	ind.target = target_node
+	# Add to CanvasLayer or Scene Root. Scene root is better since it uses global coordinates
+	get_tree().current_scene.call_deferred("add_child", ind)
