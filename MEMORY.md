@@ -37,3 +37,12 @@ Mobil cihazlarda testler sırasında tespit edilen "mermilerin ateşlenmemesi" s
 
 ### Güvenlik ve Performans
 - `get_children()` ile tüm sahne kökünü taramak yerine `get_tree().get_nodes_in_group("enemies")` çağrısı kullanılarak CPU üzerindeki iterasyon yükü %80 oranında düşürüldü. Performans stabil hale getirildi.
+
+## 🛑 Görsel Tasarım Düzeltmesi: Göz Dostu VFX Optimizasyonları (Screen Safety)
+### Tasarım Hatası Analizi
+- Önceki geliştirmede atış anı geri bildirimini (juice) artırmak için tüm ekranı kaplayan (2000x2000 boyutunda) anlık neon turkuaz bir `ColorRect` flaşı eklenmişti. Bu tür agresif tam ekran flaşlar (strobe efekti) oyuncuda hızlı bir şekilde "Göz Yorgunluğuna" (Visual Fatigue) neden olmakta, dikkat dağıtmakta ve epilepsi/ışık hassasiyeti olan oyuncular için risk barındırmaktadır.
+
+### Düzeltme ve Lokalize Geçiş
+- Gözü yoran tam ekran flaş (`CanvasLayer` ve `ColorRect` altyapısı) tamamen koddan söküldü.
+- Yerine, silah ateşlendiğinde sadece oyuncu karakterinin (`Player`) lokasyonunda çok kısa bir süreliğine doğup sönen (0.1 sn), yumuşak geçişli neon turkuaz bir lokal "Namlu Kıvılcımı" (Lokal Muzzle Flash / CPUParticles2D veya küçük bir Node2D çizimi) entegre edildi.
+- Oyuncuya vuruş hissini veren ama göz yormayan mikroskobik ölçekli `recoil` (geri tepme) animasyonu ise korundu.

@@ -198,17 +198,22 @@ func _apply_recoil_and_juice() -> void:
 		tween.tween_property(player, "scale", Vector2.ONE, 0.1).set_trans(Tween.TRANS_BOUNCE)
 
 	# Muzzle Flash (Siber Namlu Parlaması)
-	var flash = ColorRect.new()
-	flash.color = Color(0, 1, 1, 0.8) # Neon Cyan
-	flash.size = Vector2(2000, 2000)
-	flash.position = -flash.size / 2
-	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var local_flash = ColorRect.new()
+	local_flash.color = Color(0, 1, 1, 0.9) # Neon Cyan
+	local_flash.size = Vector2(40, 40)
+	local_flash.position = -local_flash.size / 2
+	local_flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	var canvas = CanvasLayer.new()
-	canvas.layer = -1 # Background flash
-	canvas.add_child(flash)
-	get_tree().current_scene.add_child(canvas)
+	var container = Node2D.new()
+	container.global_position = player.global_position
+	# Rastgele hafif sapan bir konumda ciksin (silah ucu vari)
+	var rand_offset = Vector2(randf_range(-15, 15), randf_range(-15, 15))
+	container.position += rand_offset
+
+	container.add_child(local_flash)
+	get_tree().current_scene.add_child(container)
 
 	var f_tween = create_tween()
-	f_tween.tween_property(flash, "color:a", 0.0, 0.1)
-	f_tween.tween_callback(canvas.queue_free)
+	f_tween.tween_property(local_flash, "color:a", 0.0, 0.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	f_tween.parallel().tween_property(local_flash, "scale", Vector2(0.2, 0.2), 0.1)
+	f_tween.tween_callback(container.queue_free)
