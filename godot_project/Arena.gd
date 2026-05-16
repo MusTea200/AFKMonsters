@@ -60,6 +60,12 @@ func _ready() -> void:
 			else:
 				mobile_controls.get_node("RightJoystick").hide()
 
+			var grapple_btn = mobile_controls.get_node("GrappleBtn")
+			grapple_btn.pressed.connect(func(): if is_instance_valid(player_node): player_node._is_hook_held = true)
+			grapple_btn.released.connect(func(): if is_instance_valid(player_node):
+				player_node._is_hook_held = false
+				player_node._release_slingshot()
+			)
 			var release_btn = mobile_controls.get_node("ReleaseBtn")
 			release_btn.pressed.connect(func(): if is_instance_valid(player_node): player_node._release_slingshot())
 
@@ -67,6 +73,12 @@ func _ready() -> void:
 			var p_shape = RectangleShape2D.new()
 			p_shape.size = Vector2(100, 100)
 			pause_btn.shape = p_shape
+			pause_btn.pressed.connect(func():
+				if get_tree().paused:
+					_close_settings_menu()
+				else:
+					_open_settings_menu()
+			)
 		else:
 			mobile_controls.hide()
 

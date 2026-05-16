@@ -109,3 +109,12 @@ Mobil cihazlarda testler sırasında tespit edilen "mermilerin ateşlenmemesi" s
 ### Kanca "Basılı Tutma" (Hold) Lojiği Onarımı
 - Orijinal mobil kod sadece basıldığı ilk frame (press) kanca atıyordu. `Player.gd` içerisine kalıcı bir `_is_hook_held` state'i eklendi.
 - `_unhandled_input` içerisindeki buton sinyali bu state'i değiştirirken, `_physics_process` her karede bu state'i dinleyerek kancanın joystick yönüne sürekli fırlatılabilmesini/güncellenebilmesini (Continuous Aiming) sağladı. Tıpkı PC'de farenin basılı tutulması gibi hissettiriyor.
+
+## 🪝 Mobil Kanca (Hook) Hatalarının Tamiri ve Arayüz Görselleştirmesi
+### Sinyal Bağımlılıkları ve Kopma Tamiri
+- Mobil `TouchScreenButton` nesnelerinin Godot'nun genel `InputMap` sistemine (örn. "ui_accept" action'ı) olan dolaylı bağlantısı, özellikle farenin emüle edildiği durumlarda sahte `released` sinyallerine ve dolayısıyla kancanın anında kopmasına neden oluyordu.
+- **Çözüm:** `Arena.gd` içerisindeki `GrappleBtn` nesnesinin `pressed` ve `released` sinyalleri, dolaylı `_unhandled_input` köprüsü yerine **DOĞRUDAN** `Player.gd` içindeki `_is_hook_held` state'ine kilitlendi. Böylece parmak fiziksel olarak butondan çekilmediği sürece kancanın kopması matematiksel olarak imkansız hale getirildi. (Player.gd içerisindeki eski ui_accept interceptor'ı tamamen temizlendi.)
+
+### Duraklatma (Pause) Butonu Görselleştirmesi
+- Önceden ekranda görünmeyen, boş bir TouchScreenButton olan Pause butonu, `NeonButton` alt yapısına geçirildi.
+- Neon yeşil/turkuaz arası bir renkle renklendirilip üzerine "||" ibaresi yazılarak ekranın üst kısmında net bir siber estetik yakalandı. Sinyali doğrudan Arena.gd'nin `_open_settings_menu` akışına bağlandı.
