@@ -142,9 +142,6 @@ func _shoot_closest_enemy() -> void:
 			var touch_aim = Global.right_joystick.get_joystick_vector()
 			if touch_aim.length() > 0.1:
 				manual_aim_dir = touch_aim.normalized()
-	elif Global.current_input_type == Global.InputType.KEYBOARD and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
-		# Optional: allow mouse drag to shoot in a direction in PC. For now fallback to closest enemy if not manually aiming.
-		pass
 
 	var final_base_dir = Vector2.ZERO
 
@@ -157,7 +154,7 @@ func _shoot_closest_enemy() -> void:
 		var closest_dist = INF
 
 		for child in scene_root.get_children():
-			if child is Node2D and child.has_method("take_damage") and "Enemy" in child.name:
+			if child is Node2D and child.has_method("take_damage") and child.name.find("Enemy") != -1:
 				var dist = player.global_position.distance_to(child.global_position)
 				if dist < 1500.0: # Range limit
 					if dist < closest_dist:

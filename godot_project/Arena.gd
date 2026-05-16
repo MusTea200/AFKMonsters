@@ -203,6 +203,7 @@ func _on_spawn_timer_timeout() -> void:
 	for i in range(current_spawn_multiplier):
 		var final_pos = spawn_pos + Vector2(cos(angle), sin(angle)) * randf_range(0, 200)
 		var enemy_instance = enemy_scene.instantiate()
+		enemy_instance.name = "Enemy_" + str(randi() % 1000000)
 		enemy_instance.global_position = final_pos
 		enemy_instance.max_health *= difficulty_multiplier
 		if is_horde_mode:
@@ -454,6 +455,7 @@ func _spawn_boss() -> void:
 	var angle = randf() * 2.0 * PI
 	var spawn_pos = player_node.global_position + Vector2(cos(angle), sin(angle)) * spawn_radius
 	var boss = enemy_scene.instantiate()
+	boss.name = "EnemyBoss"
 	boss.global_position = spawn_pos
 	boss.scale = Vector2(3.0, 3.0)
 	boss.max_health = 1000.0 * pow(1.5, Global.successful_loops) # HUGE HP
