@@ -80,6 +80,16 @@ func process_combat(delta: float) -> void:
 	if is_instance_valid(player.momentum_label):
 		player.momentum_label.text = "MOMENTUM: " + str(snapped(momentum_mult, 0.1)) + "x"
 
+		# Dinamik Momentum UI Tween
+		var target_scale = Vector2.ONE * (1.0 + (momentum_mult - 1.0) * 0.5)
+		var target_alpha = min(1.0, 0.3 + (momentum_mult - 1.0))
+		player.momentum_label.scale = player.momentum_label.scale.lerp(target_scale, 10.0 * delta)
+		player.momentum_label.modulate.a = lerp(player.momentum_label.modulate.a, target_alpha, 10.0 * delta)
+
+		# Titreme eklentisi (hiz 2x ustundeyse)
+		if momentum_mult > 2.0:
+			player.momentum_label.position += Vector2(randf_range(-2, 2), randf_range(-2, 2))
+
 
 	if is_instance_valid(player.speed_lines):
 		var mat = player.speed_lines.material as ShaderMaterial

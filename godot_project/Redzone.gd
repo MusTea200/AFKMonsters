@@ -66,7 +66,28 @@ func _apply_debuff() -> void:
 
 		p.max_speed = original_speed * 0.5
 		p.combat_comp.can_yenileme = 0.0
-		p.modulate = Color.GREEN_YELLOW
+		p.modulate = Color.RED
+		p.linear_damp = 0.2 # Ice effect (kayganlik)
+
+		# warning ui
+		var canvas = CanvasLayer.new()
+		canvas.name = "RedzoneVignette"
+
+		var vignette = ColorRect.new()
+		vignette.color = Color(1, 0, 0, 0.2)
+		vignette.set_anchors_preset(Control.PRESET_FULL_RECT)
+		vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		canvas.add_child(vignette)
+
+		var label = Label.new()
+		label.text = ">> WARNING: OVERHEAT DEBUFF <<"
+		label.add_theme_font_size_override("font_size", 48)
+		label.add_theme_color_override("font_color", Color.RED)
+		label.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+		label.position = Vector2(get_viewport_rect().size.x / 2.0 - 400, get_viewport_rect().size.y - 150)
+		canvas.add_child(label)
+
+		get_tree().current_scene.add_child(canvas)
 
 func _remove_debuff() -> void:
 	debuff_active = false
@@ -75,5 +96,10 @@ func _remove_debuff() -> void:
 		p.max_speed = original_speed
 		p.combat_comp.can_yenileme = original_regen
 		p.modulate = Color.WHITE
+		p.linear_damp = 1.0 # Normal friction
+
+		var vignette = get_tree().current_scene.find_child("RedzoneVignette", true, false)
+		if vignette:
+			vignette.queue_free()
 
 		original_speed = 0.0
