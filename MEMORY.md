@@ -77,3 +77,14 @@ Mobil cihazlarda testler sırasında tespit edilen "mermilerin ateşlenmemesi" s
 ### Performans, Güvenlik ve Gelecek Planları
 - Butonlar, yalnızca cihaz dokunmatik olduğunda `Arena.gd`'nin `_ready` fonksiyonunda doğar. Masaüstü/PC performansına veya kalabalık ekran görünümüne (Clutter) sıfır etkisi vardır.
 - Yaratıcı oyun alanı dokunuşu olarak: Butonlara basıldığında (pressed) mikro düzeyde `scale` büzülmesi ve anlık opaklık artışı sağlanarak tactile (dokunsal) bir geri bildirim (Juice) verildi.
+
+## 🛡️ Input Çakışma Engelleyici & Katman İzolasyonu (Mobile Controls)
+### Katman (Layer) Ayrımı
+- `Arena.gd` içerisindeki dinamik mobil buton doğumları (`CanvasLayer` üzerine) güncellenerek tamamen yeni inşa edilen ve editörden yönetilebilen `MobileControls` CanvasLayer'ı üzerine yönlendirildi. Bu, z-index ve rendering sırasını garanti altına alır.
+
+### Sinyal Yalıtımı (Input Isolation)
+- `VirtualJoystick.gd` ve `NeonButton.gd` sınıflarına, `event.pressed` anında `get_viewport().set_input_as_handled()` kodu eklendi. Bu kritik satır sayesinde oyuncu ekrandaki UI elemanlarına dokunduğunda (örneğin hareket ederken veya kanca atarken), dokunmatik sinyalin arkadaki 2D dünyaya sızması ve yanlışlıkla ekrana tıklanmış gibi (mouse/touch click) algılanıp hatalı hedefler yaratması KESİN OLARAK engellendi.
+
+### Kanca "Basılı Tutma" (Hold) Lojiği Onarımı
+- Orijinal mobil kod sadece basıldığı ilk frame (press) kanca atıyordu. `Player.gd` içerisine kalıcı bir `_is_hook_held` state'i eklendi.
+- `_unhandled_input` içerisindeki buton sinyali bu state'i değiştirirken, `_physics_process` her karede bu state'i dinleyerek kancanın joystick yönüne sürekli fırlatılabilmesini/güncellenebilmesini (Continuous Aiming) sağladı. Tıpkı PC'de farenin basılı tutulması gibi hissettiriyor.

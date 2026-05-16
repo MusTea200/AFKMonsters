@@ -9,6 +9,7 @@ class_name Player
 
 var current_health: float
 var active_springs: Dictionary = {}
+var _is_hook_held: bool = false
 var current_target_node: Node2D = null
 
 @export var ip_uzunlugu: float = 600.0
@@ -91,6 +92,15 @@ func _ready() -> void:
 		level_up_ui.upgrade_selected.connect(economy_comp.apply_upgrade)
 
 func _physics_process(delta: float) -> void:
+	if _is_hook_held:
+		if Global.right_joystick and Global.right_joystick.is_dragging:
+			var aim_dir = Global.right_joystick.get_joystick_vector().normalized()
+			if aim_dir.length() > 0.1:
+				_try_attach_spring_dir(aim_dir)
+		elif Global.left_joystick and Global.left_joystick.is_dragging:
+			var move_dir = Global.left_joystick.get_joystick_vector().normalized()
+			if move_dir.length() > 0.1:
+				_try_attach_spring_dir(move_dir)
 	if is_stunned:
 		linear_velocity = linear_velocity.move_toward(Vector2.ZERO, 50.0 * delta)
 		if stun_icon:
@@ -171,6 +181,7 @@ func _integrate_forces(state: PhysicsDirectBodyState2D) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	# Mobile Action Button hook
 	if event.is_action_pressed("ui_accept"):
+		_is_hook_held = true
 		if Global.right_joystick and Global.right_joystick.is_dragging:
 			var aim_dir = Global.right_joystick.get_joystick_vector().normalized()
 			if aim_dir.length() > 0.1:
@@ -184,6 +195,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		# Fallback to mouse position if UI accept is pressed but no joystick is dragging
 		_try_attach_spring(get_global_mouse_position())
 	elif event.is_action_released("ui_accept"):
+		_is_hook_held = false
 		_release_slingshot()
 
 	if is_stunned: return

@@ -50,7 +50,7 @@ func _ready() -> void:
 
 	# Mobil Kontrolleri Dinamik Olarak Ekle
 	if OS.has_feature("mobile") or Global.current_input_type == Global.InputType.TOUCH:
-		var canvas = get_tree().current_scene.find_child("CanvasLayer", true, false)
+		var canvas = get_tree().current_scene.find_child("MobileControls", true, false)
 		if canvas:
 			var viewport_size = get_viewport_rect().size
 
