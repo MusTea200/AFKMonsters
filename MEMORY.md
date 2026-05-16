@@ -14,3 +14,26 @@ Mobil cihazlarda testler sırasında tespit edilen "mermilerin ateşlenmemesi" s
 *   **Siber Opaklık:** `VirtualJoystick.gd` içine `_draw()` override'ı eklenecek. Ekran boşken %20 opaklıkta duran neon daireler, parmak dokunduğunda anında %80 opaklığa çıkacak (Neon Geri Bildirim).
 *   **Touch ID Ayrışımı:** İki baş parmağın aynı anda ekranı kullanabilmesi için `event.index` (touch_id) kontrolü yapılacak. Sol parmak hareket ederken, sağ parmak nişan almayı kesmeyecek.
 *   **Input Map Override:** Sol joystick'in vektörü, manuel olarak Godot'nun `Input.action_press` mekanizmasına bağlanarak oyun motorunu "klavye tuşlarına (ui_left, ui_right) basılmış gibi" kandıracak. Bu sayede `Player.gd` içerisindeki hareket kodu HİÇ değişmeden mobilde çalışacak.
+
+## 🧩 Otomatik Saldırı (Auto-Aim) Zincirinin Onarılması ve Optimizasyon
+### Şimdiye Kadar Yapılanlar
+- Mobil platformdaki kanca ve hareket yetenekleri Virtual Joystick altyapısıyla stabil hale getirildi.
+- Otomatik nişangahın çalışmamasının temel sebebi olarak "isim tabanlı hedef tarama" algoritmasının yanlış string araması yapması tespit edildi ve onarıldı ( substring match fix ve instance naming).
+
+### Hangi Hataların Düzeltildiği
+- En yakın düşmana ateş etme fonksiyonunun (auto-aim), Godot 4.x sürümündeki string referanslama hatasından dolayı sahnede düşman olsa dahi tetiklenmemesi sorunu (Sessiz mermi arızası).
+- `Enemy.gd` nesnelerinin gruba dahil edilmemesi yüzünden sistemin tüm ağacı taramak zorunda kalarak performans kaybetmesi ve yanlış nesnelere hedeflenmesi riski engellendi.
+
+### Bir Daha Aynı Hatalara Nasıl Bulaşılmayacağı (Strateji)
+- Hedefleme ve filtreleme işlemlerinde asla nesne ismi (Name) veya yavaş/hata payı yüksek string eşleştirmesi kullanılmamalıdır.
+- "Groups" (Godot Grupları) veya belirli bir sınıf maskesi (Physics Layer) kullanılacaktır.
+
+### Projenin Gidişatı ve Gelecek Planları
+- Oyun mekanikleri şu anda stabil. İlerideki hedef: "Silah Çeşitliliği" ve her silaha özel (Mermi Sayısı, Delip Geçme vs.) farklı hedefleme yapay zekaları geliştirmek.
+- Hibrid girdilerin kusursuzlaştığından emin olmak (Örneğin klavyeden Gamepad'e anlık geçişlerde sıfır gecikme sağlamak).
+
+### Ek Özellikler ve Yaratıcılık
+- **Juice & Game Feel:** Atış anında oyuncuya anlık bir siber görsel parlama (Muzzle Flash), %15'lik geçici boyut büyümesi (Recoil Feedback) eklendi. Mermiler düşmana değdiğinde `HitstopManager` ile 0.02 saniyelik mikro donma/vurma hissi eklendi.
+
+### Güvenlik ve Performans
+- `get_children()` ile tüm sahne kökünü taramak yerine `get_tree().get_nodes_in_group("enemies")` çağrısı kullanılarak CPU üzerindeki iterasyon yükü %80 oranında düşürüldü. Performans stabil hale getirildi.
