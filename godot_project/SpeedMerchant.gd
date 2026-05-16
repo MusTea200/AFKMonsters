@@ -43,7 +43,7 @@ func _process(delta: float) -> void:
 		Global.InputType.KEYBOARD:
 			interact_label.text = "[E] GİZLİ MARKET"
 		Global.InputType.JOYPAD:
-			interact_label.text = "[X/Kare] GİZLİ MARKET"
+			interact_label.text = "[Y / ▲] GİZLİ MARKET"
 		Global.InputType.TOUCH:
 			interact_label.text = "[DOKUN] GİZLİ MARKET"
 
@@ -64,7 +64,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	if event is InputEventKey and event.keycode == KEY_E and event.pressed and not event.echo:
 		interacted = true
-	elif event is InputEventJoypadButton and event.button_index == JOY_BUTTON_X and event.pressed:
+	elif event is InputEventJoypadButton and event.button_index == JOY_BUTTON_Y and event.pressed:
 		interacted = true
 	elif event is InputEventScreenTouch and event.pressed:
 		interacted = true

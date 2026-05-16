@@ -12,7 +12,7 @@ var active_springs: Dictionary = {}
 var current_target_node: Node2D = null
 
 @export var ip_uzunlugu: float = 600.0
-@export var bullet_scene: PackedScene
+var bullet_scene: PackedScene = preload("res://Bullet.tscn")
 var health_bar: ProgressBar
 
 var camera: Camera2D

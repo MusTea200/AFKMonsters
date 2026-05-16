@@ -126,7 +126,7 @@ func _show_floating_text(text_str: String, color: Color) -> void:
 	tween.tween_callback(label.queue_free)
 
 func _shoot_closest_enemy() -> void:
-	if not player.bullet_scene or player.is_stunned:
+	if not is_instance_valid(player) or not player.bullet_scene or player.is_stunned:
 		return
 
 	var closest_enemy = null
