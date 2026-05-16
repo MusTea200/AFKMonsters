@@ -92,11 +92,26 @@ func _ready() -> void:
 		level_up_ui.upgrade_selected.connect(economy_comp.apply_upgrade)
 
 func _physics_process(delta: float) -> void:
-	if _is_hook_held:
+	if is_stunned:
 		linear_velocity = linear_velocity.move_toward(Vector2.ZERO, 50.0 * delta)
 		if stun_icon:
 			stun_icon.rotation += 5.0 * delta
 		return
+
+	if _is_hook_held and active_springs.is_empty():
+		var aim_dir = Vector2.ZERO
+		if Global.right_joystick and Global.right_joystick.is_dragging:
+			aim_dir = Global.right_joystick.get_joystick_vector().normalized()
+		elif Global.left_joystick and Global.left_joystick.is_dragging:
+			aim_dir = Global.left_joystick.get_joystick_vector().normalized()
+		elif Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down").length() > 0:
+			aim_dir = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down").normalized()
+
+		if is_instance_valid(current_target_node):
+			_create_spring_joint(current_target_node)
+		elif aim_dir.length() > 0.1:
+			_try_attach_spring_dir(aim_dir)
+
 
 	var input_vector = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
 
@@ -252,7 +267,7 @@ func _update_ropes() -> void:
 				line.add_point(node.global_position)
 
 				var tension_ratio = min(1.0, stretch / max(1.0, ip_uzunlugu * 0.5))
-				line.default_color = Color.WHITE.lerp(Color.RED, tension_ratio)
+				line.default_color = Color(0, 1, 1, 0.8).lerp(Color(1, 0, 0.5, 0.8), tension_ratio) # Cyberpunk Neon Tension
 		else:
 			nodes_to_remove.append(node)
 
