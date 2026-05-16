@@ -69,13 +69,28 @@ func _ready() -> void:
 				canvas.add_child(right_joy)
 				Global.right_joystick = right_joy
 
-			# Etkileşim (Kanca/Sapan) Butonu
-			var action_btn = TouchScreenButton.new()
-			var shape = CircleShape2D.new()
-			shape.radius = 80.0
-			action_btn.shape = shape
-			action_btn.position = Vector2(viewport_size.x - 150, viewport_size.y - 450)
-			action_btn.action = "ui_accept" # TBD: Player'a bağla
+
+			# İp Atma Butonu (Grapple)
+			var grapple_btn = load("res://NeonButton.gd").new()
+			grapple_btn.name = "GrappleBtn"
+			grapple_btn.base_color = Color(0.0, 1.0, 1.0, 0.6) # Turkuaz
+			grapple_btn.radius = 70.0
+			grapple_btn.label_text = "HOOK"
+			grapple_btn.position = Vector2(viewport_size.x - 120, viewport_size.y - 450)
+			grapple_btn.action = "ui_accept"
+			canvas.add_child(grapple_btn)
+
+			# İp Koparma Butonu (Release)
+			var release_btn = load("res://NeonButton.gd").new()
+			release_btn.name = "ReleaseBtn"
+			release_btn.base_color = Color(1.0, 0.0, 0.5, 0.6) # Kırmızımsı/Pembe
+			release_btn.radius = 60.0
+			release_btn.label_text = "CUT"
+			release_btn.position = Vector2(viewport_size.x - 260, viewport_size.y - 120)
+
+			# Custom Signal Binding for Cut since we do not have a dedicated action in InputMap
+			release_btn.pressed.connect(func(): if is_instance_valid(player_node): player_node._release_slingshot())
+			canvas.add_child(release_btn)
 
 			# Duraklatma Butonu (Mobil ESC)
 			var pause_btn = TouchScreenButton.new()
@@ -85,7 +100,6 @@ func _ready() -> void:
 			pause_btn.position = Vector2(50, 50)
 			pause_btn.action = "ui_cancel" # ESC muadili
 			canvas.add_child(pause_btn)
-			canvas.add_child(action_btn)
 
 			# Modifiye edilmiş Neon Buton Çizimi (CanvasItem _draw override)
 			# (Buton efekti için şimdilik basit bıraktık, TouchScreenButton _draw overridable değil)
