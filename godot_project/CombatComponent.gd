@@ -37,6 +37,7 @@ func initialize(_player: RigidBody2D) -> void:
 func update_fire_rate() -> void:
 	if is_instance_valid(shoot_timer):
 		shoot_timer.wait_time = 1.0 / atis_hizi
+		shoot_timer.autostart = true
 		shoot_timer.start()
 
 func take_damage(amount: float) -> void:
@@ -60,6 +61,9 @@ func take_damage(amount: float) -> void:
 		player.economy_comp.finalize_run()
 
 func process_combat(delta: float) -> void:
+
+	if is_instance_valid(shoot_timer) and shoot_timer.is_stopped():
+		shoot_timer.start()
 	_update_combo(delta)
 
 	# Health Regen
@@ -146,15 +150,16 @@ func _shoot_closest_enemy() -> void:
 	var final_base_dir = Vector2.ZERO
 
 	if manual_aim_dir != Vector2.ZERO:
-		# Manual aim overrides closest enemy
 		final_base_dir = manual_aim_dir
 	else:
-		# Auto-aim if no manual input
+		# Auto-aim using groups
 		var closest_enemy = null
 		var closest_dist = INF
 
-		for child in scene_root.get_children():
-			if child is Node2D and child.has_method("take_damage") and child.name.find("Enemy") != -1:
+		# Sadece enemies grubunu tarayarak inanilmaz bir performans ve kesinlik elde ediyoruz
+		var enemies = get_tree().get_nodes_in_group("enemies")
+		for child in enemies:
+			if is_instance_valid(child) and child.has_method("take_damage"):
 				var dist = player.global_position.distance_to(child.global_position)
 				if dist < 1500.0: # Range limit
 					if dist < closest_dist:
@@ -178,7 +183,32 @@ func _shoot_closest_enemy() -> void:
 			var bullet = player.bullet_scene.instantiate()
 			bullet.global_position = player.global_position
 			bullet.direction = final_dir
-			# Apply combo and momentum
 			bullet.damage = mermi_hasari * combo_multiplier * momentum_mult
 			bullet.pierce_count = delip_gecme
 			scene_root.add_child(bullet)
+
+		# Yaratıcı Oyun Alanı: Recoil (Geri Tepme) ve Muzzle Flash
+		_apply_recoil_and_juice()
+
+func _apply_recoil_and_juice() -> void:
+	# Recoil Animation on Player
+	if is_instance_valid(player):
+		var tween = player.create_tween()
+		tween.tween_property(player, "scale", Vector2(1.15, 0.85), 0.05)
+		tween.tween_property(player, "scale", Vector2.ONE, 0.1).set_trans(Tween.TRANS_BOUNCE)
+
+	# Muzzle Flash (Siber Namlu Parlaması)
+	var flash = ColorRect.new()
+	flash.color = Color(0, 1, 1, 0.8) # Neon Cyan
+	flash.size = Vector2(2000, 2000)
+	flash.position = -flash.size / 2
+	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var canvas = CanvasLayer.new()
+	canvas.layer = -1 # Background flash
+	canvas.add_child(flash)
+	get_tree().current_scene.add_child(canvas)
+
+	var f_tween = create_tween()
+	f_tween.tween_property(flash, "color:a", 0.0, 0.1)
+	f_tween.tween_callback(canvas.queue_free)

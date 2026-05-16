@@ -29,6 +29,7 @@ var jammer_visual: ColorRect
 
 
 func _ready() -> void:
+	add_to_group("enemies")
 	audio_player = AudioStreamPlayer2D.new()
 	add_child(audio_player)
 	current_health = max_health
@@ -154,6 +155,7 @@ func _take_damage(amount: float, knock_dir: Vector2 = Vector2.ZERO) -> void:
 		return # Immune while ghosting
 
 	current_health -= amount
+	HitstopManager.hitstop(0.02, 0.2)
 	_show_floating_damage(amount)
 
 	# Knockback
