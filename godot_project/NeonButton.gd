@@ -18,6 +18,7 @@ func _ready() -> void:
 	released.connect(_on_released)
 
 func _on_pressed() -> void:
+	get_viewport().set_input_as_handled()
 	is_active = true
 	var tween = create_tween()
 	tween.tween_property(self, "current_scale", Vector2(0.85, 0.85), 0.05)

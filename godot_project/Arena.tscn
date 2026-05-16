@@ -29,6 +29,7 @@ zoom = Vector2(0.5, 0.5)
 position_smoothing_enabled = true
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
+[node name="MobileControls" type="CanvasLayer" parent="."]
 
 [node name="SpeedLines" type="ColorRect" parent="CanvasLayer"]
 material = SubResource("ShaderMaterial_spd")

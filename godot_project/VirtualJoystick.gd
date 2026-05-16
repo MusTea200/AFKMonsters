@@ -23,6 +23,7 @@ func _input(event: InputEvent) -> void:
 				touch_id = event.index
 				base_pos = get_global_rect().get_center()
 				stick_pos = event.position
+				get_viewport().set_input_as_handled()
 				queue_redraw()
 		elif not event.pressed and event.index == touch_id:
 			is_dragging = false
