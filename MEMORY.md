@@ -88,3 +88,24 @@ Mobil cihazlarda testler sırasında tespit edilen "mermilerin ateşlenmemesi" s
 ### Kanca "Basılı Tutma" (Hold) Lojiği Onarımı
 - Orijinal mobil kod sadece basıldığı ilk frame (press) kanca atıyordu. `Player.gd` içerisine kalıcı bir `_is_hook_held` state'i eklendi.
 - `_unhandled_input` içerisindeki buton sinyali bu state'i değiştirirken, `_physics_process` her karede bu state'i dinleyerek kancanın joystick yönüne sürekli fırlatılabilmesini/güncellenebilmesini (Continuous Aiming) sağladı. Tıpkı PC'de farenin basılı tutulması gibi hissettiriyor.
+
+## 🌳 Arayüz Mimarisinde Node Tabanlı Yönetim (Scene Tree Hierarchy)
+### Runtime Oluşturmanın İptali
+- Önceki yaklaşımda `VirtualJoystick` ve `NeonButton` nesneleri `Arena.gd` içerisinden `new()` ile üretilip dinamik pozisyonlanıyordu. Bu durum hem görsel olarak (Godot Editor içerisinde) düğümleri görmeyi engelliyor hem de UI/UX tasarımcılarının ekrandaki yerleşimleri (Layout) kolayca sürükleyip bırakarak (WYSIWYG) dizayn etmesini imkansız kılıyordu.
+- Geliştirme akışını (Developer Experience) hızlandırmak adına, tüm bu nesneler runtime oluşturulma döngüsünden sökülüp `Arena.tscn` içine fiziksel node'lar olarak yerleştirildi.
+
+### MobileControls (Bağımsız CanvasLayer)
+- Yalnızca mobil kontrollere ayrılmış, sahne hiyerarşisinde kök dizine bağlı yeni bir `MobileControls` CanvasLayer oluşturuldu.
+- `LeftJoystick`, `RightJoystick`, `GrappleBtn`, `ReleaseBtn` ve `PauseBtn` bu katmanın child'ı olarak eklendi.
+- `Arena.gd`, `_ready` içerisinde artık bu katmanı arar (`find_child("MobileControls")`). Eğer sistem mobil/touch tabanlı değilse tüm katmanı tek bir `hide()` komutuyla gizler ve performans tasarrufu sağlar. Aksi takdirde katmanı gösterir, referansları çeker ve sadece gerekli (örn. Cut butonu) sinyal bağlamalarını yapar.
+
+## 🛡️ Input Çakışma Engelleyici & Katman İzolasyonu (Mobile Controls)
+### Katman (Layer) Ayrımı
+- `Arena.gd` içerisindeki dinamik mobil buton doğumları (`CanvasLayer` üzerine) güncellenerek tamamen yeni inşa edilen ve editörden yönetilebilen `MobileControls` CanvasLayer'ı (`Arena.tscn` içerisinde) üzerine yönlendirildi. Bu, z-index ve rendering sırasını garanti altına alır.
+
+### Sinyal Yalıtımı (Input Isolation)
+- `VirtualJoystick.gd` ve `NeonButton.gd` sınıflarına, `event.pressed` anında `get_viewport().set_input_as_handled()` kodu eklendi. Bu kritik satır sayesinde oyuncu ekrandaki UI elemanlarına dokunduğunda (örneğin hareket ederken veya kanca atarken), dokunmatik sinyalin arkadaki 2D dünyaya sızması ve yanlışlıkla ekrana tıklanmış gibi (mouse/touch click) algılanıp hatalı hedefler yaratması KESİN OLARAK engellendi.
+
+### Kanca "Basılı Tutma" (Hold) Lojiği Onarımı
+- Orijinal mobil kod sadece basıldığı ilk frame (press) kanca atıyordu. `Player.gd` içerisine kalıcı bir `_is_hook_held` state'i eklendi.
+- `_unhandled_input` içerisindeki buton sinyali bu state'i değiştirirken, `_physics_process` her karede bu state'i dinleyerek kancanın joystick yönüne sürekli fırlatılabilmesini/güncellenebilmesini (Continuous Aiming) sağladı. Tıpkı PC'de farenin basılı tutulması gibi hissettiriyor.

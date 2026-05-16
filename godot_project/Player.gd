@@ -8,7 +8,6 @@ class_name Player
 @export var grapple_radius: float = 600.0
 
 var current_health: float
-var active_springs: Dictionary = {}
 var _is_hook_held: bool = false
 var current_target_node: Node2D = null
 
@@ -93,15 +92,6 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	if _is_hook_held:
-		if Global.right_joystick and Global.right_joystick.is_dragging:
-			var aim_dir = Global.right_joystick.get_joystick_vector().normalized()
-			if aim_dir.length() > 0.1:
-				_try_attach_spring_dir(aim_dir)
-		elif Global.left_joystick and Global.left_joystick.is_dragging:
-			var move_dir = Global.left_joystick.get_joystick_vector().normalized()
-			if move_dir.length() > 0.1:
-				_try_attach_spring_dir(move_dir)
-	if is_stunned:
 		linear_velocity = linear_velocity.move_toward(Vector2.ZERO, 50.0 * delta)
 		if stun_icon:
 			stun_icon.rotation += 5.0 * delta
@@ -191,7 +181,6 @@ func _unhandled_input(event: InputEvent) -> void:
 			var move_dir = Global.left_joystick.get_joystick_vector().normalized()
 			if move_dir.length() > 0.1:
 				_try_attach_spring_dir(move_dir)
-				return
 		# Fallback to mouse position if UI accept is pressed but no joystick is dragging
 		_try_attach_spring(get_global_mouse_position())
 	elif event.is_action_released("ui_accept"):
@@ -206,7 +195,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
 			_release_slingshot()
 		elif event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:
-			if is_instance_valid(camera):
 				var new_zoom = clamp(camera.zoom.x + zoom_speed, min_zoom, max_zoom)
 				camera.zoom = Vector2(new_zoom, new_zoom)
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN and event.pressed:

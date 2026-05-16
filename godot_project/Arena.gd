@@ -48,61 +48,28 @@ func _ready() -> void:
 			break
 
 
-	# Mobil Kontrolleri Dinamik Olarak Ekle
-	if OS.has_feature("mobile") or Global.current_input_type == Global.InputType.TOUCH:
-		var canvas = get_tree().current_scene.find_child("MobileControls", true, false)
-		if canvas:
-			var viewport_size = get_viewport_rect().size
 
-			# Sol Joystick (Hareket)
-			var left_joy = VirtualJoystick.new()
-			left_joy.name = "LeftJoystick"
-			left_joy.position = Vector2(100, viewport_size.y - 300)
-			canvas.add_child(left_joy)
-			Global.left_joystick = left_joy
-
-			# Sağ Joystick (Nişan/Ateş)
+	# Fiziksel Node Referansları
+	var mobile_controls = get_tree().current_scene.find_child("MobileControls", true, false)
+	if mobile_controls:
+		if OS.has_feature("mobile") or Global.current_input_type == Global.InputType.TOUCH:
+			mobile_controls.show()
+			Global.left_joystick = mobile_controls.get_node("LeftJoystick")
 			if Global.use_manual_aim_joystick:
-				var right_joy = VirtualJoystick.new()
-				right_joy.name = "RightJoystick"
-				right_joy.position = Vector2(viewport_size.x - 300, viewport_size.y - 300)
-				canvas.add_child(right_joy)
-				Global.right_joystick = right_joy
+				Global.right_joystick = mobile_controls.get_node("RightJoystick")
+			else:
+				mobile_controls.get_node("RightJoystick").hide()
 
-
-			# İp Atma Butonu (Grapple)
-			var grapple_btn = load("res://NeonButton.gd").new()
-			grapple_btn.name = "GrappleBtn"
-			grapple_btn.base_color = Color(0.0, 1.0, 1.0, 0.6) # Turkuaz
-			grapple_btn.radius = 70.0
-			grapple_btn.label_text = "HOOK"
-			grapple_btn.position = Vector2(viewport_size.x - 120, viewport_size.y - 450)
-			grapple_btn.action = "ui_accept"
-			canvas.add_child(grapple_btn)
-
-			# İp Koparma Butonu (Release)
-			var release_btn = load("res://NeonButton.gd").new()
-			release_btn.name = "ReleaseBtn"
-			release_btn.base_color = Color(1.0, 0.0, 0.5, 0.6) # Kırmızımsı/Pembe
-			release_btn.radius = 60.0
-			release_btn.label_text = "CUT"
-			release_btn.position = Vector2(viewport_size.x - 260, viewport_size.y - 120)
-
-			# Custom Signal Binding for Cut since we do not have a dedicated action in InputMap
+			var release_btn = mobile_controls.get_node("ReleaseBtn")
 			release_btn.pressed.connect(func(): if is_instance_valid(player_node): player_node._release_slingshot())
-			canvas.add_child(release_btn)
 
-			# Duraklatma Butonu (Mobil ESC)
-			var pause_btn = TouchScreenButton.new()
+			var pause_btn = mobile_controls.get_node("PauseBtn")
 			var p_shape = RectangleShape2D.new()
 			p_shape.size = Vector2(100, 100)
 			pause_btn.shape = p_shape
-			pause_btn.position = Vector2(50, 50)
-			pause_btn.action = "ui_cancel" # ESC muadili
-			canvas.add_child(pause_btn)
+		else:
+			mobile_controls.hide()
 
-			# Modifiye edilmiş Neon Buton Çizimi (CanvasItem _draw override)
-			# (Buton efekti için şimdilik basit bıraktık, TouchScreenButton _draw overridable değil)
 	pause_menu = get_tree().current_scene.find_child("PauseMenu", true, false) as Control
 	if pause_menu:
 		pause_menu.hide()
