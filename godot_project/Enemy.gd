@@ -134,7 +134,7 @@ func _on_body_entered(body: Node2D) -> void:
 
 		if player_kinetic_energy >= threshold_kinetic_energy:
 			# Fast player = massive damage equivalent to their kinetic energy
-			_take_damage(player_kinetic_energy)
+			take_damage(player_kinetic_energy)
 		else:
 			# Phase Shield check: If player has shield, don't bounce them, let them pass
 			if "shield_charges" in body and body.shield_charges > 0:
@@ -145,12 +145,12 @@ func _on_body_entered(body: Node2D) -> void:
 				
 				# Check for Thorns
 				if "dikenli_deri" in body and body.dikenli_deri > 0:
-					_take_damage(body.dikenli_deri)
+					take_damage(body.dikenli_deri)
 
 				var bounce_dir = global_position.direction_to(body.global_position)
 				body.bounce_back(bounce_dir, bounce_force)
 
-func _take_damage(amount: float, knock_dir: Vector2 = Vector2.ZERO) -> void:
+func take_damage(amount: float, knock_dir: Vector2 = Vector2.ZERO) -> void:
 	if type == EnemyType.SQUARE_GHOST and is_ghosting:
 		return # Immune while ghosting
 
