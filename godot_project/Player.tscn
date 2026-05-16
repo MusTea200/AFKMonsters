@@ -1,7 +1,6 @@
-[gd_scene load_steps=4 format=3 uid="uid://cx6g0q6j7l2vj"]
+[gd_scene load_steps=3 format=3 uid="uid://cx6g0q6j7l2vj"]
 
 [ext_resource type="Script" uid="uid://bm7a0aq4308h3" path="res://Player.gd" id="1_44w8f"]
-[ext_resource type="PackedScene" uid="uid://biofvtsnwdm0s" path="res://Bullet.tscn" id="2_kpjcp"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_8q3jw"]
 size = Vector2(64, 64)
@@ -11,7 +10,6 @@ process_mode = 1
 gravity_scale = 0.0
 linear_damp = 3.0
 script = ExtResource("1_44w8f")
-bullet_scene = ExtResource("2_kpjcp")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("RectangleShape2D_8q3jw")

@@ -1,10 +1,10 @@
-[gd_scene load_steps=7 format=3 uid="uid://darena1234"]
+[gd_scene load_steps=9 format=3 uid="uid://darena1234"]
 
 [ext_resource type="Script" uid="uid://dbwwkhi2388iv" path="res://Arena.gd" id="1_arena"]
 [ext_resource type="PackedScene" uid="uid://cx6g0q6j7l2vj" path="res://Player.tscn" id="2_u45fm"]
 [ext_resource type="Shader" uid="uid://d168ggsij0fgm" path="res://SpeedLines.gdshader" id="3_spdlines"]
-[ext_resource type="Script" path="res://VirtualJoystick.gd" id="res://VirtualJoystick.gd"]
-[ext_resource type="Script" path="res://NeonButton.gd" id="res://NeonButton.gd"]
+[ext_resource type="Script" uid="uid://db04y0u2esu67" path="res://NeonButton.gd" id="res://NeonButton.gd"]
+[ext_resource type="Script" uid="uid://stfqwqfiwuhk" path="res://VirtualJoystick.gd" id="res://VirtualJoystick.gd"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_spd"]
 shader = ExtResource("3_spdlines")
@@ -31,53 +31,6 @@ zoom = Vector2(0.5, 0.5)
 position_smoothing_enabled = true
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
-[node name="MobileControls" type="CanvasLayer" parent="."]
-
-[node name="LeftJoystick" type="Control" parent="MobileControls"]
-layout_mode = 3
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = 100.0
-offset_top = -300.0
-offset_right = 340.0
-offset_bottom = -60.0
-grow_vertical = 0
-script = ExtResource("res://VirtualJoystick.gd")
-
-[node name="RightJoystick" type="Control" parent="MobileControls"]
-layout_mode = 3
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -340.0
-offset_top = -300.0
-offset_right = -100.0
-offset_bottom = -60.0
-grow_horizontal = 0
-grow_vertical = 0
-script = ExtResource("res://VirtualJoystick.gd")
-
-[node name="GrappleBtn" type="TouchScreenButton" parent="MobileControls"]
-position = Vector2(800, 350)
-action = "ui_accept"
-script = ExtResource("res://NeonButton.gd")
-base_color = Color(0, 1, 1, 0.6)
-radius = 70.0
-label_text = "HOOK"
-
-[node name="ReleaseBtn" type="TouchScreenButton" parent="MobileControls"]
-position = Vector2(660, 680)
-script = ExtResource("res://NeonButton.gd")
-base_color = Color(1, 0, 0.5, 0.6)
-radius = 60.0
-label_text = "CUT"
-
-[node name="PauseBtn" type="TouchScreenButton" parent="MobileControls"]
-position = Vector2(50, 50)
-action = "ui_cancel"
 
 [node name="SpeedLines" type="ColorRect" parent="CanvasLayer"]
 material = SubResource("ShaderMaterial_spd")
@@ -94,9 +47,8 @@ anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -100.0
-offset_top = 20.0
 offset_right = 100.0
-offset_bottom = 87.0
+offset_bottom = 67.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 48
@@ -104,7 +56,6 @@ text = "10:00"
 horizontal_alignment = 1
 
 [node name="MomentumLabel" type="Label" parent="CanvasLayer"]
-rotation = -0.261799
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -124,10 +75,9 @@ horizontal_alignment = 1
 metadata/_edit_group_ = true
 
 [node name="ExpBar" type="ProgressBar" parent="CanvasLayer"]
-offset_left = 1.0
-offset_top = 33.0
-offset_right = 332.0
-offset_bottom = 74.0
+offset_top = 32.0
+offset_right = 331.0
+offset_bottom = 73.0
 
 [node name="RichTextLabel" type="RichTextLabel" parent="CanvasLayer/ExpBar"]
 layout_mode = 0
@@ -139,8 +89,11 @@ text = "EXP"
 
 [node name="PauseMenu" type="Panel" parent="CanvasLayer"]
 process_mode = 3
-offset_right = 1152.0
-offset_bottom = 647.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="StatsLabel" type="RichTextLabel" parent="CanvasLayer/PauseMenu"]
 layout_mode = 1
@@ -159,10 +112,14 @@ text = "Hello
 "
 
 [node name="Coin" type="TextureRect" parent="CanvasLayer"]
-offset_left = 876.0
-offset_top = 38.0
-offset_right = 916.0
-offset_bottom = 78.0
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -239.99994
+offset_top = 16.0
+offset_right = -199.99994
+offset_bottom = 56.0
+grow_horizontal = 0
 scale = Vector2(1.415, 1.415)
 
 [node name="BalanceLabel" type="Label" parent="CanvasLayer/Coin"]
@@ -188,3 +145,50 @@ rotation = 0.59609425
 scale = Vector2(11.785, 11.785)
 skew = 0.3839724
 mesh = SubResource("PlaneMesh_vbyki")
+
+[node name="MobileControls" type="CanvasLayer" parent="."]
+
+[node name="LeftJoystick" type="Control" parent="MobileControls"]
+layout_mode = 3
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 32.0
+offset_top = -272.0
+offset_right = 272.0
+offset_bottom = -32.0
+grow_vertical = 0
+script = ExtResource("res://VirtualJoystick.gd")
+
+[node name="RightJoystick" type="Control" parent="MobileControls"]
+layout_mode = 3
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -272.0
+offset_top = -280.0
+offset_right = -32.0
+offset_bottom = -40.0
+grow_horizontal = 0
+grow_vertical = 0
+script = ExtResource("res://VirtualJoystick.gd")
+
+[node name="GrappleBtn" type="TouchScreenButton" parent="MobileControls"]
+position = Vector2(1280, 256)
+action = "ui_accept"
+script = ExtResource("res://NeonButton.gd")
+base_color = Color(0, 1, 1, 0.6)
+radius = 70.0
+label_text = "HOOK"
+
+[node name="ReleaseBtn" type="TouchScreenButton" parent="MobileControls"]
+position = Vector2(1152, 256)
+script = ExtResource("res://NeonButton.gd")
+base_color = Color(1, 0, 0.5, 0.6)
+label_text = "CUT"
+
+[node name="PauseBtn" type="TouchScreenButton" parent="MobileControls"]
+position = Vector2(408, 48)
+action = "ui_cancel"
