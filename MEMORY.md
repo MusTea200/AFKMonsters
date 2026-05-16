@@ -129,3 +129,13 @@ Mobil cihazlarda testler sırasında tespit edilen "mermilerin ateşlenmemesi" s
   2. Eğer Node yoksa, aktif joystick (sağ, sol) veya klavye yönünde vektör tabanlı fırlatma (`_try_attach_spring_dir`) dener.
   3. Kanca tutunduğu anda (active_springs dolduğunda) spam yapmayı keser ve oyuncu parmağını kaldırana kadar sapan ipi bağlı kalır.
 - Kanca ipi gerginliği (`tension_ratio`) klasik beyaz-kırmızı yerine neon turkuaz-pembe gradyanına çevrilerek siberpunk temasına uyduruldu.
+
+## ⚙️ Performans İyileştirmeleri ve Dinamik Ayarlar (VFX & Physics)
+### Mermi Atma Duraksaması (Scale Tween Çökmeleri)
+- **Sorun:** Godot 4.x üzerinde `RigidBody2D` sınıfını doğrudan boyutlandırmak (scale tween: `Vector2(1.15, 0.85)`), her mermi atışında fizik motorunun objenin kütle merkezini, çarpışma haritasını (CollisionPolygon/Shape) ve sürtünme sınırlarını anlık olarak yeniden hesaplamasına neden olarak *korkunç* mikro donmalara (stuttering) ve objenin sapıtmasına yol açıyordu.
+- **Çözüm:** Hatalı scale tween tamamen silindi. Sadece görsel recoil yerine, oyuna mekanik bir değer katan **"Ters Yönde Saf İtme (Central Impulse)"** eklendi (`player.apply_central_impulse(-shoot_dir * 150.0)`). Böylece her ateşleme oyuncuyu hafifçe geriye doğru ivmelendirir, performans ve game loop sarsıntısız devam eder.
+
+### "Hold to Grapple" Şalteri ve Kullanıcı Özgürlüğü (Cut Butonu İptali)
+- Kancayı bırakmak için kullanılan ikinci düğme (Cut Butonu) mobilde pratik bir deneyim (UX) sunmuyordu, koddan ve ağaçtan kökünden silindi.
+- Menüye `Global.grapple_hold_mode` adında bir ayar eklendi.
+- Bu ayar açıkken (Varsayılan: AÇIK); kanca tuşuna parmak basılı kaldıkça asılı kalınır, çekilince (veya PC'de farenin sol tıkı bırakılınca) kanca otomatik kopar (Akıcı sallanma hissi). Eğer ayar kapatılırsa, kanca bir kez tıklandığında tutunur ve bir daha tıklanana/aksiyon alınana dek bırakmaz (Daha az yorucu).

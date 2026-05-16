@@ -183,11 +183,6 @@ base_color = Color(0, 1, 1, 0.6)
 radius = 70.0
 label_text = "HOOK"
 
-[node name="ReleaseBtn" type="TouchScreenButton" parent="MobileControls"]
-position = Vector2(1152, 256)
-script = ExtResource("res://NeonButton.gd")
-base_color = Color(1, 0, 0.5, 0.6)
-label_text = "CUT"
 
 [node name="PauseBtn" type="TouchScreenButton" parent="MobileControls"]
 script = ExtResource("res://NeonButton.gd")
