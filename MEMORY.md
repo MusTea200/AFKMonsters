@@ -118,3 +118,14 @@ Mobil cihazlarda testler sırasında tespit edilen "mermilerin ateşlenmemesi" s
 ### Duraklatma (Pause) Butonu Görselleştirmesi
 - Önceden ekranda görünmeyen, boş bir TouchScreenButton olan Pause butonu, `NeonButton` alt yapısına geçirildi.
 - Neon yeşil/turkuaz arası bir renkle renklendirilip üzerine "||" ibaresi yazılarak ekranın üst kısmında net bir siber estetik yakalandı. Sinyali doğrudan Arena.gd'nin `_open_settings_menu` akışına bağlandı.
+
+## 🪝 Mobil Kanca (Hook) Hatalarının Tamiri ve Sürekli Basılı Tutma (Hold) Mantığı
+### Mantık Hatası (Rogue Return)
+- `_physics_process` içerisindeki ilk denemede, kancayı atmayı denerken konulan `return` bloğu, oyuncunun genel fiziksel hareketlerini (sol joystick) tamamen bloke ediyordu. Bu "rogue return" kaldırılıp mantık temizlendi.
+
+### Kusursuz Auto-Target ve Continuous Hold
+- `_physics_process` döngüsü içerisine güvenli bir `if _is_hook_held and active_springs.is_empty():` bloğu eklendi. Bu sayede butona basılı tutulduğu sürece oyuncu *otomatik olarak*:
+  1. Hedef seçili bir Node varsa (`current_target_node`) ona kilitlenip kancayı fırlatır.
+  2. Eğer Node yoksa, aktif joystick (sağ, sol) veya klavye yönünde vektör tabanlı fırlatma (`_try_attach_spring_dir`) dener.
+  3. Kanca tutunduğu anda (active_springs dolduğunda) spam yapmayı keser ve oyuncu parmağını kaldırana kadar sapan ipi bağlı kalır.
+- Kanca ipi gerginliği (`tension_ratio`) klasik beyaz-kırmızı yerine neon turkuaz-pembe gradyanına çevrilerek siberpunk temasına uyduruldu.

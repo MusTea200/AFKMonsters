@@ -73,12 +73,7 @@ func _ready() -> void:
 			var p_shape = RectangleShape2D.new()
 			p_shape.size = Vector2(100, 100)
 			pause_btn.shape = p_shape
-			pause_btn.pressed.connect(func():
-				if get_tree().paused:
-					_close_settings_menu()
-				else:
-					_open_settings_menu()
-			)
+			pause_btn.pressed.connect(func(): _toggle_pause())
 		else:
 			mobile_controls.hide()
 
