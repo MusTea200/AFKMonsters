@@ -1,0 +1,31 @@
+[gd_scene format=3 uid="uid://benv0y61lrnpm"]
+
+[ext_resource type="Script" uid="uid://c018locg6c1dy" path="res://Enemy.gd" id="1_0dst6"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_enemy"]
+radius = 68.007355
+
+[node name="EnemyBoss" type="Area2D" unique_id=82552868]
+process_mode = 1
+script = ExtResource("1_0dst6")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=426568967]
+scale = Vector2(2.1, 2.1)
+shape = SubResource("CircleShape2D_enemy")
+
+[node name="HealthBar" type="ProgressBar" parent="." unique_id=1177351922]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -125.0
+offset_top = -200.0
+offset_right = 125.0
+offset_bottom = -150.0
+grow_horizontal = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="Polygon2D" type="Polygon2D" parent="." unique_id=1371772834]
+scale = Vector2(2.5, 2.5)
+color = Color(0, 0, 0, 1)
+polygon = PackedVector2Array(7.6293945e-05, -56.000008, -47.999954, -32.000015, -47.999954, 32, 4.5776367e-05, 7.9999924, 48.000046, 32, 48.000046, -32.000008)
+uv = PackedVector2Array(-128, -88, -159.99998, -72, -159.99998, -40, -128, -24, -96, -40.000004, -96, -72)

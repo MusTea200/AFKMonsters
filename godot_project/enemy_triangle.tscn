@@ -20,7 +20,6 @@ offset_bottom = -72.0
 metadata/_edit_use_anchors_ = true
 
 [node name="Polygon2D" type="Polygon2D" parent="." unique_id=1371772834]
-position = Vector2(0, 6)
 color = Color(1, 1, 0, 1)
-polygon = PackedVector2Array(0, -72, -64, 32.000004, 63.99997, 32.000004)
+polygon = PackedVector2Array(0, -66, -64, 38.000004, 63.99997, 38.000004)
 uv = PackedVector2Array(-32, -64, -104, 8, 24, 8)
