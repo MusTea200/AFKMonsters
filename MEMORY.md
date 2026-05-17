@@ -139,3 +139,19 @@ Mobil cihazlarda testler sırasında tespit edilen "mermilerin ateşlenmemesi" s
 - Kancayı bırakmak için kullanılan ikinci düğme (Cut Butonu) mobilde pratik bir deneyim (UX) sunmuyordu, koddan ve ağaçtan kökünden silindi.
 - Menüye `Global.grapple_hold_mode` adında bir ayar eklendi.
 - Bu ayar açıkken (Varsayılan: AÇIK); kanca tuşuna parmak basılı kaldıkça asılı kalınır, çekilince (veya PC'de farenin sol tıkı bırakılınca) kanca otomatik kopar (Akıcı sallanma hissi). Eğer ayar kapatılırsa, kanca bir kez tıklandığında tutunur ve bir daha tıklanana/aksiyon alınana dek bırakmaz (Daha az yorucu).
+
+## 👑 Geometrik Canavarlar ve Bölüm Sonu Zayıf Nokta (WeakSpot) Mimarisi
+### Canavar Yönelimleri (Rotation)
+- Tüm standart canavarlar (üçgen, kare, okta vs.) `Polygon2D` kullanılarak `(0,0)` orijininde **Kuzeye** (Up) bakacak şekilde tasarlandığı tespit edildi. Bu nedenle `Enemy.gd` içindeki `_process` döngüsüne `rotation = movement.angle() + PI/2.0` satırı eklendi. Böylece üstümüze koşan her şekil, sivri veya doğru ucuyla bize bakar hale getirildi.
+- Mermiler (Bullet.gd) ise tasarımsal olarak **Doğuya** (Right) bakacak şekilde yapılandırılmış. `Bullet.gd` `_process` döngüsüne `rotation = direction.angle()` eklenerek mermilerin de gidiş yönergelerine doğru dönmesi (orientation) stabil kılındı.
+
+### Boss - WeakSpot Hitbox Mimarisi (Katman Ayrımı)
+- Boss (İçe göçük Altıgen) `EnemyBossHexagon.gd` adında, `Enemy.gd`'den miras alan (inheritance) yepyeni bir script'e bağlandı.
+- Mermilerin gövdeye çarpıp erimesi (hasar vermemesi) için script içerisinde `take_damage` override edilerek `pass` atandı.
+- Asıl hasar alınacak "Yarık" bölgesi için `enemy_boss_hexagon.tscn` içerisine `WeakSpot` Area2D ve CollisionShape2D'si yerleştirildi. Mermi (`Bullet.gd`) çarptığı yüzeyin adının `WeakSpot` olduğunu anladığı an, hiyerarşiden geri tırmanıp (get_parent) ana Boss scriptindeki custom `weak_spot_hit` fonksiyonunu tetiklemekte.
+- Zayıf noktadan alınan kritik vuruşlara kırmızı `CPUParticles2D` kıvılcım şelalesi eklenerek muazzam bir combat geri bildirimi sağlandı.
+
+### Çarkıfelek Adam (RouletteMan) Revizyonu
+- Fazla uzun süren yorucu mekanik iptal edilerek dönüş arzusu (10 -> 3) devire indirildi.
+- Konuşma balonu `PanelContainer` ile siber neon stilinde baştan giydirildi ve metin büyütüldü.
+- Evren açıldığında (Lissajous eğrileri devreye girerken) düşmanların yerlerinde kilitlenip titremesini engelleyen `lerp()` tabanlı `chaotic_dir` yumuşatması `Enemy.gd` döngüsüne entegre edildi.

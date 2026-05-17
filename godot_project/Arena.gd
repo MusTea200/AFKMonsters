@@ -477,7 +477,7 @@ func _show_center_warning(msg: String) -> void:
 func _spawn_boss() -> void:
 	var angle = randf() * 2.0 * PI
 	var spawn_pos = player_node.global_position + Vector2(cos(angle), sin(angle)) * spawn_radius
-	var boss = enemy_scene.instantiate()
+	var boss = load("res://enemy_boss_hexagon.tscn").instantiate()
 	boss.name = "EnemyBoss"
 	boss.global_position = spawn_pos
 	boss.scale = Vector2(3.0, 3.0)
@@ -485,6 +485,8 @@ func _spawn_boss() -> void:
 	boss.move_speed = 100.0
 	boss.base_mass = 5.0
 	boss.is_boss = true
+	# Rastgele dönerek doğmasını sağla (İçi oyuk kısım her seferinde farklı yöne baksın)
+	boss.rotation_degrees = randf_range(0, 360)
 	_attach_indicator(boss)
 	# Note: Off-screen indicator would require a separate UI script,
 	# but we keep it simple by just having a big enemy tracking us.

@@ -9,7 +9,7 @@ var player: Node2D
 
 var last_player_angle: float = 0.0
 var total_player_rotation: float = 0.0
-var target_rotations: float = 10.0 * 2.0 * PI
+var target_rotations: float = 3.0 * 2.0 * PI
 
 var warning_label: Label
 var shader_rect: ColorRect
@@ -35,11 +35,33 @@ func _ready() -> void:
 
 	area_entered.connect(_on_area_entered)
 
+	# Balloon design
+	var panel = PanelContainer.new()
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0, 0, 0, 0.8)
+	style.border_color = Color(0, 1, 1, 1)
+	style.border_width_bottom = 2
+	style.border_width_top = 2
+	style.border_width_left = 2
+	style.border_width_right = 2
+	style.corner_radius_top_left = 10
+	style.corner_radius_top_right = 10
+	style.corner_radius_bottom_left = 10
+	style.corner_radius_bottom_right = 10
+	panel.add_theme_stylebox_override("panel", style)
+
 	warning_label = Label.new()
 	warning_label.text = "Benimle ayni yonde don!"
-	warning_label.position = Vector2(-50, -50)
-	warning_label.visible = false
-	add_child(warning_label)
+	warning_label.add_theme_font_size_override("font_size", 24)
+	warning_label.add_theme_color_override("font_color", Color(0, 1, 1, 1))
+	panel.add_child(warning_label)
+
+	panel.position = Vector2(-100, -80)
+	panel.visible = false
+	add_child(panel)
+
+	# Replace direct warning_label visibility with panel visibility in logic later
+	warning_label = panel # Hack to easily reuse the variable
 
 	# Full screen shader rect
 	shader_rect = ColorRect.new()
@@ -85,7 +107,6 @@ func _track_player_rotation() -> void:
 		if abs(total_player_rotation) >= target_rotations:
 			_trigger_roulette_event()
 	else:
-		warning_label.visible = false
 		total_player_rotation = 0.0
 		shader_rect.color.a = 0.0
 
