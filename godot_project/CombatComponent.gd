@@ -198,14 +198,15 @@ func _shoot_closest_enemy() -> void:
 			scene_root.add_child(bullet)
 
 		# Yaratıcı Oyun Alanı: Recoil (Geri Tepme) ve Muzzle Flash
-		_apply_recoil_and_juice()
+		_apply_recoil_and_juice(final_base_dir)
 
-func _apply_recoil_and_juice() -> void:
-	# Recoil Animation on Player
-	if is_instance_valid(player):
-		var tween = player.create_tween()
-		tween.tween_property(player, "scale", Vector2(1.15, 0.85), 0.05)
-		tween.tween_property(player, "scale", Vector2.ONE, 0.1).set_trans(Tween.TRANS_BOUNCE)
+func _apply_recoil_and_juice(shoot_dir: Vector2) -> void:
+	# Saf Physics Recoil Impulsu (Fizik dondurucu Scale tween kaldirildi)
+	if is_instance_valid(player) and player.linear_velocity.length() < player.max_speed:
+		# Mermiler en son nereye atildiysa (varsayim sag joystick yonu veya en son hesaplanan dir)
+		# Su an yonu fonksiyona parametre vermedigimiz icin sadece gorsel sarsinti birakiyoruz
+		# Eger direction almak istenirse _shoot_closest_enemy icinde apply_central_impulse cagrilabilir
+		player.apply_central_impulse(-shoot_dir * 150.0)
 
 	# Muzzle Flash (Siber Namlu Parlaması)
 	var local_flash = ColorRect.new()

@@ -61,13 +61,26 @@ func _ready() -> void:
 				mobile_controls.get_node("RightJoystick").hide()
 
 			var grapple_btn = mobile_controls.get_node("GrappleBtn")
-			grapple_btn.pressed.connect(func(): if is_instance_valid(player_node): player_node._is_hook_held = true)
+			grapple_btn.pressed.connect(func(): if is_instance_valid(player_node):
+				player_node._is_hook_held = true
+				if not Global.grapple_hold_mode:
+					# Tek atımlık modsa direkt at
+					var aim_dir = Vector2.ZERO
+					if Global.right_joystick and Global.right_joystick.is_dragging:
+						aim_dir = Global.right_joystick.get_joystick_vector().normalized()
+					elif Global.left_joystick and Global.left_joystick.is_dragging:
+						aim_dir = Global.left_joystick.get_joystick_vector().normalized()
+
+					if is_instance_valid(player_node.current_target_node):
+						player_node._create_spring_joint(player_node.current_target_node)
+					elif aim_dir.length() > 0.1:
+						player_node._try_attach_spring_dir(aim_dir)
+			)
 			grapple_btn.released.connect(func(): if is_instance_valid(player_node):
 				player_node._is_hook_held = false
-				player_node._release_slingshot()
+				if Global.grapple_hold_mode:
+					player_node._release_slingshot()
 			)
-			var release_btn = mobile_controls.get_node("ReleaseBtn")
-			release_btn.pressed.connect(func(): if is_instance_valid(player_node): player_node._release_slingshot())
 
 			var pause_btn = mobile_controls.get_node("PauseBtn")
 			var p_shape = RectangleShape2D.new()
@@ -360,6 +373,16 @@ func _open_settings_menu() -> void:
 		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED if toggled else DisplayServer.VSYNC_DISABLED)
 	)
 	vbox.add_child(vsync_btn)
+
+	# Hold to Grapple
+	var hold_btn = CheckButton.new()
+	hold_btn.text = "Hold to Grapple"
+	hold_btn.button_pressed = Global.grapple_hold_mode
+	hold_btn.modulate = Color(0, 1, 1, 1) # Neon Cyan
+	hold_btn.toggled.connect(func(toggled):
+		Global.grapple_hold_mode = toggled
+	)
+	vbox.add_child(hold_btn)
 
 	# Audio Volume
 	var vol_hbox = HBoxContainer.new()

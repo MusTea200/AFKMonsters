@@ -9,6 +9,7 @@ enum ControlMode { AUTO, FORCE_KEYBOARD, FORCE_JOYPAD, FORCE_TOUCH }
 var current_input_type: InputType = InputType.KEYBOARD
 var settings_control_mode: ControlMode = ControlMode.AUTO
 var use_manual_aim_joystick: bool = true
+var grapple_hold_mode: bool = true
 var settings_sensitivity: float = 1.0
 var settings_vsync: bool = true
 var settings_volume: float = 1.0
@@ -77,6 +78,7 @@ func save_game() -> void:
 	config.set_value("Stats", "upgrade_levels", upgrade_levels)
 	config.set_value("Settings", "control_mode", settings_control_mode)
 	config.set_value("Settings", "use_manual_aim_joystick", use_manual_aim_joystick)
+	config.set_value("Settings", "grapple_hold_mode", grapple_hold_mode)
 	config.save(save_path)
 
 func load_game() -> void:
@@ -94,6 +96,7 @@ func load_game() -> void:
 		upgrade_levels = config.get_value("Stats", "upgrade_levels", {"health": 0, "damage": 0, "magnet": 0, "speed": 0, "shield": 0, "orbital": 0, "clock": 0})
 		settings_control_mode = config.get_value("Settings", "control_mode", ControlMode.AUTO)
 		use_manual_aim_joystick = config.get_value("Settings", "use_manual_aim_joystick", true)
+		grapple_hold_mode = config.get_value("Settings", "grapple_hold_mode", true)
 
 func start_run() -> void:
 	current_run_kills = 0
