@@ -98,7 +98,7 @@ func _physics_process(delta: float) -> void:
 			stun_icon.rotation += 5.0 * delta
 		return
 
-	if _is_hook_held and active_springs.is_empty():
+	if _is_hook_held and active_springs.is_empty() and Global.grapple_hold_mode:
 		var aim_dir = Vector2.ZERO
 		if Global.right_joystick and Global.right_joystick.is_dragging:
 			aim_dir = Global.right_joystick.get_joystick_vector().normalized()
@@ -188,10 +188,15 @@ func _unhandled_input(event: InputEvent) -> void:
 	if is_stunned: return
 
 	if event is InputEventMouseButton:
-		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-			_try_attach_spring(get_global_mouse_position())
-		elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
-			_release_slingshot()
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			if event.pressed:
+				_is_hook_held = true
+				if not Global.grapple_hold_mode:
+					_try_attach_spring(get_global_mouse_position())
+			else:
+				_is_hook_held = false
+				if Global.grapple_hold_mode:
+					_release_slingshot()
 		elif event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:
 				var new_zoom = clamp(camera.zoom.x + zoom_speed, min_zoom, max_zoom)
 				camera.zoom = Vector2(new_zoom, new_zoom)
