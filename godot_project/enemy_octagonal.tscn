@@ -1,24 +1,25 @@
-[gd_scene load_steps=3 format=3 uid="uid://denemy1234"]
+[gd_scene format=3 uid="uid://denemy1234"]
 
 [ext_resource type="Script" uid="uid://c018locg6c1dy" path="res://Enemy.gd" id="1_enemy1"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_enemy"]
-radius = 72.00694
+radius = 73.061615
 
-[node name="Enemy" type="Area2D"]
+[node name="EnemyOctagonal" type="Area2D" unique_id=486460843]
 process_mode = 1
 script = ExtResource("1_enemy1")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2050821291]
 shape = SubResource("CircleShape2D_enemy")
 
-[node name="HealthBar" type="ProgressBar" parent="."]
+[node name="HealthBar" type="ProgressBar" parent="." unique_id=2095144041]
 offset_left = -78.0
 offset_top = -99.0
 offset_right = 79.0
 offset_bottom = -72.0
+metadata/_edit_use_anchors_ = true
 
-[node name="Polygon2D" type="Polygon2D" parent="."]
+[node name="Polygon2D" type="Polygon2D" parent="." unique_id=1794666612]
 color = Color(0.87038714, 1.4439225e-06, 1.2513996e-06, 1)
 polygon = PackedVector2Array(-31.318102, -61.49496, 31.179256, -61.49496, 62.427998, -30.246284, 62.427998, 32.251072, 31.179256, 63.499752, -31.318102, 63.499752, -62.56672, 32.251072, -62.56672, -30.246284)
 uv = PackedVector2Array(-24.00003, -23.999998, 7.9999695, -23.999998, 24, -7.999996, 24, 24.000004, 7.9999695, 40.000004, -24.00003, 40.000004, -40, 24.000004, -40, -7.999996)
