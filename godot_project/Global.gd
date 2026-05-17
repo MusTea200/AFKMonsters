@@ -5,6 +5,8 @@ var save_path = "user://savegame.cfg"
 # Kalıcı veriler
 enum InputType { KEYBOARD, JOYPAD, TOUCH }
 enum ControlMode { AUTO, FORCE_KEYBOARD, FORCE_JOYPAD, FORCE_TOUCH }
+enum MapType { CYBER_GRID, NEON_HELL, QUANTUM_VOID }
+var current_selected_map: MapType = MapType.CYBER_GRID
 
 var current_input_type: InputType = InputType.KEYBOARD
 var settings_control_mode: ControlMode = ControlMode.AUTO
@@ -94,6 +96,7 @@ func save_game() -> void:
 	config.set_value("Settings", "control_mode", settings_control_mode)
 	config.set_value("Settings", "use_manual_aim_joystick", use_manual_aim_joystick)
 	config.set_value("Settings", "grapple_hold_mode", grapple_hold_mode)
+	config.set_value("Settings", "current_selected_map", current_selected_map)
 	config.save(save_path)
 
 func load_game() -> void:
@@ -116,6 +119,7 @@ func load_game() -> void:
 		settings_control_mode = config.get_value("Settings", "control_mode", ControlMode.AUTO)
 		use_manual_aim_joystick = config.get_value("Settings", "use_manual_aim_joystick", true)
 		grapple_hold_mode = config.get_value("Settings", "grapple_hold_mode", true)
+		current_selected_map = config.get_value("Settings", "current_selected_map", MapType.CYBER_GRID)
 
 func start_run() -> void:
 	roulette_universe_unlocked = false # Her run basinda kapali gelsin

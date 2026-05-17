@@ -8,6 +8,19 @@ var display_coins: int = 0
 
 func _ready() -> void:
 	display_coins = Global.dongu_parcaciklari
+	# Apply map theme to shop UI optionally, or just show map name
+	var header_lbl = Label.new()
+	var map_name = "CYBER GRID"
+	if Global.current_selected_map == Global.MapType.NEON_HELL:
+		map_name = "NEON HELL"
+		$Background.color = Color(0.2, 0.05, 0.05)
+	elif Global.current_selected_map == Global.MapType.QUANTUM_VOID:
+		map_name = "QUANTUM VOID"
+		$Background.color = Color(0.05, 0.05, 0.2)
+	else:
+		$Background.color = Color(0.05, 0.1, 0.1) # Default
+	header_lbl.text = "Map: " + map_name
+	$VBoxContainer/Header.add_child(header_lbl)
 	_update_coin_label(display_coins)
 	_setup_hover_effects()
 	_refresh_items()
@@ -74,7 +87,7 @@ func _refresh_container(container: GridContainer) -> void:
 			continue
 		var cost = Global.get_upgrade_cost(type)
 
-		
+
 
 		price_lbl.text = "Fiyat: " + str(cost)
 

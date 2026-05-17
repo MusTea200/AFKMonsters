@@ -174,6 +174,9 @@ func _ready() -> void:
 	update_balance_ui()
 	_ready_countdown()
 
+	# --- MAP VARIATION SETUP ---
+	_setup_map_variation()
+
 
 	_setup_enemy_spawner()
 	_initial_node_spawn()
@@ -261,13 +264,24 @@ func _on_spawn_timer_timeout() -> void:
 	var spawn_pos = player_node.global_position + Vector2(cos(angle), sin(angle)) * spawn_radius
 
 	for i in range(current_spawn_multiplier):
+		# Havuz limitini mapa gore ez (Kuantum haritasi sekizgene hizli gecer)
+		var pool_max_index = 1
+		match Global.current_selected_map:
+			Global.MapType.CYBER_GRID:
+				if arena_time > 60: pool_max_index = 2
+				if arena_time > 120: pool_max_index = 3
+				if arena_time > 180: pool_max_index = 4
+				if arena_time > 240: pool_max_index = 5
+			Global.MapType.NEON_HELL:
+				pool_max_index = 2 # Kare bastan var
+				if arena_time > 60: pool_max_index = 3
+				if arena_time > 120: pool_max_index = 4
+				if arena_time > 180: pool_max_index = 5
+			Global.MapType.QUANTUM_VOID:
+				pool_max_index = 3 # Besgen bastan var
+				if arena_time > 60: pool_max_index = 5 # Sekizgen hizli girer
 		var final_pos = spawn_pos + Vector2(cos(angle), sin(angle)) * randf_range(0, 200)
 		# Dinamik zorluk agirlikli secim
-		var pool_max_index = 1 # Baslangicta sadece cember ve ucgen
-		if arena_time > 60: pool_max_index = 2 # Kare ekle
-		if arena_time > 120: pool_max_index = 3 # Besgen ekle
-		if arena_time > 180: pool_max_index = 4 # Altigen ekle
-		if arena_time > 240: pool_max_index = 5 # Sekizgen ekle
 
 		# Agirligi basitce yonetmek icin randi() kullanarak 0 ile pool_max_index arasinda cekiyoruz
 		var selected_scene = enemy_scenes[randi() % (pool_max_index + 1)]
@@ -275,6 +289,10 @@ func _on_spawn_timer_timeout() -> void:
 		enemy_instance.name = "Enemy_" + str(randi() % 1000000)
 		enemy_instance.global_position = final_pos
 		enemy_instance.max_health *= difficulty_multiplier
+		if Global.current_selected_map == Global.MapType.NEON_HELL:
+			enemy_instance.damage_amount *= 1.2 # %20 ekstra hasar
+		elif Global.current_selected_map == Global.MapType.QUANTUM_VOID:
+			enemy_instance.move_speed *= 1.3 # Hızlı yaratıklar
 		if is_horde_mode:
 			enemy_instance.move_speed = 150.0 * 1.2
 		else:
@@ -604,3 +622,33 @@ func _attach_indicator(target_node: Node2D) -> void:
 	ind.target = target_node
 	# Add to CanvasLayer or Scene Root. Scene root is better since it uses global coordinates
 	get_tree().current_scene.call_deferred("add_child", ind)
+
+func _setup_map_variation() -> void:
+	# CanvasModulate kullanarak dunya rengini (Arkaplan, izler, hepsi) etkiliyoruz
+	var map_modulate = CanvasModulate.new()
+	get_tree().current_scene.call_deferred("add_child", map_modulate)
+
+	var label = Label.new()
+	label.add_theme_font_size_override("font_size", 48)
+	label.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.position.y += 100
+	get_tree().current_scene.find_child("CanvasLayer", true, false).call_deferred("add_child", label)
+
+	match Global.current_selected_map:
+		Global.MapType.CYBER_GRID:
+			map_modulate.color = Color(1.0, 1.0, 1.0) # Normal (Mavi/Gri siber tema)
+			label.text = ">> CYBER GRID <<"
+			label.modulate = Color.CYAN
+		Global.MapType.NEON_HELL:
+			map_modulate.color = Color(1.2, 0.8, 0.8) # Kirmizimsi, daha karanlik
+			label.text = ">> NEON HELL <<"
+			label.modulate = Color.RED
+		Global.MapType.QUANTUM_VOID:
+			map_modulate.color = Color(0.5, 0.5, 1.0) # Lacivert/Koyu mavi
+			label.text = ">> QUANTUM VOID <<"
+			label.modulate = Color.VIOLET
+
+	var tw = create_tween()
+	tw.tween_property(label, "modulate:a", 0.0, 5.0).set_trans(Tween.TRANS_EXPO)
+	tw.tween_callback(label.queue_free)
