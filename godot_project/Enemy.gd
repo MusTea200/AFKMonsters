@@ -243,6 +243,36 @@ func _show_floating_damage(amount: float) -> void:
 	tween.tween_callback(label.queue_free)
 
 func _die(knock_dir: Vector2 = Vector2.ZERO) -> void:
+
+	# --- Loop Particle Economy ---
+	var p = get_tree().current_scene.find_child("Player", true, false)
+	if is_instance_valid(p) and p.get("active_redzone_count") != null:
+		var redzone_multiplier = p.active_redzone_count
+		var drop_chance = 0.2 + (Global.particle_drop_chance_level * 0.1)
+		var base_amount = 1 + Global.particle_drop_amount_level
+
+		var should_drop = false
+		var final_amount = 0
+
+		if redzone_multiplier > 0:
+			# 100% drop in redzone, multiplied by layers
+			should_drop = true
+			final_amount = base_amount * redzone_multiplier
+		else:
+			# Chance outside redzone
+			if randf() < drop_chance:
+				should_drop = true
+				final_amount = base_amount
+
+		if should_drop:
+			var particle_scene = load("res://LoopParticle.gd")
+			if particle_scene:
+				var particle = Area2D.new()
+				particle.set_script(particle_scene)
+				particle.amount = final_amount
+				particle.global_position = global_position
+				get_tree().current_scene.call_deferred("add_child", particle)
+	# -----------------------------
 	Global.current_run_kills += 1
 
 	HitstopManager.hitstop(0.05, 0.1)

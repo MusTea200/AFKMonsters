@@ -9,6 +9,7 @@ class_name Player
 
 var current_health: float
 var _is_hook_held: bool = false
+var active_redzone_count: int = 0
 var active_springs: Dictionary = {}
 var current_target_node: Node2D = null
 

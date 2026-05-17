@@ -9,12 +9,12 @@ func _ready() -> void:
 
 func create_circle_polygon() -> void:
 	var points = PackedVector2Array()
-	
+
 	for i in range(kose_sayisi):
 		# 360 dereceyi köşe sayısına bölerek her noktanın açısını hesaplıyoruz
 		var aci = i * (2.0 * PI / kose_sayisi)
 		# Trigonometrik koordinat hesaplama: x = r * cos(θ), y = r * sin(θ)
 		var nokta = Vector2(cos(aci), sin(aci)) * yaricap
 		points.append(nokta)
-		
+
 	polygon = points

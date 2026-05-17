@@ -167,3 +167,19 @@ Mobil cihazlarda testler sırasında tespit edilen "mermilerin ateşlenmemesi" s
 
 ### Gelecek Planları ve Performans
 - Bu havuz (Pool) altyapısı gelecekte tam teşekküllü bir Object Pooling yapısına geçirilerek `queue_free()` yüklerinden kaçınmayı hedeflemektedir. Şimdilik `Array.pick_random()` ve zaman (arena_time) tabanlı algoritma sayesinde Poco gibi mobil cihazlarda bile 60 FPS sarsılmadan oynanış akışı garanti altına alınmıştır.
+
+## 💎 Döngü Parçacığı Ekonomisi ve Üst Üste Binen Redzone Lojiği (Risk/Reward)
+### Üst Üste Binen (Overlapping) Alanlar
+- Redzone sahnelerinin tekilliği kaldırılarak üst üste bindiğinde çarpanı artıran matematiksel katman (layer) mantığına geçirildi.
+- `Player.gd` içerisine `active_redzone_count` adlı bir takip değişkeni eklendi. Giren/Çıkan Area2D sinyalleri bu katmanları toplar/çıkartır. Bu sayede oyuncu 3 alanın kesişimindeyse debuff aynıdır ama Matrix Bonus çarpanı x3 olur.
+- Sadece `active_redzone_count > 1` olduğunda çalışan yeni bir UI tasarımı yazıldı. Alan rengi siber plazmaya (koyu kırmızı) döner ve ekrana "MATRIX BONUS: MULTIPLIER X" uyarısı neon pembe renkle düşer.
+
+### Mavi Parçacık Döngüsü (Loop Particles)
+- `LoopParticle.tscn` adında oyuncuya manyetik olarak çekilen (%100 pürüzsüz Vector hareketli), siber mavi glow efektlerine sahip fiziksel bir loot objesi dizayn edildi.
+- `Enemy.gd`'nin ölüm (`_die`) lojiğine ganimet tablosu bağlandı:
+  1. Düşman Redzone dışındaysa: Parçacık düşme ihtimali dükkandaki `Global.particle_drop_chance_level` seviyesine bağlıdır (%20 + %10 her seviye için).
+  2. Düşman Redzone içindeyse: Parçacık kesin düşer, fakat miktar `base_amount * redzone_multiplier` oranında katlanarak inanılmaz bir ödül havuzu yaratır. Risk alana devasa ödül.
+
+### Meta Dükkan Altyapısı
+- `Global.gd` içerisine parçacık olasılığı ve düşme adedini kontrol eden kalıcı istatistikler ve base cost (satın alım bedeli) kodları eklendi.
+- `ShopUI.gd` dosyasındaki switch-case mantığı `particle_chance` ve `particle_amount` key'lerini okuyarak, döngü parçacığıyla maksimuma ulaşılabilecek şekilde geliştirildi.
