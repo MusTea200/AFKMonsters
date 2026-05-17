@@ -604,9 +604,3 @@ func _attach_indicator(target_node: Node2D) -> void:
 	ind.target = target_node
 	# Add to CanvasLayer or Scene Root. Scene root is better since it uses global coordinates
 	get_tree().current_scene.call_deferred("add_child", ind)
-
-func _toggle_pause() -> void:
-	if get_tree().paused:
-		_close_settings_menu()
-	else:
-		_open_settings_menu()

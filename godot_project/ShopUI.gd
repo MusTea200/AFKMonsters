@@ -57,7 +57,10 @@ func _refresh_container(container: GridContainer) -> void:
 
 		var type = item.get_meta("upgrade_type")
 		var current_lvl = Global.upgrade_levels.get(type, 0)
-
+		var lvl_bar = item.get_node("HBox/VBox/LvlBar") as HBoxContainer
+		var price_lbl = item.get_node("HBox/VBox/PriceLabel") as Label
+		var buy_btn = item.get_node("HBox/BuyButton") as Button
+		var icon_color = item.get_node("HBox/Icon").color if item.has_node("HBox/Icon") else Color(0,1,1,1)
 		# Arsenal items max out at level 1 (unlock)
 		if (type == "turret_unlock" or type == "portable_magnet_unlock" or type == "poison_flask_unlock") and current_lvl > 0:
 			price_lbl.text = "Unlocked"
@@ -71,10 +74,7 @@ func _refresh_container(container: GridContainer) -> void:
 			continue
 		var cost = Global.get_upgrade_cost(type)
 
-		var lvl_bar = item.get_node("HBox/VBox/LvlBar") as HBoxContainer
-		var price_lbl = item.get_node("HBox/VBox/PriceLabel") as Label
-		var buy_btn = item.get_node("HBox/BuyButton") as Button
-		var icon_color = item.get_node("HBox/Icon").color if item.has_node("HBox/Icon") else Color(0,1,1,1)
+		
 
 		price_lbl.text = "Fiyat: " + str(cost)
 
