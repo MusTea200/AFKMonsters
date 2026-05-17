@@ -229,3 +229,18 @@ Tüm görev hedefleri başarılı şekilde tamamlanmış ve `main` branch'i ile 
 - Bu üç yetenek Global üzerinden satın alındığında "Unlock" (1 seviye maks) olarak işaretlenir.
 - PC'de `Q, E, R` tuşları ile, mobil cihazlarda ise `MobileControls` içerisine eklenen yeni Neon Butonlar (Turuncu, Mor, Yeşil) ile tetiklenirler.
 - Tetiklendikleri an yetenekler tüketilir (`unlocked = false`) ve mobil cihazda butonları gizlenir (`hide()`). Yeniden kullanmak için dükkandan tekrar satın alınmaları gerekir, ki bu da oyun döngüsü için harika bir "sink" (kaynak tüketme) mekaniğidir.
+
+## 🗺️ Dinamik Harita ve Modülasyon Varyasyonları (Level Design)
+### MapType (Zorluk Varyasyonları)
+- `Global.gd` içerisine `enum MapType { CYBER_GRID, NEON_HELL, QUANTUM_VOID }` tanımlandı.
+- `MainMenu.gd` içerisinde "Play" tuşuna basıldığında oyunu direkt başlatmak yerine, animasyonlu (Back tween) şık bir "SELECT PROTOCOL" arayüzü çıkarıldı. Bu arayüzden seçilen harita türüne göre `Global.current_selected_map` durumu güncellenerek ShopUI'a geçilir.
+- `ShopUI.gd` arka planı (Background.color) oyuncunun girmek üzere olduğu harita temasına göre önceden modüle edilerek oyuna atmosfere hazırlık eklendi.
+
+### Arena Harita Enjeksiyonları
+- `Arena.gd` içerisinde `_setup_map_variation()` fonksiyonu kurgulandı. `CanvasModulate` kullanılarak dünyanın tamamı ve ışıklandırmalar (Siber çizgiler vb. dahil) seçilen haritanın zemin rengine göre yıkandı.
+- **CYBER_GRID:** Standart ilerleme.
+- **NEON_HELL:** Renkler kırmızımtırak modüle edildi. Düşman hasarları %20 (1.2x) artırıldı. Canavar doğma havuzuna Zehirci Altıgen çok daha erken sürelerde sokuldu.
+- **QUANTUM_VOID:** Renkler lacivert/violet modüle edildi. Düşman hızları %30 (1.3x) artırıldı. Yerçekimi Sekizgen canavarı havuza en hızlı girecek şekilde (1. dakika) yapılandırıldı.
+
+### Performans, Güvenlik ve Gelecek
+- Bu yapının tamamı kod üzerinden `CanvasModulate` ve `Array` indeks manipülasyonuyla halledildi. Fazladan 3 farklı Scene/Sahne (örn Arena2, Arena3) kopyalamak yerine "Tek Sahne, Dinamik Manipülasyon" mimarisi kullanılarak dosya boyutundan, bakım maliyetinden ve RAM belleğinden devasa tasarruf edildi. İleride Kostüm (Skins) veya Pet (Companion) ekleneceği zaman, ana `Arena.tscn` üzerinde çalışılması tüm haritaları otomatik güncelleyecek sağlam bir altyapı sundu.

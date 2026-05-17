@@ -8,6 +8,19 @@ var display_coins: int = 0
 
 func _ready() -> void:
 	display_coins = Global.dongu_parcaciklari
+	# Apply map theme to shop UI optionally, or just show map name
+	var header_lbl = Label.new()
+	var map_name = "CYBER GRID"
+	if Global.current_selected_map == Global.MapType.NEON_HELL:
+		map_name = "NEON HELL"
+		$Background.color = Color(0.2, 0.05, 0.05)
+	elif Global.current_selected_map == Global.MapType.QUANTUM_VOID:
+		map_name = "QUANTUM VOID"
+		$Background.color = Color(0.05, 0.05, 0.2)
+	else:
+		$Background.color = Color(0.05, 0.1, 0.1) # Default
+	header_lbl.text = "Map: " + map_name
+	$VBoxContainer/Header.add_child(header_lbl)
 	_update_coin_label(display_coins)
 	_setup_hover_effects()
 	_refresh_items()
@@ -57,7 +70,10 @@ func _refresh_container(container: GridContainer) -> void:
 
 		var type = item.get_meta("upgrade_type")
 		var current_lvl = Global.upgrade_levels.get(type, 0)
-
+		var lvl_bar = item.get_node("HBox/VBox/LvlBar") as HBoxContainer
+		var price_lbl = item.get_node("HBox/VBox/PriceLabel") as Label
+		var buy_btn = item.get_node("HBox/BuyButton") as Button
+		var icon_color = item.get_node("HBox/Icon").color if item.has_node("HBox/Icon") else Color(0,1,1,1)
 		# Arsenal items max out at level 1 (unlock)
 		if (type == "turret_unlock" or type == "portable_magnet_unlock" or type == "poison_flask_unlock") and current_lvl > 0:
 			price_lbl.text = "Unlocked"
@@ -71,10 +87,7 @@ func _refresh_container(container: GridContainer) -> void:
 			continue
 		var cost = Global.get_upgrade_cost(type)
 
-		var lvl_bar = item.get_node("HBox/VBox/LvlBar") as HBoxContainer
-		var price_lbl = item.get_node("HBox/VBox/PriceLabel") as Label
-		var buy_btn = item.get_node("HBox/BuyButton") as Button
-		var icon_color = item.get_node("HBox/Icon").color if item.has_node("HBox/Icon") else Color(0,1,1,1)
+
 
 		price_lbl.text = "Fiyat: " + str(cost)
 
