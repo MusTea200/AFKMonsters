@@ -23,6 +23,6 @@ metadata/_edit_use_anchors_ = true
 [node name="Polygon2D" type="Polygon2D" parent="." unique_id=1371772834]
 position = Vector2(154, 69)
 scale = Vector2(1.2, 1.2)
-color = Color(1, 0.24526232, 0, 1)
+color = Color(1, 0, 0, 1)
 polygon = PackedVector2Array(-127.99997, -112, -176, -88.00001, -176, -23.999992, -128, 0, -80, -23.999992, -80, -88)
 uv = PackedVector2Array(-128, -88, -159.99998, -72, -159.99998, -40, -128, -24, -96, -40.000004, -96, -72)
