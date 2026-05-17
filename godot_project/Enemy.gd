@@ -18,7 +18,7 @@ var knockback_velocity: Vector2 = Vector2.ZERO
 var knockback_decay: float = 10.0
 var audio_player: AudioStreamPlayer2D
 var is_boss: bool = false
-var poison_pool_scene = preload("res://Redzone.tscn")
+var poison_pool_scene = preload("res://Redzone.gd")
 var poison_timer: float = 0.0
 enum EnemyType { CIRCLE, TRIANGLE_RANGED, SQUARE_GHOST, PENTAGON_TANK, HEXAGON_POISON, OCTAGON_GRAVITY }
 var type: EnemyType = EnemyType.CIRCLE
