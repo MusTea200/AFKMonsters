@@ -214,3 +214,18 @@ Tüm görev hedefleri başarılı şekilde tamamlanmış ve `main` branch'i ile 
 
 ### Mavi Parçacık Market Ekonomisi
 - Döngü parçacığı olasılık (`blue_chance_level`) ve miktar (`blue_amount_level`) değişkenleri Global'de hazır edilmişti. Bir önceki PR'de ShopUI arayüzünde aktif edilmişlerdi. Bu görevde Global config kayıtlarına son kez bakılarak sistemin kararlılığı teyit edildi.
+
+## 🛒 İkili Pazar Ekonomisi (Dual-Currency Economy) & Arsenal
+### Pazar Arayüzünün Bölünmesi
+- `ShopUI.tscn` içerisinde tek bir dikey kaydırma listesi olan yapı, **TabContainer** mimarisine geçirilerek "Döngü" (Kalıcı Statlar ve Mavi Parçacık Buffları) ve "Arsenal" (Kullanılabilir Aktif Yetenekler) olarak iki sekmeye ayrıldı.
+- `ShopUI.gd` içerisindeki GridContainer iterasyon fonksiyonları parametrik hale getirilerek her iki tab'ın da ayrı ayrı veya topluca güncellenebilmesi (`_refresh_container`) sağlandı.
+
+### Yeni Arsenal Yetenekleri (Deployables)
+- **Taret (Turret.gd):** Oyuncunun bulunduğu konuma konuşlanan, kendi otonom `_process` döngüsü ve menzili olan, Neon Turuncu bir savunma mekanizması yaratıldı. Düşman grubunu filtreleyerek en yakındakine mermi atar.
+- **Taşınabilir Mıknatıs (PortableMagnet.gd):** Oyuncunun üzerinde doğan ve 10 saniye boyunca onu takip eden geniş bir `Area2D` alanı. İçine giren `LoopParticle` veya `Coin` nesnelerini `global_position` iterasyonu ile oyuncuya doğru şiddetle çeker.
+- **Zehir Şişesi (PoisonFlask.gd):** Hedefe fırlatılıp patlayan, patladığında Hexagon canavarının da kullandığı mevcut `PoisonPool.tscn` zeminini oluşturarak devasa bir DoT (Zamana bağlı hasar) alanı bırakan mekanik eklendi.
+
+### Mobil Entegrasyon & Harcanabilir Yetenekler
+- Bu üç yetenek Global üzerinden satın alındığında "Unlock" (1 seviye maks) olarak işaretlenir.
+- PC'de `Q, E, R` tuşları ile, mobil cihazlarda ise `MobileControls` içerisine eklenen yeni Neon Butonlar (Turuncu, Mor, Yeşil) ile tetiklenirler.
+- Tetiklendikleri an yetenekler tüketilir (`unlocked = false`) ve mobil cihazda butonları gizlenir (`hide()`). Yeniden kullanmak için dükkandan tekrar satın alınmaları gerekir, ki bu da oyun döngüsü için harika bir "sink" (kaynak tüketme) mekaniğidir.

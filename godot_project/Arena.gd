@@ -94,6 +94,46 @@ func _ready() -> void:
 			p_shape.size = Vector2(100, 100)
 			pause_btn.shape = p_shape
 			pause_btn.pressed.connect(func(): _toggle_pause())
+
+			# Deployable Buttons for Mobile (Optional, currently mapped to Q E R on PC)
+			var btn_q = mobile_controls.get_node_or_null("TurretBtn")
+			if btn_q and Global.get("turret_unlocked"):
+				btn_q.show()
+				btn_q.pressed.connect(func():
+					var turret = load("res://Turret.gd").new()
+					turret.global_position = player_node.global_position
+					get_tree().current_scene.add_child(turret)
+					Global.turret_unlocked = false
+					btn_q.hide()
+				)
+			elif btn_q: btn_q.hide()
+
+			var btn_e = mobile_controls.get_node_or_null("MagnetBtn")
+			if btn_e and Global.get("portable_magnet_unlocked"):
+				btn_e.show()
+				btn_e.pressed.connect(func():
+					var magnet = load("res://PortableMagnet.gd").new()
+					get_tree().current_scene.add_child(magnet)
+					Global.portable_magnet_unlocked = false
+					btn_e.hide()
+				)
+			elif btn_e: btn_e.hide()
+
+			var btn_r = mobile_controls.get_node_or_null("FlaskBtn")
+			if btn_r and Global.get("poison_flask_unlocked"):
+				btn_r.show()
+				btn_r.pressed.connect(func():
+					var flask = load("res://PoisonFlask.gd").new()
+					flask.global_position = player_node.global_position
+					# Auto throw forward based on velocity or random if standing still
+					var throw_dir = player_node.linear_velocity.normalized()
+					if throw_dir.length() < 0.1: throw_dir = Vector2(1,0).rotated(randf() * TAU)
+					flask.target_pos = player_node.global_position + throw_dir * 500.0
+					get_tree().current_scene.add_child(flask)
+					Global.poison_flask_unlocked = false
+					btn_r.hide()
+				)
+			elif btn_r: btn_r.hide()
 		else:
 			mobile_controls.hide()
 
@@ -564,3 +604,9 @@ func _attach_indicator(target_node: Node2D) -> void:
 	ind.target = target_node
 	# Add to CanvasLayer or Scene Root. Scene root is better since it uses global coordinates
 	get_tree().current_scene.call_deferred("add_child", ind)
+
+func _toggle_pause() -> void:
+	if get_tree().paused:
+		_close_settings_menu()
+	else:
+		_open_settings_menu()

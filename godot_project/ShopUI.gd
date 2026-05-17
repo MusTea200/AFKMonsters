@@ -1,7 +1,8 @@
 extends CanvasLayer
 
 @onready var coin_label: Label = $VBoxContainer/Header/CoinBalance
-@onready var item_container: GridContainer = $VBoxContainer/ScrollContainer/GridContainer
+@onready var item_container_loop: GridContainer = $"VBoxContainer/TabContainer/Döngü/GridContainer"
+@onready var item_container_arsenal: GridContainer = $VBoxContainer/TabContainer/Arsenal/GridContainer
 
 var display_coins: int = 0
 
@@ -12,7 +13,10 @@ func _ready() -> void:
 	_refresh_items()
 
 func _setup_hover_effects() -> void:
-	for item in item_container.get_children():
+	_apply_hover(item_container_loop)
+	_apply_hover(item_container_arsenal)
+func _apply_hover(container: GridContainer) -> void:
+	for item in container.get_children():
 		if item is PanelContainer:
 			# Make a unique copy of the stylebox so glow/shadow animates individually
 			var stylebox = item.get_theme_stylebox("panel").duplicate()
@@ -20,7 +24,6 @@ func _setup_hover_effects() -> void:
 
 			item.mouse_entered.connect(self._on_item_hovered.bind(item, true))
 			item.mouse_exited.connect(self._on_item_hovered.bind(item, false))
-
 func _on_item_hovered(item: PanelContainer, is_hovered: bool) -> void:
 	var tween = create_tween()
 	tween.set_parallel(true)
@@ -45,12 +48,27 @@ func _animate_coins_to(target_amount: int) -> void:
 	display_coins = target_amount
 
 func _refresh_items() -> void:
-	for item in item_container.get_children():
+	_refresh_container(item_container_loop)
+	_refresh_container(item_container_arsenal)
+func _refresh_container(container: GridContainer) -> void:
+	for item in container.get_children():
 		if not item.has_meta("upgrade_type"):
 			continue
 
 		var type = item.get_meta("upgrade_type")
 		var current_lvl = Global.upgrade_levels.get(type, 0)
+
+		# Arsenal items max out at level 1 (unlock)
+		if (type == "turret_unlock" or type == "portable_magnet_unlock" or type == "poison_flask_unlock") and current_lvl > 0:
+			price_lbl.text = "Unlocked"
+			buy_btn.disabled = true
+			buy_btn.text = "MAX"
+			# Add green pip for unlock
+			var pip = ColorRect.new()
+			pip.custom_minimum_size = Vector2(10, 10)
+			pip.color = Color.GREEN
+			lvl_bar.add_child(pip)
+			continue
 		var cost = Global.get_upgrade_cost(type)
 
 		var lvl_bar = item.get_node("HBox/VBox/LvlBar") as HBoxContainer
@@ -83,7 +101,6 @@ func _refresh_items() -> void:
 			buy_btn.pressed.disconnect(self._on_buy_pressed)
 
 		buy_btn.pressed.connect(self._on_buy_pressed.bind(type, item))
-
 func _on_buy_pressed(type: String, item_node: Node) -> void:
 	var cost = Global.get_upgrade_cost(type)
 	var price_lbl = item_node.get_node("HBox/VBox/PriceLabel") as Label
@@ -111,6 +128,12 @@ func _on_buy_pressed(type: String, item_node: Node) -> void:
 				Global.particle_drop_chance_level = min(8, Global.particle_drop_chance_level + 1)
 			"particle_amount":
 				Global.particle_drop_amount_level = min(9, Global.particle_drop_amount_level + 1)
+			"turret_unlock":
+				Global.turret_unlocked = true
+			"portable_magnet_unlock":
+				Global.portable_magnet_unlocked = true
+			"poison_flask_unlock":
+				Global.poison_flask_unlocked = true
 
 		Global.save_game()
 
