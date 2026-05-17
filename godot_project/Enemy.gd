@@ -18,7 +18,9 @@ var knockback_velocity: Vector2 = Vector2.ZERO
 var knockback_decay: float = 10.0
 var audio_player: AudioStreamPlayer2D
 var is_boss: bool = false
-enum EnemyType { CIRCLE, TRIANGLE_RANGED, SQUARE_GHOST }
+var poison_pool_scene = preload("res://Redzone.tscn")
+var poison_timer: float = 0.0
+enum EnemyType { CIRCLE, TRIANGLE_RANGED, SQUARE_GHOST, PENTAGON_TANK, HEXAGON_POISON, OCTAGON_GRAVITY }
 var type: EnemyType = EnemyType.CIRCLE
 
 var ghost_timer: float = 0.0
@@ -69,6 +71,9 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	var movement = Vector2.ZERO
+	# Kuzeye bakan polygon'u ilerledigi yone dondur
+	if movement != Vector2.ZERO and not is_boss:
+		rotation = movement.angle() + PI/2.0 # Polygon is pointing north (up), so angle + 90 deg
 	if is_instance_valid(player_node):
 		var dist = global_position.distance_to(player_node.global_position)
 		var dir = global_position.direction_to(player_node.global_position)
@@ -79,7 +84,9 @@ func _process(delta: float) -> void:
 			var t = Time.get_ticks_msec() * 0.003
 			var lissajous_offset = Vector2(sin(4.0 * t), sin(3.0 * t)) * 1.5
 			var tangent = Vector2(-dir.y, dir.x)
-			dir = (dir + tangent * lissajous_offset.x * 2.0 + dir * lissajous_offset.y).normalized()
+			# LERP ile sapmayı yumuşatarak sarsıntıyı ve kilitlenmeyi engelle
+			var chaotic_dir = (dir + tangent * lissajous_offset.x * 2.0 + dir * lissajous_offset.y).normalized()
+			dir = dir.lerp(chaotic_dir, 0.5).normalized()
 
 		match type:
 			EnemyType.CIRCLE:
@@ -94,6 +101,25 @@ func _process(delta: float) -> void:
 					if shoot_timer > 2.0:
 						shoot_timer = 0.0
 						_shoot_plasma(dir)
+			EnemyType.PENTAGON_TANK:
+				movement = dir * move_speed * 0.7 * delta
+			EnemyType.HEXAGON_POISON:
+				movement = dir * move_speed * 0.9 * delta
+				poison_timer += delta
+				if poison_timer >= 1.0:
+					poison_timer = 0.0
+					if poison_pool_scene:
+						var pool = poison_pool_scene.instantiate()
+						pool.global_position = global_position
+						pool.scale = Vector2(0.5, 0.5) # Smaller than normal redzone
+						get_tree().current_scene.add_child(pool)
+			EnemyType.OCTAGON_GRAVITY:
+				movement = dir * move_speed * 0.8 * delta
+				if is_instance_valid(player_node):
+					var dist_to_player = global_position.distance_to(player_node.global_position)
+					if dist_to_player < 500.0:
+						var pull_dir = player_node.global_position.direction_to(global_position)
+						player_node.apply_central_force(pull_dir * 1500.0)
 			EnemyType.SQUARE_GHOST:
 				ghost_timer += delta
 				if ghost_timer > 3.0:
@@ -153,6 +179,12 @@ func _on_body_entered(body: Node2D) -> void:
 func take_damage(amount: float, knock_dir: Vector2 = Vector2.ZERO) -> void:
 	if type == EnemyType.SQUARE_GHOST and is_ghosting:
 		return # Immune while ghosting
+	if type == EnemyType.PENTAGON_TANK:
+		# Tank takes half damage from bullets, but 1.5x from momentum
+		if knock_dir != Vector2.ZERO:
+			amount *= 1.5
+		else:
+			amount *= 0.5
 
 	current_health -= amount
 	if is_boss:
@@ -182,6 +214,12 @@ func take_damage(amount: float, knock_dir: Vector2 = Vector2.ZERO) -> void:
 		progress_bar.value = current_health
 
 	if current_health <= 0:
+		if type == EnemyType.OCTAGON_GRAVITY:
+			# Spawn 4 triangles
+			for i in range(4):
+				var tri = load("res://enemy_triangle.tscn").instantiate()
+				tri.global_position = global_position + Vector2(cos(i * PI/2), sin(i * PI/2)) * 50
+				get_tree().current_scene.call_deferred("add_child", tri)
 		_die(knock_dir)
 
 func _show_floating_damage(amount: float) -> void:
