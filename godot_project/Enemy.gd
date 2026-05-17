@@ -18,7 +18,7 @@ var knockback_velocity: Vector2 = Vector2.ZERO
 var knockback_decay: float = 10.0
 var audio_player: AudioStreamPlayer2D
 var is_boss: bool = false
-var poison_pool_scene = preload("res://Redzone.gd")
+var poison_pool_scene = preload("res://PoisonPool.tscn")
 var poison_timer: float = 0.0
 enum EnemyType { CIRCLE, TRIANGLE_RANGED, SQUARE_GHOST, PENTAGON_TANK, HEXAGON_POISON, OCTAGON_GRAVITY }
 var type: EnemyType = EnemyType.CIRCLE
@@ -111,7 +111,6 @@ func _process(delta: float) -> void:
 					if poison_pool_scene:
 						var pool = poison_pool_scene.instantiate()
 						pool.global_position = global_position
-						pool.scale = Vector2(0.5, 0.5) # Smaller than normal redzone
 						get_tree().current_scene.add_child(pool)
 			EnemyType.OCTAGON_GRAVITY:
 				movement = dir * move_speed * 0.8 * delta

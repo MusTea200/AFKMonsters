@@ -183,3 +183,16 @@ Mobil cihazlarda testler sırasında tespit edilen "mermilerin ateşlenmemesi" s
 ### Meta Dükkan Altyapısı
 - `Global.gd` içerisine parçacık olasılığı ve düşme adedini kontrol eden kalıcı istatistikler ve base cost (satın alım bedeli) kodları eklendi.
 - `ShopUI.gd` dosyasındaki switch-case mantığı `particle_chance` ve `particle_amount` key'lerini okuyarak, döngü parçacığıyla maksimuma ulaşılabilecek şekilde geliştirildi.
+
+## 🧪 Zehir Havuzu (PoisonPool) Mimarisi ve Eksik Varlık Çözümü
+### Derleme Krizi ve Kırık Referans
+- `Enemy.gd` içerisinde, Hexagon (Altıgen) canavarının arkasında bıraktığı zehir havuzları, yanlışlıkla `load("res://Redzone.gd")` script dosyasına bir `PackedScene` gibi `.instantiate()` atılmaya çalışılarak kurgulanmış. Bu durum doğrudan motor çökmesine sebep oluyordu. Scriptler instantiate edilemez, sahneler edilebilir.
+- Hatalı satır tamamen temizlenerek, dinamik ve bağımsız bir `PoisonPool.tscn` sahnesi yaratıldı.
+
+### DoT (Damage over Time) Mekaniği
+- Sahnede `PoisonPool.gd` isimli yeni bir bağımsız alan (Area2D) oluşturuldu.
+- Oyuncu bu alanın içine girdiğinde (body_entered), saniyede bir kez hafif hasar veren (DoT) bir `Timer` döngüsüne yakalanır. Oyuncu çıktığında (body_exited) döngü kırılır.
+- Havuzlar kalıcı değildir. Haritayı çöpe çevirmemek (Memory Leak önlemek) adına, `_ready` fonksiyonunda başlatılan bir `create_tween()` ile 3 saniyelik bir ömre (fade out) sahiptir ve süresi bitince kendi kendini yok eder (`queue_free`).
+
+### Performans ve Görsel
+- Polygon2D kullanılarak asset/resim dosyasına bağımlı olmayan neon yeşili/mor arası siber estetik bir görünüm sağlandı.
