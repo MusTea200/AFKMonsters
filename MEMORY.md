@@ -155,3 +155,15 @@ Mobil cihazlarda testler sırasında tespit edilen "mermilerin ateşlenmemesi" s
 - Fazla uzun süren yorucu mekanik iptal edilerek dönüş arzusu (10 -> 3) devire indirildi.
 - Konuşma balonu `PanelContainer` ile siber neon stilinde baştan giydirildi ve metin büyütüldü.
 - Evren açıldığında (Lissajous eğrileri devreye girerken) düşmanların yerlerinde kilitlenip titremesini engelleyen `lerp()` tabanlı `chaotic_dir` yumuşatması `Enemy.gd` döngüsüne entegre edildi.
+
+## 🗑️ Spawner Mimarisinin Güncellenmesi & Dependency Resolution
+### Hata Tespiti ve Kırık Bağımlılık Temizliği
+- Proje genelinde (`Magnet.gd`, `Arena.gd`) önceden var olan ancak bir önceki refaktörle silinmiş olan `Enemy.tscn` dosyasına yapılan `preload` çağrıları tespit edildi. Bu durum, runtime esnasında sahne instantiaton hatalarına (crash) yol açacaktı. Tüm kırık referanslar temizlendi.
+- `Magnet.gd` içerisindeki riskli ceza (penalty) doğumu, varsayılan bir şekle (`enemy_triangle.tscn` veya havuza) yönlendirilerek esnetildi.
+
+### Dinamik Ağırlıklı Şekil Havuzu (Shape Pool)
+- `Arena.gd` dosyasına tüm yeni geometrik canavarları (üçgen, kare, beşgen, altıgen, okta) barındıran global bir `enemy_scenes` dizisi kuruldu (`Array[PackedScene]`).
+- Spawner (`_on_spawn_timer_timeout`), artık oyunun süresine (zorluğuna) orantılı olarak rastgele veya ağırlıklı seçim (weight-based spawning) yapan yaratıcı bir sisteme kavuştu. Oyun başlarında ağırlıklı olarak Triangle ve Circle gelirken, ilerleyen dakikalarda Hexagon (Zehir) ve Octagon (Yerçekimi) gibi karmaşık geometriler daha sık spawnlanacak. Boss sahnesi bu standart rotasyon döngüsünden izole edildi.
+
+### Gelecek Planları ve Performans
+- Bu havuz (Pool) altyapısı gelecekte tam teşekküllü bir Object Pooling yapısına geçirilerek `queue_free()` yüklerinden kaçınmayı hedeflemektedir. Şimdilik `Array.pick_random()` ve zaman (arena_time) tabanlı algoritma sayesinde Poco gibi mobil cihazlarda bile 60 FPS sarsılmadan oynanış akışı garanti altına alınmıştır.

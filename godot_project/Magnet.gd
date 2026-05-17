@@ -8,7 +8,7 @@ var player: Node2D
 var original_scale: Vector2
 
 var is_mimic: bool = false
-var enemy_scene = preload("res://Enemy.tscn")
+var enemy_scene = preload("res://enemy_triangle.tscn") # Mimics spawn basic triangles
 
 func _ready() -> void:
 	if randf() < 0.2:

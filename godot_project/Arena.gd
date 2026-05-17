@@ -14,7 +14,14 @@ var persisted_data: Dictionary = {} # { Vector2_chunk_id: [ {type, pos, data} ] 
 
 
 var grapple_node_scene = preload("res://GrappleNode.tscn")
-var enemy_scene = preload("res://Enemy.tscn")
+var enemy_scenes: Array[PackedScene] = [
+	preload("res://enemy_circle.tscn"),
+	preload("res://enemy_triangle.tscn"),
+	preload("res://enemy_square.tscn"),
+	preload("res://enemy_pentagon.tscn"),
+	preload("res://enemy_hexagon.tscn"),
+	preload("res://enemy_octagonal.tscn")
+]
 var magnet_scene = preload("res://Magnet.tscn")
 var spawn_timer: Timer
 
@@ -215,7 +222,16 @@ func _on_spawn_timer_timeout() -> void:
 
 	for i in range(current_spawn_multiplier):
 		var final_pos = spawn_pos + Vector2(cos(angle), sin(angle)) * randf_range(0, 200)
-		var enemy_instance = enemy_scene.instantiate()
+		# Dinamik zorluk agirlikli secim
+		var pool_max_index = 1 # Baslangicta sadece cember ve ucgen
+		if arena_time > 60: pool_max_index = 2 # Kare ekle
+		if arena_time > 120: pool_max_index = 3 # Besgen ekle
+		if arena_time > 180: pool_max_index = 4 # Altigen ekle
+		if arena_time > 240: pool_max_index = 5 # Sekizgen ekle
+
+		# Agirligi basitce yonetmek icin randi() kullanarak 0 ile pool_max_index arasinda cekiyoruz
+		var selected_scene = enemy_scenes[randi() % (pool_max_index + 1)]
+		var enemy_instance = selected_scene.instantiate()
 		enemy_instance.name = "Enemy_" + str(randi() % 1000000)
 		enemy_instance.global_position = final_pos
 		enemy_instance.max_health *= difficulty_multiplier
