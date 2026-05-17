@@ -12,11 +12,29 @@ var original_regen: float = 0.0
 var visual: Sprite2D
 
 func _ready() -> void:
-	visual = Sprite2D.new()
+	add_to_group("redzones")
+
+	# Circular neon visuals using custom drawing
+	var poly = Polygon2D.new()
+	var points = PackedVector2Array()
+	var radius = 300.0
+	for i in range(64):
+		var angle = (i / 64.0) * TAU
+		points.append(Vector2(cos(angle), sin(angle)) * radius)
+	poly.polygon = points
+	poly.color = Color(1.0, 0.0, 0.0, 0.2)
+
+	# Create a visual node to override _draw
+	var visual_node = Control.new()
+	visual_node.name = "Visual"
+	visual_node.set_script(load("res://RedzoneVisual.gd"))
+	visual_node.set("radius", radius)
+
+	add_child(poly)
+	add_child(visual_node)
+	self.visual = poly # keep reference
 	visual.texture = load("res://icon.svg")
 	visual.modulate = Color(1.0, 0.0, 0.0, 0.3)
-	visual.scale = Vector2(10.0, 10.0) # Large area
-	add_child(visual)
 
 	var col = CollisionShape2D.new()
 	var shape = CircleShape2D.new()
@@ -46,11 +64,22 @@ func _process(delta: float) -> void:
 		inside_time = max(0.0, inside_time - delta * 2.0)
 
 func _on_area_entered(area: Area2D) -> void:
+	if area.name == "Player" or (area.get_parent() and area.get_parent().name == "Player"):
+		var p = area if area.name == "Player" else area.get_parent()
+		if p.has_method("get"):
+			if "active_redzone_count" in p:
+				p.active_redzone_count += 1
 	if area is Enemy: return
 	if area.name == "Player" or area.get_parent().name == "Player":
 		player = area if area.name == "Player" else area.get_parent()
 
 func _on_area_exited(area: Area2D) -> void:
+	if area.name == "Player" or (area.get_parent() and area.get_parent().name == "Player"):
+		var p = area if area.name == "Player" else area.get_parent()
+		if p.has_method("get"):
+			if "active_redzone_count" in p:
+				p.active_redzone_count -= 1
+				if p.active_redzone_count < 0: p.active_redzone_count = 0
 	if area is Enemy: return
 	if area.name == "Player" or area.get_parent().name == "Player":
 		player = null
@@ -67,6 +96,10 @@ func _apply_debuff() -> void:
 		p.max_speed = original_speed * 0.5
 		p.combat_comp.can_yenileme = 0.0
 		p.modulate = Color.RED
+
+		# Kesişim vurgusu
+		if p.active_redzone_count > 1:
+			visual.color = Color(1.0, 0.0, 0.0, 0.4) # Daha koyu plazma
 		p.linear_damp = 0.2 # Ice effect (kayganlik)
 
 		# warning ui
@@ -80,9 +113,14 @@ func _apply_debuff() -> void:
 		canvas.add_child(vignette)
 
 		var label = Label.new()
-		label.text = ">> WARNING: OVERHEAT DEBUFF <<"
+		label.name = "RedzoneWarnLabel"
+		if p.active_redzone_count > 1:
+			label.text = ">> MATRIX BONUS: MULTIPLIER X" + str(p.active_redzone_count) + " <<"
+			label.add_theme_color_override("font_color", Color(1.0, 0.0, 1.0)) # Neon Pink bonus
+		else:
+			label.text = ">> WARNING: OVERHEAT DEBUFF <<"
+			label.add_theme_color_override("font_color", Color.RED)
 		label.add_theme_font_size_override("font_size", 48)
-		label.add_theme_color_override("font_color", Color.RED)
 		label.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 		label.position = Vector2(get_viewport_rect().size.x / 2.0 - 400, get_viewport_rect().size.y - 150)
 		canvas.add_child(label)
@@ -90,6 +128,9 @@ func _apply_debuff() -> void:
 		get_tree().current_scene.add_child(canvas)
 
 func _remove_debuff() -> void:
+	var p = get_tree().current_scene.find_child("Player", true, false)
+	if is_instance_valid(p) and p.get("active_redzone_count") != null and p.active_redzone_count > 0:
+		return # Hala baska redzone icindeyse debuff i silme!
 	debuff_active = false
 	var p = get_tree().current_scene.find_child("Player", true, false)
 	if is_instance_valid(p) and original_speed > 0:

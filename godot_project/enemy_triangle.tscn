@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://c018locg6c1dy" path="res://Enemy.gd" id="1_bhdcv"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_enemy"]
-radius = 68.007355
+radius = 71.00704
 
 [node name="EnemyTriangle" type="Area2D" unique_id=82552868]
 process_mode = 1

@@ -107,6 +107,10 @@ func _on_buy_pressed(type: String, item_node: Node) -> void:
 				Global.orbital_count += 1
 			"clock":
 				Global.extended_core_clock += 1
+			"particle_chance":
+				Global.particle_drop_chance_level = min(8, Global.particle_drop_chance_level + 1)
+			"particle_amount":
+				Global.particle_drop_amount_level = min(9, Global.particle_drop_amount_level + 1)
 
 		Global.save_game()
 

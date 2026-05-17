@@ -37,6 +37,8 @@ var orbital_count: int = 0
 var extended_core_clock: int = 0
 var successful_loops: int = 0
 var roulette_universe_unlocked: bool = false
+var particle_drop_chance_level: int = 0 # Max 8
+var particle_drop_amount_level: int = 0 # Max 9
 
 # UI Referansları
 var left_joystick: VirtualJoystick = null
@@ -54,11 +56,13 @@ var upgrade_levels = {
 	"speed": 0,
 	"shield": 0,
 	"orbital": 0,
-	"clock": 0
+	"clock": 0,
+	"particle_chance": 0,
+	"particle_amount": 0
 }
 
 func get_upgrade_cost(type: String) -> int:
-	var base_costs = {"health": 100, "damage": 150, "magnet": 200, "speed": 120, "shield": 500, "orbital": 300, "clock": 1000}
+	var base_costs = {"health": 100, "damage": 150, "magnet": 200, "speed": 120, "shield": 500, "orbital": 300, "clock": 1000, "particle_chance": 300, "particle_amount": 500}
 	return int(base_costs[type] * pow(1.5, upgrade_levels[type]))
 
 func _ready() -> void:
@@ -75,6 +79,8 @@ func save_game() -> void:
 	config.set_value("Stats", "extended_core_clock", extended_core_clock)
 	config.set_value("Stats", "successful_loops", successful_loops)
 	config.set_value("Stats", "roulette_universe_unlocked", roulette_universe_unlocked)
+	config.set_value("Stats", "particle_drop_chance_level", particle_drop_chance_level)
+	config.set_value("Stats", "particle_drop_amount_level", particle_drop_amount_level)
 	config.set_value("Stats", "upgrade_levels", upgrade_levels)
 	config.set_value("Settings", "control_mode", settings_control_mode)
 	config.set_value("Settings", "use_manual_aim_joystick", use_manual_aim_joystick)
@@ -93,6 +99,8 @@ func load_game() -> void:
 		extended_core_clock = config.get_value("Stats", "extended_core_clock", 0)
 		successful_loops = config.get_value("Stats", "successful_loops", 0)
 		roulette_universe_unlocked = config.get_value("Stats", "roulette_universe_unlocked", false)
+		particle_drop_chance_level = config.get_value("Stats", "particle_drop_chance_level", 0)
+		particle_drop_amount_level = config.get_value("Stats", "particle_drop_amount_level", 0)
 		upgrade_levels = config.get_value("Stats", "upgrade_levels", {"health": 0, "damage": 0, "magnet": 0, "speed": 0, "shield": 0, "orbital": 0, "clock": 0})
 		settings_control_mode = config.get_value("Settings", "control_mode", ControlMode.AUTO)
 		use_manual_aim_joystick = config.get_value("Settings", "use_manual_aim_joystick", true)

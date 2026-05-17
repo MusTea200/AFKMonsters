@@ -11,7 +11,7 @@ var last_player_angle: float = 0.0
 var total_player_rotation: float = 0.0
 var target_rotations: float = 3.0 * 2.0 * PI
 
-var warning_label: Label
+var warning_label
 var shader_rect: ColorRect
 
 func _ready() -> void:
