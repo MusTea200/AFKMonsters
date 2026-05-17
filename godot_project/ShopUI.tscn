@@ -73,11 +73,16 @@ theme_override_fonts/font = SubResource("SystemFont_mono")
 theme_override_font_sizes/font_size = 32
 text = "Döngü Parçacığı: 0"
 
-[node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer"]
+[node name="TabContainer" type="TabContainer" parent="VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="GridContainer" type="GridContainer" parent="VBoxContainer/ScrollContainer"]
+[node name="Döngü" type="ScrollContainer" parent="VBoxContainer/TabContainer"]
+layout_mode = 2
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="GridContainer" type="GridContainer" parent="VBoxContainer/TabContainer/Döngü"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -85,123 +90,123 @@ theme_override_constants/h_separation = 20
 theme_override_constants/v_separation = 20
 columns = 2
 
-[node name="ItemHealth" type="PanelContainer" parent="VBoxContainer/ScrollContainer/GridContainer"]
+[node name="ItemHealth" type="PanelContainer" parent="VBoxContainer/TabContainer/Döngü/GridContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
 metadata/upgrade_type = "health"
 
-[node name="HBox" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/GridContainer/ItemHealth"]
+[node name="HBox" type="HBoxContainer" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemHealth"]
 layout_mode = 2
 theme_override_constants/separation = 15
 
-[node name="Icon" type="ColorRect" parent="VBoxContainer/ScrollContainer/GridContainer/ItemHealth/HBox"]
+[node name="Icon" type="ColorRect" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemHealth/HBox"]
 custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
 size_flags_vertical = 4
 color = Color(0.9, 0.2, 0.2, 1)
 
-[node name="VBox" type="VBoxContainer" parent="VBoxContainer/ScrollContainer/GridContainer/ItemHealth/HBox"]
+[node name="VBox" type="VBoxContainer" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemHealth/HBox"]
 layout_mode = 2
 alignment = 1
 
-[node name="NameLabel" type="Label" parent="VBoxContainer/ScrollContainer/GridContainer/ItemHealth/HBox/VBox"]
+[node name="NameLabel" type="Label" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemHealth/HBox/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 1, 1, 1)
 theme_override_fonts/font = SubResource("SystemFont_mono")
 text = "Maksimum Can"
 
-[node name="LvlBar" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/GridContainer/ItemHealth/HBox/VBox"]
+[node name="LvlBar" type="HBoxContainer" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemHealth/HBox/VBox"]
 layout_mode = 2
 
-[node name="PriceLabel" type="Label" parent="VBoxContainer/ScrollContainer/GridContainer/ItemHealth/HBox/VBox"]
+[node name="PriceLabel" type="Label" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemHealth/HBox/VBox"]
 layout_mode = 2
 theme_override_fonts/font = SubResource("SystemFont_mono")
 text = "Fiyat: 100"
 
-[node name="BuyButton" type="Button" parent="VBoxContainer/ScrollContainer/GridContainer/ItemHealth/HBox"]
+[node name="BuyButton" type="Button" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemHealth/HBox"]
 layout_mode = 2
 size_flags_horizontal = 10
 size_flags_vertical = 4
 theme_override_fonts/font = SubResource("SystemFont_mono")
 text = "Satın Al"
 
-[node name="ItemDamage" type="PanelContainer" parent="VBoxContainer/ScrollContainer/GridContainer"]
+[node name="ItemDamage" type="PanelContainer" parent="VBoxContainer/TabContainer/Döngü/GridContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
 metadata/upgrade_type = "damage"
 
-[node name="HBox" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/GridContainer/ItemDamage"]
+[node name="HBox" type="HBoxContainer" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemDamage"]
 layout_mode = 2
 theme_override_constants/separation = 15
 
-[node name="Icon" type="ColorRect" parent="VBoxContainer/ScrollContainer/GridContainer/ItemDamage/HBox"]
+[node name="Icon" type="ColorRect" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemDamage/HBox"]
 custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
 size_flags_vertical = 4
 color = Color(0.2, 0.2, 0.9, 1)
 
-[node name="VBox" type="VBoxContainer" parent="VBoxContainer/ScrollContainer/GridContainer/ItemDamage/HBox"]
+[node name="VBox" type="VBoxContainer" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemDamage/HBox"]
 layout_mode = 2
 alignment = 1
 
-[node name="NameLabel" type="Label" parent="VBoxContainer/ScrollContainer/GridContainer/ItemDamage/HBox/VBox"]
+[node name="NameLabel" type="Label" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemDamage/HBox/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 1, 1, 1)
 theme_override_fonts/font = SubResource("SystemFont_mono")
 text = "Başlangıç Hasarı"
 
-[node name="LvlBar" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/GridContainer/ItemDamage/HBox/VBox"]
+[node name="LvlBar" type="HBoxContainer" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemDamage/HBox/VBox"]
 layout_mode = 2
 
-[node name="PriceLabel" type="Label" parent="VBoxContainer/ScrollContainer/GridContainer/ItemDamage/HBox/VBox"]
+[node name="PriceLabel" type="Label" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemDamage/HBox/VBox"]
 layout_mode = 2
 theme_override_fonts/font = SubResource("SystemFont_mono")
 text = "Fiyat: 150"
 
-[node name="BuyButton" type="Button" parent="VBoxContainer/ScrollContainer/GridContainer/ItemDamage/HBox"]
+[node name="BuyButton" type="Button" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemDamage/HBox"]
 layout_mode = 2
 size_flags_horizontal = 10
 size_flags_vertical = 4
 theme_override_fonts/font = SubResource("SystemFont_mono")
 text = "Satın Al"
 
-[node name="ItemMagnet" type="PanelContainer" parent="VBoxContainer/ScrollContainer/GridContainer"]
+[node name="ItemMagnet" type="PanelContainer" parent="VBoxContainer/TabContainer/Döngü/GridContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
 metadata/upgrade_type = "magnet"
 
-[node name="HBox" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/GridContainer/ItemMagnet"]
+[node name="HBox" type="HBoxContainer" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemMagnet"]
 layout_mode = 2
 theme_override_constants/separation = 15
 
-[node name="Icon" type="ColorRect" parent="VBoxContainer/ScrollContainer/GridContainer/ItemMagnet/HBox"]
+[node name="Icon" type="ColorRect" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemMagnet/HBox"]
 custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
 size_flags_vertical = 4
 color = Color(0.8, 0.8, 0.1, 1)
 
-[node name="VBox" type="VBoxContainer" parent="VBoxContainer/ScrollContainer/GridContainer/ItemMagnet/HBox"]
+[node name="VBox" type="VBoxContainer" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemMagnet/HBox"]
 layout_mode = 2
 alignment = 1
 
-[node name="NameLabel" type="Label" parent="VBoxContainer/ScrollContainer/GridContainer/ItemMagnet/HBox/VBox"]
+[node name="NameLabel" type="Label" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemMagnet/HBox/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 1, 1, 1)
 theme_override_fonts/font = SubResource("SystemFont_mono")
 text = "Mıknatıs Alanı"
 
-[node name="LvlBar" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/GridContainer/ItemMagnet/HBox/VBox"]
+[node name="LvlBar" type="HBoxContainer" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemMagnet/HBox/VBox"]
 layout_mode = 2
 
-[node name="PriceLabel" type="Label" parent="VBoxContainer/ScrollContainer/GridContainer/ItemMagnet/HBox/VBox"]
+[node name="PriceLabel" type="Label" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemMagnet/HBox/VBox"]
 layout_mode = 2
 theme_override_fonts/font = SubResource("SystemFont_mono")
 text = "Fiyat: 200"
 
-[node name="BuyButton" type="Button" parent="VBoxContainer/ScrollContainer/GridContainer/ItemMagnet/HBox"]
+[node name="BuyButton" type="Button" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemMagnet/HBox"]
 layout_mode = 2
 size_flags_horizontal = 10
 size_flags_vertical = 4
@@ -209,123 +214,123 @@ theme_override_fonts/font = SubResource("SystemFont_mono")
 text = "Satın Al"
 
 
-[node name="ItemSpeed" type="PanelContainer" parent="VBoxContainer/ScrollContainer/GridContainer"]
+[node name="ItemSpeed" type="PanelContainer" parent="VBoxContainer/TabContainer/Döngü/GridContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
 metadata/upgrade_type = "speed"
 
-[node name="HBox" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/GridContainer/ItemSpeed"]
+[node name="HBox" type="HBoxContainer" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemSpeed"]
 layout_mode = 2
 theme_override_constants/separation = 15
 
-[node name="Icon" type="ColorRect" parent="VBoxContainer/ScrollContainer/GridContainer/ItemSpeed/HBox"]
+[node name="Icon" type="ColorRect" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemSpeed/HBox"]
 custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
 size_flags_vertical = 4
 color = Color(0.2, 0.9, 0.2, 1)
 
-[node name="VBox" type="VBoxContainer" parent="VBoxContainer/ScrollContainer/GridContainer/ItemSpeed/HBox"]
+[node name="VBox" type="VBoxContainer" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemSpeed/HBox"]
 layout_mode = 2
 alignment = 1
 
-[node name="NameLabel" type="Label" parent="VBoxContainer/ScrollContainer/GridContainer/ItemSpeed/HBox/VBox"]
+[node name="NameLabel" type="Label" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemSpeed/HBox/VBox"]
 layout_mode = 2
 theme_override_fonts/font = SubResource("SystemFont_mono")
 theme_override_colors/font_color = Color(0, 1, 1, 1)
 text = "Temel Hız"
 
-[node name="LvlBar" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/GridContainer/ItemSpeed/HBox/VBox"]
+[node name="LvlBar" type="HBoxContainer" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemSpeed/HBox/VBox"]
 layout_mode = 2
 
-[node name="PriceLabel" type="Label" parent="VBoxContainer/ScrollContainer/GridContainer/ItemSpeed/HBox/VBox"]
+[node name="PriceLabel" type="Label" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemSpeed/HBox/VBox"]
 layout_mode = 2
 theme_override_fonts/font = SubResource("SystemFont_mono")
 text = "Fiyat: 120"
 
-[node name="BuyButton" type="Button" parent="VBoxContainer/ScrollContainer/GridContainer/ItemSpeed/HBox"]
+[node name="BuyButton" type="Button" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemSpeed/HBox"]
 layout_mode = 2
 size_flags_horizontal = 10
 size_flags_vertical = 4
 theme_override_fonts/font = SubResource("SystemFont_mono")
 text = "Satın Al"
 
-[node name="ItemShield" type="PanelContainer" parent="VBoxContainer/ScrollContainer/GridContainer"]
+[node name="ItemShield" type="PanelContainer" parent="VBoxContainer/TabContainer/Döngü/GridContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
 metadata/upgrade_type = "shield"
 
-[node name="HBox" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/GridContainer/ItemShield"]
+[node name="HBox" type="HBoxContainer" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemShield"]
 layout_mode = 2
 theme_override_constants/separation = 15
 
-[node name="Icon" type="ColorRect" parent="VBoxContainer/ScrollContainer/GridContainer/ItemShield/HBox"]
+[node name="Icon" type="ColorRect" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemShield/HBox"]
 custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
 size_flags_vertical = 4
 color = Color(0.9, 0.9, 0.9, 1)
 
-[node name="VBox" type="VBoxContainer" parent="VBoxContainer/ScrollContainer/GridContainer/ItemShield/HBox"]
+[node name="VBox" type="VBoxContainer" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemShield/HBox"]
 layout_mode = 2
 alignment = 1
 
-[node name="NameLabel" type="Label" parent="VBoxContainer/ScrollContainer/GridContainer/ItemShield/HBox/VBox"]
+[node name="NameLabel" type="Label" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemShield/HBox/VBox"]
 layout_mode = 2
 theme_override_fonts/font = SubResource("SystemFont_mono")
 theme_override_colors/font_color = Color(0, 1, 1, 1)
 text = "Faz Kalkanı"
 
-[node name="LvlBar" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/GridContainer/ItemShield/HBox/VBox"]
+[node name="LvlBar" type="HBoxContainer" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemShield/HBox/VBox"]
 layout_mode = 2
 
-[node name="PriceLabel" type="Label" parent="VBoxContainer/ScrollContainer/GridContainer/ItemShield/HBox/VBox"]
+[node name="PriceLabel" type="Label" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemShield/HBox/VBox"]
 layout_mode = 2
 theme_override_fonts/font = SubResource("SystemFont_mono")
 text = "Fiyat: 500"
 
-[node name="BuyButton" type="Button" parent="VBoxContainer/ScrollContainer/GridContainer/ItemShield/HBox"]
+[node name="BuyButton" type="Button" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemShield/HBox"]
 layout_mode = 2
 size_flags_horizontal = 10
 size_flags_vertical = 4
 theme_override_fonts/font = SubResource("SystemFont_mono")
 text = "Satın Al"
 
-[node name="ItemOrbital" type="PanelContainer" parent="VBoxContainer/ScrollContainer/GridContainer"]
+[node name="ItemOrbital" type="PanelContainer" parent="VBoxContainer/TabContainer/Döngü/GridContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
 metadata/upgrade_type = "orbital"
 
-[node name="HBox" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/GridContainer/ItemOrbital"]
+[node name="HBox" type="HBoxContainer" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemOrbital"]
 layout_mode = 2
 theme_override_constants/separation = 15
 
-[node name="Icon" type="ColorRect" parent="VBoxContainer/ScrollContainer/GridContainer/ItemOrbital/HBox"]
+[node name="Icon" type="ColorRect" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemOrbital/HBox"]
 custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
 size_flags_vertical = 4
 color = Color(1.0, 0.0, 1.0, 1)
 
-[node name="VBox" type="VBoxContainer" parent="VBoxContainer/ScrollContainer/GridContainer/ItemOrbital/HBox"]
+[node name="VBox" type="VBoxContainer" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemOrbital/HBox"]
 layout_mode = 2
 alignment = 1
 
-[node name="NameLabel" type="Label" parent="VBoxContainer/ScrollContainer/GridContainer/ItemOrbital/HBox/VBox"]
+[node name="NameLabel" type="Label" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemOrbital/HBox/VBox"]
 layout_mode = 2
 theme_override_fonts/font = SubResource("SystemFont_mono")
 theme_override_colors/font_color = Color(0, 1, 1, 1)
 text = "N-Gen Orbitalleri"
 
-[node name="LvlBar" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/GridContainer/ItemOrbital/HBox/VBox"]
+[node name="LvlBar" type="HBoxContainer" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemOrbital/HBox/VBox"]
 layout_mode = 2
 
-[node name="PriceLabel" type="Label" parent="VBoxContainer/ScrollContainer/GridContainer/ItemOrbital/HBox/VBox"]
+[node name="PriceLabel" type="Label" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemOrbital/HBox/VBox"]
 layout_mode = 2
 theme_override_fonts/font = SubResource("SystemFont_mono")
 text = "Fiyat: 300"
 
-[node name="BuyButton" type="Button" parent="VBoxContainer/ScrollContainer/GridContainer/ItemOrbital/HBox"]
+[node name="BuyButton" type="Button" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemOrbital/HBox"]
 layout_mode = 2
 size_flags_horizontal = 10
 size_flags_vertical = 4
@@ -333,46 +338,217 @@ theme_override_fonts/font = SubResource("SystemFont_mono")
 text = "Satın Al"
 
 
-[node name="ItemClock" type="PanelContainer" parent="VBoxContainer/ScrollContainer/GridContainer"]
+[node name="ItemClock" type="PanelContainer" parent="VBoxContainer/TabContainer/Döngü/GridContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
 metadata/upgrade_type = "clock"
 
-[node name="HBox" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/GridContainer/ItemClock"]
+[node name="HBox" type="HBoxContainer" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemClock"]
 layout_mode = 2
 theme_override_constants/separation = 15
 
-[node name="Icon" type="ColorRect" parent="VBoxContainer/ScrollContainer/GridContainer/ItemClock/HBox"]
+[node name="Icon" type="ColorRect" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemClock/HBox"]
 custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
 size_flags_vertical = 4
 color = Color(1.0, 0.8, 0.0, 1)
 
-[node name="VBox" type="VBoxContainer" parent="VBoxContainer/ScrollContainer/GridContainer/ItemClock/HBox"]
+[node name="VBox" type="VBoxContainer" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemClock/HBox"]
 layout_mode = 2
 alignment = 1
 
-[node name="NameLabel" type="Label" parent="VBoxContainer/ScrollContainer/GridContainer/ItemClock/HBox/VBox"]
+[node name="NameLabel" type="Label" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemClock/HBox/VBox"]
 layout_mode = 2
 theme_override_fonts/font = SubResource("SystemFont_mono")
 theme_override_colors/font_color = Color(0, 1, 1, 1)
 text = "Zaman Genişletici (+1 Dk)"
 
-[node name="LvlBar" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/GridContainer/ItemClock/HBox/VBox"]
+[node name="LvlBar" type="HBoxContainer" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemClock/HBox/VBox"]
 layout_mode = 2
 
-[node name="PriceLabel" type="Label" parent="VBoxContainer/ScrollContainer/GridContainer/ItemClock/HBox/VBox"]
+[node name="PriceLabel" type="Label" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemClock/HBox/VBox"]
 layout_mode = 2
 theme_override_fonts/font = SubResource("SystemFont_mono")
 text = "Fiyat: 1000"
 
-[node name="BuyButton" type="Button" parent="VBoxContainer/ScrollContainer/GridContainer/ItemClock/HBox"]
+[node name="BuyButton" type="Button" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemClock/HBox"]
 layout_mode = 2
 size_flags_horizontal = 10
 size_flags_vertical = 4
 theme_override_fonts/font = SubResource("SystemFont_mono")
 text = "Satın Al"
+
+
+[node name="ItemParticleChance" type="PanelContainer" parent="VBoxContainer/TabContainer/Döngü/GridContainer"]
+layout_mode = 2
+metadata/upgrade_type = "particle_chance"
+
+[node name="HBox" type="HBoxContainer" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemParticleChance"]
+layout_mode = 2
+
+[node name="Icon" type="ColorRect" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemParticleChance/HBox"]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+color = Color(0, 0.8, 1, 1)
+
+[node name="VBox" type="VBoxContainer" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemParticleChance/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="NameLabel" type="Label" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemParticleChance/HBox/VBox"]
+layout_mode = 2
+text = "Mavi Parçacık İhtimali"
+
+[node name="LvlBar" type="HBoxContainer" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemParticleChance/HBox/VBox"]
+layout_mode = 2
+
+[node name="PriceLabel" type="Label" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemParticleChance/HBox/VBox"]
+layout_mode = 2
+text = "Fiyat: "
+
+[node name="BuyButton" type="Button" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemParticleChance/HBox"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "AL"
+
+[node name="ItemParticleAmount" type="PanelContainer" parent="VBoxContainer/TabContainer/Döngü/GridContainer"]
+layout_mode = 2
+metadata/upgrade_type = "particle_amount"
+
+[node name="HBox" type="HBoxContainer" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemParticleAmount"]
+layout_mode = 2
+
+[node name="Icon" type="ColorRect" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemParticleAmount/HBox"]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+color = Color(0, 0.5, 1, 1)
+
+[node name="VBox" type="VBoxContainer" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemParticleAmount/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="NameLabel" type="Label" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemParticleAmount/HBox/VBox"]
+layout_mode = 2
+text = "Mavi Parçacık Miktarı"
+
+[node name="LvlBar" type="HBoxContainer" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemParticleAmount/HBox/VBox"]
+layout_mode = 2
+
+[node name="PriceLabel" type="Label" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemParticleAmount/HBox/VBox"]
+layout_mode = 2
+text = "Fiyat: "
+
+[node name="BuyButton" type="Button" parent="VBoxContainer/TabContainer/Döngü/GridContainer/ItemParticleAmount/HBox"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "AL"
+
+[node name="Arsenal" type="ScrollContainer" parent="VBoxContainer/TabContainer"]
+visible = false
+layout_mode = 2
+
+[node name="GridContainer" type="GridContainer" parent="VBoxContainer/TabContainer/Arsenal"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+columns = 2
+
+[node name="ItemTurret" type="PanelContainer" parent="VBoxContainer/TabContainer/Arsenal/GridContainer"]
+layout_mode = 2
+metadata/upgrade_type = "turret_unlock"
+
+[node name="HBox" type="HBoxContainer" parent="VBoxContainer/TabContainer/Arsenal/GridContainer/ItemTurret"]
+layout_mode = 2
+
+[node name="Icon" type="ColorRect" parent="VBoxContainer/TabContainer/Arsenal/GridContainer/ItemTurret/HBox"]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+color = Color(1, 0.5, 0, 1)
+
+[node name="VBox" type="VBoxContainer" parent="VBoxContainer/TabContainer/Arsenal/GridContainer/ItemTurret/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="NameLabel" type="Label" parent="VBoxContainer/TabContainer/Arsenal/GridContainer/ItemTurret/HBox/VBox"]
+layout_mode = 2
+text = "Taret Kilidi"
+
+[node name="LvlBar" type="HBoxContainer" parent="VBoxContainer/TabContainer/Arsenal/GridContainer/ItemTurret/HBox/VBox"]
+layout_mode = 2
+
+[node name="PriceLabel" type="Label" parent="VBoxContainer/TabContainer/Arsenal/GridContainer/ItemTurret/HBox/VBox"]
+layout_mode = 2
+text = "Fiyat: "
+
+[node name="BuyButton" type="Button" parent="VBoxContainer/TabContainer/Arsenal/GridContainer/ItemTurret/HBox"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "AL"
+
+[node name="ItemPortableMagnet" type="PanelContainer" parent="VBoxContainer/TabContainer/Arsenal/GridContainer"]
+layout_mode = 2
+metadata/upgrade_type = "portable_magnet_unlock"
+
+[node name="HBox" type="HBoxContainer" parent="VBoxContainer/TabContainer/Arsenal/GridContainer/ItemPortableMagnet"]
+layout_mode = 2
+
+[node name="Icon" type="ColorRect" parent="VBoxContainer/TabContainer/Arsenal/GridContainer/ItemPortableMagnet/HBox"]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+color = Color(0.8, 0, 1, 1)
+
+[node name="VBox" type="VBoxContainer" parent="VBoxContainer/TabContainer/Arsenal/GridContainer/ItemPortableMagnet/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="NameLabel" type="Label" parent="VBoxContainer/TabContainer/Arsenal/GridContainer/ItemPortableMagnet/HBox/VBox"]
+layout_mode = 2
+text = "Taşınabilir Mıknatıs"
+
+[node name="LvlBar" type="HBoxContainer" parent="VBoxContainer/TabContainer/Arsenal/GridContainer/ItemPortableMagnet/HBox/VBox"]
+layout_mode = 2
+
+[node name="PriceLabel" type="Label" parent="VBoxContainer/TabContainer/Arsenal/GridContainer/ItemPortableMagnet/HBox/VBox"]
+layout_mode = 2
+text = "Fiyat: "
+
+[node name="BuyButton" type="Button" parent="VBoxContainer/TabContainer/Arsenal/GridContainer/ItemPortableMagnet/HBox"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "AL"
+
+[node name="ItemPoisonFlask" type="PanelContainer" parent="VBoxContainer/TabContainer/Arsenal/GridContainer"]
+layout_mode = 2
+metadata/upgrade_type = "poison_flask_unlock"
+
+[node name="HBox" type="HBoxContainer" parent="VBoxContainer/TabContainer/Arsenal/GridContainer/ItemPoisonFlask"]
+layout_mode = 2
+
+[node name="Icon" type="ColorRect" parent="VBoxContainer/TabContainer/Arsenal/GridContainer/ItemPoisonFlask/HBox"]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+color = Color(0.2, 1, 0.2, 1)
+
+[node name="VBox" type="VBoxContainer" parent="VBoxContainer/TabContainer/Arsenal/GridContainer/ItemPoisonFlask/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="NameLabel" type="Label" parent="VBoxContainer/TabContainer/Arsenal/GridContainer/ItemPoisonFlask/HBox/VBox"]
+layout_mode = 2
+text = "Zehir Şişesi"
+
+[node name="LvlBar" type="HBoxContainer" parent="VBoxContainer/TabContainer/Arsenal/GridContainer/ItemPoisonFlask/HBox/VBox"]
+layout_mode = 2
+
+[node name="PriceLabel" type="Label" parent="VBoxContainer/TabContainer/Arsenal/GridContainer/ItemPoisonFlask/HBox/VBox"]
+layout_mode = 2
+text = "Fiyat: "
+
+[node name="BuyButton" type="Button" parent="VBoxContainer/TabContainer/Arsenal/GridContainer/ItemPoisonFlask/HBox"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "AL"
 
 [node name="Footer" type="HBoxContainer" parent="VBoxContainer"]
 layout_mode = 2

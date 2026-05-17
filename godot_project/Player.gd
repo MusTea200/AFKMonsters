@@ -206,6 +206,25 @@ func _unhandled_input(event: InputEvent) -> void:
 				var new_zoom = clamp(camera.zoom.x - zoom_speed, min_zoom, max_zoom)
 				camera.zoom = Vector2(new_zoom, new_zoom)
 
+
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_Q and Global.get("turret_unlocked"):
+			var turret = load("res://Turret.gd").new()
+			turret.global_position = global_position
+			get_tree().current_scene.add_child(turret)
+			Global.turret_unlocked = false # Consumed
+
+		elif event.keycode == KEY_E and Global.get("portable_magnet_unlocked"):
+			var magnet = load("res://PortableMagnet.gd").new()
+			get_tree().current_scene.add_child(magnet)
+			Global.portable_magnet_unlocked = false # Consumed
+
+		elif event.keycode == KEY_R and Global.get("poison_flask_unlocked"):
+			var flask = load("res://PoisonFlask.gd").new()
+			flask.global_position = global_position
+			flask.target_pos = get_global_mouse_position()
+			get_tree().current_scene.add_child(flask)
+			Global.poison_flask_unlocked = false # Consumed
 	if event is InputEventKey and event.keycode == KEY_SPACE and event.pressed:
 		if not event.echo:
 			_release_slingshot()
