@@ -202,3 +202,15 @@ Tüm görev hedefleri başarılı şekilde tamamlanmış ve `main` branch'i ile 
 - Mavi Parçacık meta-ekonomisi (Global.gd ve LoopParticle.gd) artık siber ganimet algoritması ile çalışmaktadır.
 - Redzone alanlarının `active_redzone_count` tabanlı katmanlı yapısı aktiftir; oyuncu alan kesişimlerindeyken katlanarak artan Risk/Ödül dinamiğini deneyimler.
 - Geometrik düşmanlar, zehir havuzları, hareket yörüngeleri ve WeakSpot boss hitbox izolasyonları (damage filtering) stabil şekilde işlemektedir. Yeni bir özellik isteğine veya revizyona geçilmeye hazırdır.
+
+## 🔒 Oturum Durumu Yönetimi (Session State & Persistence)
+### Rulet Evreni Durumunun Sıfırlanması
+- **Hata:** `Global.roulette_universe_unlocked` değişkeni kalıcı bir veri (`save_game()` ve `load_game()`) olarak işleniyordu. Bu da, oyuncu öldüğünde veya ana menüye döndüğünde dahi oyunun bozuk (chaotic) kalmasına ve Lissajous eğrili düşman hareketinin kalıcı olarak devrede kalmasına neden oluyordu.
+- **Çözüm:** `Global.gd` içerisindeki `save/load` bloğundan `roulette_universe_unlocked` tamamen silindi. Sadece geçici (RAM tabanlı) bir `Session State` yapıldı. Ayrıca `start_run()` içerisine `roulette_universe_unlocked = false` eklenerek her oyun başlangıcında temiz bir sayfa açılması garanti edildi.
+
+### Varlık Koruma Sistemi (Entity Culling Protection)
+- **Hata:** Oyuncu Roulette Man'den uzaklaştığında, Arena'nın mesafe tabanlı culling (çöpe atma) mekanizması (`_cull_distant_objects`), üstünde Roulette Man bağlı olan `GrappleNode` nesnesini de acımasızca siliyordu.
+- **Çözüm:** `_cull_distant_objects` içine yeni bir güvenlik duvarı yazıldı. Tarama döngüsü artık silmeye hazırlandığı bir `grapple_node` un child'ları arasında `RouletteMan` veya `Merchant` var mı diye kontrol eder. Eğer varsa o node'un silinmesini (cull) kesin olarak iptal eder.
+
+### Mavi Parçacık Market Ekonomisi
+- Döngü parçacığı olasılık (`blue_chance_level`) ve miktar (`blue_amount_level`) değişkenleri Global'de hazır edilmişti. Bir önceki PR'de ShopUI arayüzünde aktif edilmişlerdi. Bu görevde Global config kayıtlarına son kez bakılarak sistemin kararlılığı teyit edildi.

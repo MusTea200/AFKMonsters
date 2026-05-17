@@ -78,7 +78,6 @@ func save_game() -> void:
 	config.set_value("Stats", "orbital_count", orbital_count)
 	config.set_value("Stats", "extended_core_clock", extended_core_clock)
 	config.set_value("Stats", "successful_loops", successful_loops)
-	config.set_value("Stats", "roulette_universe_unlocked", roulette_universe_unlocked)
 	config.set_value("Stats", "particle_drop_chance_level", particle_drop_chance_level)
 	config.set_value("Stats", "particle_drop_amount_level", particle_drop_amount_level)
 	config.set_value("Stats", "upgrade_levels", upgrade_levels)
@@ -98,7 +97,6 @@ func load_game() -> void:
 		orbital_count = config.get_value("Stats", "orbital_count", 0)
 		extended_core_clock = config.get_value("Stats", "extended_core_clock", 0)
 		successful_loops = config.get_value("Stats", "successful_loops", 0)
-		roulette_universe_unlocked = config.get_value("Stats", "roulette_universe_unlocked", false)
 		particle_drop_chance_level = config.get_value("Stats", "particle_drop_chance_level", 0)
 		particle_drop_amount_level = config.get_value("Stats", "particle_drop_amount_level", 0)
 		upgrade_levels = config.get_value("Stats", "upgrade_levels", {"health": 0, "damage": 0, "magnet": 0, "speed": 0, "shield": 0, "orbital": 0, "clock": 0})
@@ -107,6 +105,7 @@ func load_game() -> void:
 		grapple_hold_mode = config.get_value("Settings", "grapple_hold_mode", true)
 
 func start_run() -> void:
+	roulette_universe_unlocked = false # Her run basinda kapali gelsin
 	current_run_kills = 0
 	current_run_start_time = Time.get_ticks_msec() / 1000.0
 

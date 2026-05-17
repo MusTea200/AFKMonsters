@@ -251,6 +251,16 @@ func _cull_distant_objects() -> void:
 		if child is RouletteMan or child is Merchant or child is SpeedMerchant or child is DeathLine:
 			continue
 
+		# Grapple node icinde rulet adami (veya merchant) varsa node'u asla silme!
+		if child.is_in_group("grapple_nodes"):
+			var has_important_entity = false
+			for grand_child in child.get_children():
+				if grand_child is RouletteMan or grand_child is Merchant or grand_child is SpeedMerchant:
+					has_important_entity = true
+					break
+			if has_important_entity:
+				continue
+
 		if child.is_in_group("grapple_nodes") or child.is_in_group("magnets") or "Enemy" in child.name or "Drop" in child.name or "Coin" in child.name:
 			if child.global_position.distance_to(player_pos) > cull_radius:
 				# Persistence: Save state before removing
