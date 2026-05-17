@@ -1,0 +1,29 @@
+[gd_scene format=3 uid="uid://ylyfbwxtcexo"]
+
+[ext_resource type="Script" uid="uid://c018locg6c1dy" path="res://Enemy.gd" id="1_oy4e5"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_enemy"]
+radius = 68.007355
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_6sxmr"]
+
+[node name="EnemyCircle" type="Area2D" unique_id=82552868]
+process_mode = 1
+script = ExtResource("1_oy4e5")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=426568967]
+position = Vector2(1, 1)
+shape = SubResource("CircleShape2D_enemy")
+
+[node name="HealthBar" type="ProgressBar" parent="." unique_id=1177351922]
+offset_left = -78.0
+offset_top = -99.0
+offset_right = 79.0
+offset_bottom = -72.0
+metadata/_edit_use_anchors_ = true
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="." unique_id=2112714947]
+position = Vector2(1.0000001, 1.0000001)
+scale = Vector2(6.745, 6.745)
+shape = SubResource("CircleShape2D_6sxmr")
+debug_color = Color(0.3491902, 0, 0, 1)
