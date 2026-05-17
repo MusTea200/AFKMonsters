@@ -190,6 +190,7 @@ base_color = Color(1, 0, 0.5, 0.6)
 label_text = "CUT"
 
 [node name="PauseBtn" type="TouchScreenButton" parent="MobileControls"]
+position = Vector2(408, 48)
 script = ExtResource("res://NeonButton.gd")
 base_color = Color(0, 1, 0.5, 0.6)
 radius = 50.0
