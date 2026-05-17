@@ -9,7 +9,7 @@ var debuff_timer: float = 0.0
 var original_speed: float = 0.0
 var original_regen: float = 0.0
 
-var visual: Sprite2D
+var visual: Polygon2D
 
 func _ready() -> void:
 	add_to_group("redzones")
@@ -132,7 +132,7 @@ func _remove_debuff() -> void:
 	if is_instance_valid(p) and p.get("active_redzone_count") != null and p.active_redzone_count > 0:
 		return # Hala baska redzone icindeyse debuff i silme!
 	debuff_active = false
-	var p = get_tree().current_scene.find_child("Player", true, false)
+	p = get_tree().current_scene.find_child("Player", true, false)
 	if is_instance_valid(p) and original_speed > 0:
 		p.max_speed = original_speed
 		p.combat_comp.can_yenileme = original_regen
