@@ -41,18 +41,13 @@ func _ready() -> void:
 	visual.texture = load("res://icon.svg")
 	visual.modulate = Color(1.0, 0.0, 0.0, 0.3)
 
-	var col = CollisionShape2D.new()
-	var shape = CircleShape2D.new()
-	shape.radius = 300.0
-	col.shape = shape
-	add_child(col)
 
 	area_entered.connect(_on_area_entered)
 
 	# Vending Machine Ekle
 	var vending = load("res://VendingMachine.tscn").instantiate()
-	vending.global_position = global_position
-	get_tree().current_scene.call_deferred("add_child", vending)
+	vending.position = Vector2.ZERO # Sahne agaci altinda 0,0 a koy
+	call_deferred("add_child", vending)
 	vending_machine = vending
 	area_exited.connect(_on_area_exited)
 
@@ -69,6 +64,7 @@ func _process(delta: float) -> void:
 		if capture_time >= capture_target and not captured:
 			captured = true
 			if is_instance_valid(vending_machine):
+				vending_machine.set_captured()
 				vending_machine.set_captured()
 			visual.color = Color(0.0, 1.0, 0.0, 0.2) # Yesile doner
 
