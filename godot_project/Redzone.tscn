@@ -1,0 +1,12 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Redzone.gd" id="1_red"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_rz"]
+radius = 300.0
+
+[node name="Redzone" type="Area2D"]
+script = ExtResource("1_red")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_rz")

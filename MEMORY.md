@@ -287,3 +287,13 @@ Tüm görev hedefleri başarılı şekilde tamamlanmış ve `main` branch'i ile 
 
 ### Gelecek Planı (Pool Limits & Global Passives)
 - Kopyalanan eşyalar ve level sınırları (Level 20 Gacha çıkarma/silme) altyapısı script içinde taslaklandı, `Global.gd` veri kaydına entegrasyonu ilerleyen aşamada yapılacak.
+
+## 🧱 Modüler Sahne Kapsülleme ve Matrix Duraklatma (Refactor)
+### Arayüz ve Alan Üretimlerinin Kaldırılması
+- Önceki yaklaşımda `Redzone.gd`, `VendingMachine.gd` ve `GachaUI.gd` tamamen kod içinden `new()` ve `add_child()` ile geometrilerini (Polygon2D) ve çarpışmalarını (CollisionShape2D) yaratıyordu. Bu durum hem spagetti koda yol açıyor hem de editör üzerinde görsel yerleşimi imkansız kılıyordu.
+- **Çözüm:** Tıpkı daha önce yapılan mobil UI güncellemesindeki gibi, bu dinamik nesneler için `Redzone.tscn`, `VendingMachine.tscn` ve `GachaUI.tscn` adlı gerçek fiziksel sahneler inşa edildi. Kodlarındaki UI yaratım kısımları silinerek sadece var olan `$` (veya get_node) referanslarına bağlandı.
+
+### Emniyet Kilitleri ve Matrix Pause
+- Otomat (`VendingMachine.tscn`), doğrudan Redzone.tscn içerisine `add_child` yerine `get_tree().current_scene.call_deferred("add_child")` ile root'a bırakılarak bağımsız konuma çekildi, böylece Redzone 10 saniye sonra silindiğinde Otomat hayatta kalarak etkileşime açık pozisyona geçti.
+- Oyuncu, bölgeyi temizlemeden (savunma fazını geçmeden) otomata çarparsa arayüz kesinlikle açılmıyor, sadece uyarı (`Bip-Bop`) sesleri çıkıyor. Alan temizlenip EMP atıldıktan sonra (10 saniye) otomatın kilidi açılıyor.
+- `GachaUI` açıldığı an dünya çapında dondurma (`get_tree().paused = true`) tetikleniyor. Arka planda süzülen "ColorRect" maskesi ile tüm aksiyon şeffaf şekilde arka planda dururken siber Gacha dükkanına odaklanılıyor.
