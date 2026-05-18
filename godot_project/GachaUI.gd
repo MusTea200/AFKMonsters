@@ -31,34 +31,21 @@ var roll_count: int = 0
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS # Donma hissi icin pause=true altinda calis
 
-	var panel = PanelContainer.new()
-	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	panel.custom_minimum_size = Vector2(800, 600)
-	add_child(panel)
 
-	var vbox = VBoxContainer.new()
-	panel.add_child(vbox)
+	# Animasyon ve UI
+	var panel = $PanelContainer
+	var vbox = panel.get_node("VBoxContainer")
+	var close_btn = vbox.get_node("CloseBtn")
+	var tab = vbox.get_node("TabContainer")
+	var scroll = tab.get_node("Weapons")
+	grid = scroll.get_node("GridContainer")
+	spin_btn = vbox.get_node("SpinBtn")
 
-	var close_btn = Button.new()
-	close_btn.text = "X"
 	close_btn.pressed.connect(func():
 		get_tree().paused = false
 		queue_free()
 	)
-	vbox.add_child(close_btn)
-
-	var tab = TabContainer.new()
-	tab.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	vbox.add_child(tab)
-
-	# Ornek olarak Weapons sekmesini cizelim
-	var scroll = ScrollContainer.new()
-	scroll.name = "Weapons"
-	tab.add_child(scroll)
-
-	grid = GridContainer.new()
-	grid.columns = 4
-	scroll.add_child(grid)
+	spin_btn.pressed.connect(_on_spin)
 
 	for w in items["weapons"]:
 		var p = Panel.new()
@@ -68,12 +55,6 @@ func _ready() -> void:
 		l.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 		p.add_child(l)
 		grid.add_child(p)
-
-	spin_btn = Button.new()
-	spin_btn.text = "SPIN (Gacha)"
-	spin_btn.custom_minimum_size = Vector2(0, 50)
-	spin_btn.pressed.connect(_on_spin)
-	vbox.add_child(spin_btn)
 
 func _on_spin() -> void:
 	if is_spinning: return

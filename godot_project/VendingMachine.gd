@@ -6,21 +6,10 @@ var visual: Polygon2D
 var interact_cooldown: float = 0.0
 
 func _ready() -> void:
-	var shape = CircleShape2D.new()
-	shape.radius = 80.0
-	var col = CollisionShape2D.new()
-	col.shape = shape
-	add_child(col)
 
-	visual = Polygon2D.new()
-	visual.polygon = PackedVector2Array([
-		Vector2(-30, -50), Vector2(30, -50), Vector2(30, 50), Vector2(-30, 50)
-	])
-	visual.color = Color(1.0, 0.2, 0.2) # Sinsi kızıl
-	add_child(visual)
+	visual = $Visual
+	audio = $AudioStreamPlayer2D
 
-	audio = AudioStreamPlayer2D.new()
-	add_child(audio)
 
 	var timer = Timer.new()
 	timer.wait_time = 2.0

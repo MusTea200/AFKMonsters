@@ -233,7 +233,7 @@ func _create_node_instance(pos: Vector2) -> void:
 
 	# 10% chance to spawn Redzone instead of a normal node
 	if randf() < 0.1:
-		var rz = load("res://Redzone.gd").new()
+		var rz = load("res://Redzone.tscn").instantiate()
 		rz.global_position = pos
 		add_child(rz)
 		return
