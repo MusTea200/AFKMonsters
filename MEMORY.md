@@ -269,3 +269,21 @@ Tüm görev hedefleri başarılı şekilde tamamlanmış ve `main` branch'i ile 
 ### Görsel Geri Bildirim (Juice & VFX)
 - `LoopParticle.gd` güncellendi.
 - Standart modda klasik Neon Turkuaz renginde ve süzülen parçacıklar, QUANTUM_VOID oynanırken devasa Neon Mor/Pembe (Violet) renge bürünüyor ve oyuncuya uçarken sürekli titreşim (Sine tween) yayarak siber bir görsel şölen sunuyor. Toplanma anındaki partikül patlaması da (CPUParticles2D) boyut ve renk olarak zorluğa göre şekil alıyor.
+
+## 🎰 Siber Kale, Otomat (Vending Machine) ve Gacha Algoritması
+### Redzone Savunma Fazı (EMP Bitişli)
+- `Redzone.gd` (Siber Kale) içerisine `captured`, `capture_time` ve `defense_time` state'leri eklendi.
+- Oyuncu Redzone'u %100 ele geçirdiğinde (`capture_time >= capture_target`) alan kapanmak yerine yeşile dönerek 10 saniyelik savunma (Defense) fazına geçer. Süre dolduğunda devasa bir EMP patlaması (Koddaki karşılığı: Menzil içindeki tüm düşmanlara 99999 hasar) tetiklenerek oyuncu kaleden güvenle tahliye edilir.
+
+### Sıfır Tuş Temaslı Otomat (Vending Machine)
+- Kalelerin merkezinde bulunacak `VendingMachine.tscn` inşa edildi.
+- Oyuncu kaleyi tam ele geçirmeden önce kırmızı sinsi tonda parlar. Ele geçirilince beyaza döner.
+- Oyuncu Otomatın fiziksel gövdesine değdiği an (`body_entered`) oyunu tamamen dondurur (`get_tree().paused = true`) ve arayüzü çıkarır. Menüden çıkıp (`body_exited`) devam etmesi için sonsuz döngüyü engelleyecek (debounce/cooldown) `interact_cooldown = 2.0` saniyelik bir gecikme lojiği kuruldu.
+
+### Dopamin Gacha ve "Near-Miss" Hilesi
+- `GachaUI.gd` dosyası ile 3 sekmeli (Pets, Costumes, Weapons) dükkan yapısı hazırlandı.
+- Slot efekti için `grid.get_child(current_index).modulate` tween'leri kuruldu. Çarkın son 10 adımında hız doğrusal olarak yavaşlar (`spin_delay += 0.05`).
+- **Sinsi Mimari:** Sistem kazanılacak ödülü mili-saniyede belirlese dahi (Örn: Tier 2), çark her zaman hedefe varmadan hemen önceki son 2-3 karedeki Tier 4 veya Tier 5 efsanevi (Legendary) eşyanın üstünden ağır ağır geçer. Bu oyuncunun beynine "Az daha efsanevi eşya düşürüyordum!" mesajı yollayarak oyun içi ganimet ve para kasma isteğini (dopamin döngüsünü) aşırı derecede katlar.
+
+### Gelecek Planı (Pool Limits & Global Passives)
+- Kopyalanan eşyalar ve level sınırları (Level 20 Gacha çıkarma/silme) altyapısı script içinde taslaklandı, `Global.gd` veri kaydına entegrasyonu ilerleyen aşamada yapılacak.
