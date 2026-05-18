@@ -250,18 +250,26 @@ func _die(knock_dir: Vector2 = Vector2.ZERO) -> void:
 		var drop_chance = 0.2 + (Global.particle_drop_chance_level * 0.1)
 		var base_amount = 1 + Global.particle_drop_amount_level
 
+
+		# Zorluk çarpanlarını uygula (Protocol scaling)
+		var loot_multiplier = 1
+		if Global.current_selected_map == Global.MapType.NEON_HELL:
+			loot_multiplier = 2
+		elif Global.current_selected_map == Global.MapType.QUANTUM_VOID:
+			loot_multiplier = 5
+
 		var should_drop = false
 		var final_amount = 0
 
 		if redzone_multiplier > 0:
 			# 100% drop in redzone, multiplied by layers
 			should_drop = true
-			final_amount = base_amount * redzone_multiplier
+			final_amount = base_amount * redzone_multiplier * loot_multiplier
 		else:
 			# Chance outside redzone
 			if randf() < drop_chance:
 				should_drop = true
-				final_amount = base_amount
+				final_amount = base_amount * loot_multiplier
 
 		if should_drop:
 			var particle_scene = load("res://LoopParticle.gd")
@@ -321,12 +329,19 @@ func _spawn_coin() -> void:
 	if coin_scene:
 		var coin = coin_scene.instantiate() as Coin
 		coin.global_position = global_position
+		# Zorluk çarpanlarını uygula (Protocol scaling)
+		var loot_multiplier = 1
+		if Global.current_selected_map == Global.MapType.NEON_HELL:
+			loot_multiplier = 2
+		elif Global.current_selected_map == Global.MapType.QUANTUM_VOID:
+			loot_multiplier = 5
+
 		# Randomize value maybe
 		if randf() < 0.2:
-			coin.value = 5.0
+			coin.value = 5.0 * loot_multiplier
 			coin.modulate = Color.GOLD
 		else:
-			coin.value = 1.0
+			coin.value = 1.0 * loot_multiplier
 		get_tree().current_scene.call_deferred("add_child", coin)
 
 func _shoot_plasma(dir: Vector2) -> void:

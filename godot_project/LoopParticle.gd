@@ -18,6 +18,21 @@ func _ready() -> void:
 	add_child(mesh)
 
 	# Light/Glow
+	# Zorluk arttikca parcacik rengini daha agresif yap ve boyutu artir
+	if Global.current_selected_map == Global.MapType.QUANTUM_VOID:
+		mesh.modulate = Color(0.8, 0, 1.0, 1.5) # Neon Violet/Pink
+		sphere.radius = 15.0
+		sphere.height = 30.0
+
+		# Agresif bir oteleme/yaylanma ekle
+		var tw = create_tween().set_loops()
+		tw.tween_property(mesh, "position:y", -5.0, 0.2).set_trans(Tween.TRANS_SINE)
+		tw.tween_property(mesh, "position:y", 5.0, 0.2).set_trans(Tween.TRANS_SINE)
+	elif Global.current_selected_map == Global.MapType.NEON_HELL:
+		mesh.modulate = Color(0, 1.0, 0.5, 1.3) # Neon Greenish/Teal
+		sphere.radius = 12.0
+		sphere.height = 24.0
+
 	var light = PointLight2D.new()
 	light.texture = load("res://icon.svg") # Simple fallback glow
 	light.color = Color(0, 0.5, 1.0)
@@ -65,7 +80,15 @@ func _on_body_entered(body: Node2D) -> void:
 		pop.spread = 180.0
 		pop.initial_velocity_min = 100.0
 		pop.initial_velocity_max = 200.0
-		pop.color = Color(0, 0.8, 1.0)
+		if Global.current_selected_map == Global.MapType.QUANTUM_VOID:
+			pop.color = Color(0.8, 0, 1.0)
+			pop.amount = 30 # Daha yogun patlama
+			pop.scale_amount_min = 2.0
+		elif Global.current_selected_map == Global.MapType.NEON_HELL:
+			pop.color = Color(0, 1.0, 0.5)
+			pop.amount = 15
+		else:
+			pop.color = Color(0, 0.8, 1.0)
 		get_tree().current_scene.add_child(pop)
 		pop.global_position = global_position
 		pop.emitting = true

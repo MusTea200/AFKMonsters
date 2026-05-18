@@ -289,10 +289,15 @@ func _on_spawn_timer_timeout() -> void:
 		enemy_instance.name = "Enemy_" + str(randi() % 1000000)
 		enemy_instance.global_position = final_pos
 		enemy_instance.max_health *= difficulty_multiplier
-		if Global.current_selected_map == Global.MapType.NEON_HELL:
-			enemy_instance.damage_amount *= 1.2 # %20 ekstra hasar
-		elif Global.current_selected_map == Global.MapType.QUANTUM_VOID:
-			enemy_instance.move_speed *= 1.3 # Hızlı yaratıklar
+		match Global.current_selected_map:
+			Global.MapType.NEON_HELL:
+				enemy_instance.max_health *= 2.0
+				enemy_instance.damage_amount *= 2.0
+				enemy_instance.move_speed *= 1.5
+			Global.MapType.QUANTUM_VOID:
+				enemy_instance.max_health *= 5.0
+				enemy_instance.damage_amount *= 5.0
+				enemy_instance.move_speed *= 2.0
 		if is_horde_mode:
 			enemy_instance.move_speed = 150.0 * 1.2
 		else:

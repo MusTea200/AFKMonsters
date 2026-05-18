@@ -255,3 +255,17 @@ Tüm görev hedefleri başarılı şekilde tamamlanmış ve `main` branch'i ile 
 - **Çözüm:** Kodla üretim tamamen yok edildi. `MainMenu.tscn` içerisine doğrudan `MapSelectionPanel` adında bağımsız, gizli (`visible = false`) bir `PanelContainer` enjekte edildi.
 - Ekranın tam ortasına (`Control.PRESET_CENTER`) esnek hizalamalar (VBoxContainer / alignment) ile kilitlendi. Play tuşuna basıldığında bu panel `.show()` ile açılıp, şık bir Back (Yaylanma) tween animasyonu ile beliriyor.
 - **Title Bounce:** Oyunun ana ismi "ROPE GUY" artık `_ready()` fonksiyonunda başlayan ve hiç bitmeyen (set_loops) yukarı aşağı salınan (Sine in/out) yumuşak bir arcade yaylanma efektine sahip.
+
+## 🧮 Data-Driven Zorluk Ölçeklendirmesi ve Ganimet Çarpanları
+### Protokol Matrisi Entegrasyonu
+- Harita seçimindeki protokol zorluklarına göre (`Global.current_selected_map`), Arena içindeki canavarların (`Enemy.gd`) taban değişkenleri (`max_health`, `damage_amount`, `move_speed`) `_on_spawn_timer_timeout()` içerisinde dinamik olarak ölçeklendirildi.
+- **NEON_HELL (Protokol 2):** Can ve Hasar x2, Hız x1.5 olarak sabitlendi.
+- **QUANTUM_VOID (Protokol 3):** Can ve Hasar x5, Hız x2 olarak (kabus modu) sabitlendi.
+
+### Dinamik Ganimet Çarpanları
+- Zorluk artışını dengelemek (Risk/Reward) adına `Enemy.gd` içindeki `_die()` ve `_spawn_coin()` fonksiyonları güncellendi.
+- **Altın ve Mavi Parçacıklar:** NEON_HELL'de temel ve katman çarpanlarının üstüne x2, QUANTUM_VOID'da ise devasa x5 global `loot_multiplier` uygulanır hale getirildi. Artık yüksek zorluk oynamak, kalıcı gelişimi (meta-progression) doğrudan hızlandırıyor.
+
+### Görsel Geri Bildirim (Juice & VFX)
+- `LoopParticle.gd` güncellendi.
+- Standart modda klasik Neon Turkuaz renginde ve süzülen parçacıklar, QUANTUM_VOID oynanırken devasa Neon Mor/Pembe (Violet) renge bürünüyor ve oyuncuya uçarken sürekli titreşim (Sine tween) yayarak siber bir görsel şölen sunuyor. Toplanma anındaki partikül patlaması da (CPUParticles2D) boyut ve renk olarak zorluğa göre şekil alıyor.
