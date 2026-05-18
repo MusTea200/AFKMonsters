@@ -52,6 +52,26 @@ current_tab = 0
 layout_mode = 2
 metadata/_tab_index = 0
 
+[node name="Pets" type="ScrollContainer" parent="PanelContainer/VBoxContainer/TabContainer"]
+layout_mode = 2
+metadata/_tab_index = 1
+
+[node name="GridContainer" type="GridContainer" parent="PanelContainer/VBoxContainer/TabContainer/Pets"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+columns = 4
+
+[node name="Costumes" type="ScrollContainer" parent="PanelContainer/VBoxContainer/TabContainer"]
+layout_mode = 2
+metadata/_tab_index = 2
+
+[node name="GridContainer" type="GridContainer" parent="PanelContainer/VBoxContainer/TabContainer/Costumes"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+columns = 4
+
 [node name="GridContainer" type="GridContainer" parent="PanelContainer/VBoxContainer/TabContainer/Weapons" unique_id=179590558]
 layout_mode = 2
 size_flags_horizontal = 3

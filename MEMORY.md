@@ -320,3 +320,17 @@ Tüm görev hedefleri başarılı şekilde tamamlanmış ve `main` branch'i ile 
 - Oyuncunun dopaminini tetikleyen "Sinsi 1-2 adım gerideki Efsanevi Parça" numarası `GachaUI.gd` dosyasında başarıyla çalışmaktadır.
 - Olasılık tablosu anında ödülü belirlerken (%60-%5 arası ağırlıklar), görsel çark (slot effect) daima hedefin bir veya iki kare arkasındaki sahte "Legendary Bait" üzerinden geçer.
 - İlgili tüm sahne ve UI düğümleri doğru yapılandırıldığından emin olundu.
+
+## 🎰 Profesyonel Gacha Matematiği ve Modüler UI Hiyerarşisi
+### 20 Seviye Sınırı ve Havuz Düzleştirme (Flattening)
+- Gacha havuzu tamamen matematiksel bir mükemmelliğe kavuşturuldu. Çark her döndüğünde, öncelikle `level < 20` kontrolü yaparak o sekmedeki (Silah, Kostüm veya Pet) alınabilir eşyaların toplam ağırlıklarını (`available_weights`) sıfırdan hesaplar.
+- Eğer bir kategorideki tüm eşyalar 20. seviyeye ulaşıp tükenirse (`active_items == 0`), çark otomatik olarak bloke olur ve boşuna harcama yapılmasını önler. Eğer bir kademedeki eşyalar tükenirse, o kademenin yüzdelik dilimi (örn %60) havuzdan düşer ve yeni oran `randf() * available_weights` mantığıyla kalan efsanevi veya nadir eşyalara temel ihtimallerini bozmadan matematiksel olarak otomatik dağıtılır.
+
+### Global Pasif Entegrasyonu
+- Eşyalar (kuşanılmasalar dahi) Gacha'dan çıkartıldıkça 10. seviyede küçük (`+10 Can, +20 Hız`), 20. seviyede ise muazzam (`+50 Can, +50 Hız, +15 Hasar`) kalıcı global stat artışları sağlarlar. Bu sayede çarktan sürekli aynı kötü eşyanın çıkması (Duplicate) oyuncuda öfke değil, "Kalıcı stat kazanıyorum" hissi yaratır.
+
+### Gerçekçi "Near-Miss" Hilesi (Dopamine Kancası)
+- Sahte l.text değiştirme hilesi iptal edildi. Işık çarkı son 3 kareye girdiğinde sinsi bir yavaşlama ivmesine (`spin_delay += 0.08`) girer ve tam sondan bir/iki önceki adımda (oyuncu duracak sanırken) sahte ama ihtişamlı bir **Sinsi Neon Mor (`Color(1.0, 0.0, 1.0)`)** efektiyle seker, ardından asıl sıradan ödülüne düşerek "Az daha efsanevi alıyordum!" dopamin döngüsünü tetikler.
+
+### Matrix Emniyeti (Redzone Kilitleri)
+- Oyunun dondurma (`get_tree().paused`) sistemi tamamen kusursuz çalışmaktadır. `VendingMachine` ve `Shop` arayüzlerinde çıkış tuşuna basıldığı an süreç devam eder. Yanlışlıkla veya hızla bölgeden çıkarken etkileşime tekrar girmeyi engelleyecek cooldown `VendingMachine.gd` içerisine sabitlenmiştir.
