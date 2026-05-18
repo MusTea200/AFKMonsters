@@ -244,3 +244,14 @@ Tüm görev hedefleri başarılı şekilde tamamlanmış ve `main` branch'i ile 
 
 ### Performans, Güvenlik ve Gelecek
 - Bu yapının tamamı kod üzerinden `CanvasModulate` ve `Array` indeks manipülasyonuyla halledildi. Fazladan 3 farklı Scene/Sahne (örn Arena2, Arena3) kopyalamak yerine "Tek Sahne, Dinamik Manipülasyon" mimarisi kullanılarak dosya boyutundan, bakım maliyetinden ve RAM belleğinden devasa tasarruf edildi. İleride Kostüm (Skins) veya Pet (Companion) ekleneceği zaman, ana `Arena.tscn` üzerinde çalışılması tüm haritaları otomatik güncelleyecek sağlam bir altyapı sundu.
+
+## 🏷️ Rebranding ve Arayüz Geometrisi (UI Alignment)
+### İsim Değişikliği (Rebranding)
+- Oyunun markası `project.godot` dosyası üzerinden resmi olarak "AFKMonsters"dan "Rope Guy" olarak güncellendi.
+- `MainMenu.tscn` sahnesindeki `TitleLabel` text'i "ROPE GUY" olarak değiştirildi ve siber-estetik uyumu sağlandı.
+
+### MapSelection.tscn Refactor (Menü Hizalama)
+- **Sorun:** Eski `MainMenu.gd` içerisinde kodla yaratılıp ekranın ortasına zorla bastırılan "SELECT PROTOCOL" menüsü, çözünürlük veya pencere boyutu değiştiğinde üst üste biniyor, kayıyor ve çirkin bir görünüm oluşturuyordu. Ayrıca editör içinden müdahale edilemiyordu.
+- **Çözüm:** Kodla üretim tamamen yok edildi. `MainMenu.tscn` içerisine doğrudan `MapSelectionPanel` adında bağımsız, gizli (`visible = false`) bir `PanelContainer` enjekte edildi.
+- Ekranın tam ortasına (`Control.PRESET_CENTER`) esnek hizalamalar (VBoxContainer / alignment) ile kilitlendi. Play tuşuna basıldığında bu panel `.show()` ile açılıp, şık bir Back (Yaylanma) tween animasyonu ile beliriyor.
+- **Title Bounce:** Oyunun ana ismi "ROPE GUY" artık `_ready()` fonksiyonunda başlayan ve hiç bitmeyen (set_loops) yukarı aşağı salınan (Sine in/out) yumuşak bir arcade yaylanma efektine sahip.
