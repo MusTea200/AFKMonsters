@@ -19,6 +19,39 @@ func _ready() -> void:
 	btn_settings.pressed.connect(_on_settings_pressed)
 	btn_quit.pressed.connect(_on_quit_pressed)
 
+	var map_sel = get_tree().current_scene.find_child("MapSelectionPanel", true, false)
+	if map_sel:
+		map_sel.hide()
+		var btn_cyber = map_sel.find_child("CyberGridBtn", true, false)
+		var btn_neon = map_sel.find_child("NeonHellBtn", true, false)
+		var btn_quantum = map_sel.find_child("QuantumVoidBtn", true, false)
+
+		if btn_cyber:
+			_setup_map_button(btn_cyber)
+			btn_cyber.pressed.connect(func():
+				Global.current_selected_map = Global.MapType.CYBER_GRID
+				get_tree().change_scene_to_file("res://ShopUI.tscn")
+			)
+		if btn_neon:
+			_setup_map_button(btn_neon)
+			btn_neon.pressed.connect(func():
+				Global.current_selected_map = Global.MapType.NEON_HELL
+				get_tree().change_scene_to_file("res://ShopUI.tscn")
+			)
+		if btn_quantum:
+			_setup_map_button(btn_quantum)
+			btn_quantum.pressed.connect(func():
+				Global.current_selected_map = Global.MapType.QUANTUM_VOID
+				get_tree().change_scene_to_file("res://ShopUI.tscn")
+			)
+
+	# Main Menu Title Animation
+	var main_title = get_tree().current_scene.find_child("TitleLabel", true, false)
+	if main_title:
+		var tw = create_tween().set_loops()
+		tw.tween_property(main_title, "position:y", main_title.position.y - 10.0, 1.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		tw.tween_property(main_title, "position:y", main_title.position.y + 10.0, 1.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
 func _setup_button_hover(btn: Button) -> void:
 	btn.mouse_entered.connect(_on_btn_hover.bind(btn, true))
 	btn.mouse_exited.connect(_on_btn_hover.bind(btn, false))
@@ -34,70 +67,15 @@ func _on_btn_hover(btn: Button, is_hovered: bool) -> void:
 		btn.modulate = Color.WHITE
 
 func _on_play_pressed() -> void:
-	# Harita secim menusu ac
-	_show_map_selection()
+	var map_sel = get_tree().current_scene.find_child("MapSelectionPanel", true, false)
+	if map_sel:
+		map_sel.show()
 
-func _show_map_selection() -> void:
-	var panel = PanelContainer.new()
-	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0.1, 0.1, 0.15, 0.9)
-	style.corner_radius_top_left = 15
-	style.corner_radius_top_right = 15
-	style.corner_radius_bottom_left = 15
-	style.corner_radius_bottom_right = 15
-	panel.add_theme_stylebox_override("panel", style)
-
-	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	panel.custom_minimum_size = Vector2(600, 400)
-
-	var vbox = VBoxContainer.new()
-	vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	vbox.add_theme_constant_override("separation", 20)
-	panel.add_child(vbox)
-
-	var title = Label.new()
-	title.text = ">> SELECT PROTOCOL <<"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 32)
-	vbox.add_child(title)
-
-	var btn1 = Button.new()
-	btn1.text = "CYBER GRID (Standard)"
-	btn1.modulate = Color.CYAN
-	btn1.custom_minimum_size = Vector2(400, 60)
-	btn1.pressed.connect(func():
-		Global.current_selected_map = Global.MapType.CYBER_GRID
-		get_tree().change_scene_to_file("res://ShopUI.tscn")
-	)
-	vbox.add_child(btn1)
-
-	var btn2 = Button.new()
-	btn2.text = "NEON HELL (Hard)"
-	btn2.modulate = Color.RED
-	btn2.custom_minimum_size = Vector2(400, 60)
-	btn2.pressed.connect(func():
-		Global.current_selected_map = Global.MapType.NEON_HELL
-		get_tree().change_scene_to_file("res://ShopUI.tscn")
-	)
-	vbox.add_child(btn2)
-
-	var btn3 = Button.new()
-	btn3.text = "QUANTUM VOID (Nightmare)"
-	btn3.modulate = Color.VIOLET
-	btn3.custom_minimum_size = Vector2(400, 60)
-	btn3.pressed.connect(func():
-		Global.current_selected_map = Global.MapType.QUANTUM_VOID
-		get_tree().change_scene_to_file("res://ShopUI.tscn")
-	)
-	vbox.add_child(btn3)
-
-	get_tree().current_scene.add_child(panel)
-
-	# Animate in
-	panel.scale = Vector2.ZERO
-	var tw = create_tween()
-	tw.tween_property(panel, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK)
+		# Animate in
+		map_sel.scale = Vector2.ZERO
+		map_sel.pivot_offset = map_sel.size / 2.0
+		var tw = create_tween()
+		tw.tween_property(map_sel, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 func _on_settings_pressed() -> void:
 	lbl_coming_soon.visible = true
@@ -107,3 +85,16 @@ func _on_settings_pressed() -> void:
 
 func _on_quit_pressed() -> void:
 	get_tree().quit()
+
+func _setup_map_button(btn: Button) -> void:
+	btn.mouse_entered.connect(_on_map_btn_hover.bind(btn, true))
+	btn.mouse_exited.connect(_on_map_btn_hover.bind(btn, false))
+
+func _on_map_btn_hover(btn: Button, is_hovered: bool) -> void:
+	var tween = create_tween()
+	if is_hovered:
+		tween.tween_property(btn, "modulate:v", 2.0, 0.1) # Brighten the neon color
+		btn.text = ">> " + btn.name.replace("Btn", "").to_upper() + " <<"
+	else:
+		tween.tween_property(btn, "modulate:v", 1.0, 0.1)
+		btn.text = btn.name.replace("Btn", "").to_upper()
