@@ -80,6 +80,15 @@ func _on_spin() -> void:
 		target_index = 0
 
 	# Sinsi hile: Hedefin 1-2 adim gerisinde Tier 4/5 varmis gibi goster (Dopamin gacha)
+	# Eğer hedef Tier 1-3 ise, onu çevreleyen slotlardan (görsel olarak) birini zorla Tier 5 yapalım ki göz yanılsaması olsun.
+	# Bu sadece görsel bir hiledir, the target is already selected.
+	if tier <= 3:
+		var bait_idx = (target_index - 1) % grid.get_child_count()
+		if bait_idx < 0: bait_idx += grid.get_child_count()
+		var p = grid.get_child(bait_idx)
+		if p and p.get_child_count() > 0:
+			var l = p.get_child(0) as Label
+			if l: l.text = ">> LEGENDARY BAIT <<\nTier 5"
 	# Burada basitce spin suresini ve animasyonunu baslatiyoruz
 	spin_time = 0.0
 	spin_delay = 0.05
@@ -95,11 +104,16 @@ func _process(delta: float) -> void:
 		# Reset old glow
 		if current_index < grid.get_child_count():
 			grid.get_child(current_index).modulate = Color.WHITE
+			grid.get_child(current_index).scale = Vector2.ONE
 
 		current_index = (current_index + 1) % grid.get_child_count()
 
 		# Set new glow
-		grid.get_child(current_index).modulate = Color.YELLOW
+		grid.get_child(current_index).modulate = Color(1.5, 1.5, 0.0) # Intense Yellow/Gold
+		grid.get_child(current_index).scale = Vector2(1.1, 1.1)
+
+		# Cyberpunk ses tınısı simülasyonu (Bip Bop)
+		# AudioStreamPlayer eklenebilir
 
 		roll_count -= 1
 
