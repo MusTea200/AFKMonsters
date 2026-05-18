@@ -5,6 +5,11 @@ var player: Node2D
 var inside_time: float = 0.0
 var debuff_active: bool = false
 var debuff_timer: float = 0.0
+var captured: bool = false
+var capture_time: float = 0.0
+var capture_target: float = 100.0
+var defense_time: float = 10.0
+var vending_machine: Node2D
 
 var original_speed: float = 0.0
 var original_regen: float = 0.0
@@ -43,11 +48,29 @@ func _ready() -> void:
 	add_child(col)
 
 	area_entered.connect(_on_area_entered)
+
+	# Vending Machine Ekle
+	var vending = load("res://VendingMachine.tscn").instantiate()
+	vending.global_position = global_position
+	get_tree().current_scene.call_deferred("add_child", vending)
+	vending_machine = vending
 	area_exited.connect(_on_area_exited)
 
 func _process(delta: float) -> void:
+	if captured:
+		defense_time -= delta
+		if defense_time <= 0:
+			_trigger_emp()
+		return
 	if is_instance_valid(player):
 		inside_time += delta
+
+		capture_time += delta * (0.5 if vending_machine else 1.0) # Yavas ele gecirme
+		if capture_time >= capture_target and not captured:
+			captured = true
+			if is_instance_valid(vending_machine):
+				vending_machine.set_captured()
+			visual.color = Color(0.0, 1.0, 0.0, 0.2) # Yesile doner
 
 		# Anında debuff uygula
 		if not debuff_active:
@@ -127,6 +150,13 @@ func _apply_debuff() -> void:
 
 		get_tree().current_scene.add_child(canvas)
 
+func _trigger_emp() -> void:
+	# EMP Patlaması ve Düşman eritme
+	var enemies = get_tree().get_nodes_in_group("enemies")
+	for enemy in enemies:
+		if is_instance_valid(enemy) and global_position.distance_to(enemy.global_position) < 1500.0:
+			if enemy.has_method("_take_damage"): enemy._take_damage(99999.0)
+	queue_free()
 func _remove_debuff() -> void:
 	var p = get_tree().current_scene.find_child("Player", true, false)
 	if is_instance_valid(p) and p.get("active_redzone_count") != null and p.active_redzone_count > 0:
