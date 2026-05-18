@@ -80,8 +80,9 @@ theme_override_font_sizes/font_size = 32
 text = "Quit"
 
 [node name="LblComingSoon" type="Label" parent="VBoxContainer" unique_id=72800598]
+layout_mode = 2
 
-[node name="MapSelectionPanel" type="PanelContainer" parent="."]
+[node name="MapSelectionPanel" type="PanelContainer" parent="." unique_id=1487733812]
 visible = false
 anchors_preset = 8
 anchor_left = 0.5
@@ -95,39 +96,36 @@ offset_bottom = 200.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MapSelectionPanel"]
+[node name="VBoxContainer" type="VBoxContainer" parent="MapSelectionPanel" unique_id=1381936701]
 layout_mode = 2
 theme_override_constants/separation = 20
 alignment = 1
 
-[node name="Label" type="Label" parent="MapSelectionPanel/VBoxContainer"]
+[node name="Label" type="Label" parent="MapSelectionPanel/VBoxContainer" unique_id=1323797152]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = ">> SELECT PROTOCOL <<"
 horizontal_alignment = 1
 
-[node name="CyberGridBtn" type="Button" parent="MapSelectionPanel/VBoxContainer"]
+[node name="CyberGridBtn" type="Button" parent="MapSelectionPanel/VBoxContainer" unique_id=2110149003]
 modulate = Color(0, 1, 1, 1)
 custom_minimum_size = Vector2(400, 60)
 layout_mode = 2
 size_flags_horizontal = 4
 text = "CYBER GRID"
 
-[node name="NeonHellBtn" type="Button" parent="MapSelectionPanel/VBoxContainer"]
+[node name="NeonHellBtn" type="Button" parent="MapSelectionPanel/VBoxContainer" unique_id=1758800894]
 modulate = Color(1, 0, 0, 1)
 custom_minimum_size = Vector2(400, 60)
 layout_mode = 2
 size_flags_horizontal = 4
 text = "NEON HELL"
 
-[node name="QuantumVoidBtn" type="Button" parent="MapSelectionPanel/VBoxContainer"]
+[node name="QuantumVoidBtn" type="Button" parent="MapSelectionPanel/VBoxContainer" unique_id=416760379]
 modulate = Color(0.666667, 0, 1, 1)
 custom_minimum_size = Vector2(400, 60)
 layout_mode = 2
 size_flags_horizontal = 4
-text = "QUANTUM VOID"
-layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.2, 0.2, 1)
 theme_override_fonts/font = SubResource("SystemFont_mono")
 text = "Settings: Coming Soon..."
-horizontal_alignment = 1
