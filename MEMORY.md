@@ -308,3 +308,15 @@ Tüm görev hedefleri başarılı şekilde tamamlanmış ve `main` branch'i ile 
 - Sistem; hedefin tam 1 adım gerisindeki yuvayı rastgele seçerek, ekranda o yuvayı geçici olarak ">> LEGENDARY BAIT << Tier 5" isimli efsanevi bir eşyaya dönüştürür.
 - Çark sonlara doğru `spin_delay += 0.05` ivmesiyle yavaşladığında, ışık bu efsanevi eşyanın üstünden sekerek geçecek ve hemen yanındaki sıradan eşyada duracaktır. Oyuncuda "Kıl payı efsaneviyi kaçırdım!" psikolojisi tetiklenerek oyun döngüsüne bağımlılık artırılacaktır.
 - Görsel etki olarak her sektiği kare %10 büyür (`Vector2(1.1)`) ve Parlak Altın (`Color(1.5, 1.5, 0.0)`) rengine girerek dikkati çeker.
+
+## 🔍 Sinyal ve Durum Doğrulaması (Runtime Verification)
+### Arena.gd Instantiation Düzeltmesi
+- **Gözlem:** Önceki adımlarda `load("res://Redzone.gd").new()` referansından kaynaklanan sorunlu üretim, `.tscn` sahnelerine olan gereksinimi bypass ederek UI bozukluklarına sebep oluyordu. Bu çağrı kod tabanından tamamen kaldırıldı ve `preload("res://Redzone.tscn").instantiate()` standardına geri dönüldü. Artık Redzone ve altındaki Vending Machine fiziksel olarak sahnede doğru yerlerini alıyor ve standby seslerini (`Bip-Bop`) başarıyla çalıyor.
+
+### Culling Koruması ve Varlık Kalıcılığı
+- Haritadaki uzak nesneleri bellekten temizleyen (`_cull_distant_objects`) fonksiyon, önemli ticaret (Merchant) veya etkinlik (RouletteMan) sahnelerini yanlışlıkla silmemesi adına `class_name` kontrolleriyle güvence altına alındı. Grapple düğümleri bile çocuklarında bu varlıklara sahipse silinmekten kurtarılıyor.
+
+### Gacha "Near-Miss" Algoritması
+- Oyuncunun dopaminini tetikleyen "Sinsi 1-2 adım gerideki Efsanevi Parça" numarası `GachaUI.gd` dosyasında başarıyla çalışmaktadır.
+- Olasılık tablosu anında ödülü belirlerken (%60-%5 arası ağırlıklar), görsel çark (slot effect) daima hedefin bir veya iki kare arkasındaki sahte "Legendary Bait" üzerinden geçer.
+- İlgili tüm sahne ve UI düğümleri doğru yapılandırıldığından emin olundu.
