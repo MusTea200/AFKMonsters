@@ -297,3 +297,14 @@ Tüm görev hedefleri başarılı şekilde tamamlanmış ve `main` branch'i ile 
 - Otomat (`VendingMachine.tscn`), doğrudan Redzone.tscn içerisine `add_child` yerine `get_tree().current_scene.call_deferred("add_child")` ile root'a bırakılarak bağımsız konuma çekildi, böylece Redzone 10 saniye sonra silindiğinde Otomat hayatta kalarak etkileşime açık pozisyona geçti.
 - Oyuncu, bölgeyi temizlemeden (savunma fazını geçmeden) otomata çarparsa arayüz kesinlikle açılmıyor, sadece uyarı (`Bip-Bop`) sesleri çıkıyor. Alan temizlenip EMP atıldıktan sonra (10 saniye) otomatın kilidi açılıyor.
 - `GachaUI` açıldığı an dünya çapında dondurma (`get_tree().paused = true`) tetikleniyor. Arka planda süzülen "ColorRect" maskesi ile tüm aksiyon şeffaf şekilde arka planda dururken siber Gacha dükkanına odaklanılıyor.
+
+## 🎰 Gacha Mantığı (Near-Miss) ve Sahne Doğrulaması (Runtime Verification)
+### Redzone.gd Üretim Hatası Onarımı
+- **Sorun:** `Arena.gd` içerisinde, bir önceki refaktörden yarım kalan `load("res://Redzone.gd").new()` kodu, `.tscn` sahnelerinin fiziksel üretimlerini bypass ediyordu. Bu da otomatın (Vending Machine) doğmamasına ve siber seslerin/çarpışma kutularının eksik kalmasına sebep oluyordu.
+- **Çözüm:** Satır tamamen silindi ve yerine güvenli `preload("res://Redzone.tscn").instantiate()` mantığı entegre edildi. Tüm emniyet kilitleri ve "Bip-Bop" standby sesleri aktif hale geldi.
+
+### "Near-Miss" Hilesinin Entegrasyonu (Dopamine Gacha)
+- Gacha çarkı dönerken hedeflenen nesne sıradan (Tier 1-3) bir eşyaysa, `GachaUI.gd` içerisine sinsi bir görsel hile enjekte edildi.
+- Sistem; hedefin tam 1 adım gerisindeki yuvayı rastgele seçerek, ekranda o yuvayı geçici olarak ">> LEGENDARY BAIT << Tier 5" isimli efsanevi bir eşyaya dönüştürür.
+- Çark sonlara doğru `spin_delay += 0.05` ivmesiyle yavaşladığında, ışık bu efsanevi eşyanın üstünden sekerek geçecek ve hemen yanındaki sıradan eşyada duracaktır. Oyuncuda "Kıl payı efsaneviyi kaçırdım!" psikolojisi tetiklenerek oyun döngüsüne bağımlılık artırılacaktır.
+- Görsel etki olarak her sektiği kare %10 büyür (`Vector2(1.1)`) ve Parlak Altın (`Color(1.5, 1.5, 0.0)`) rengine girerek dikkati çeker.
