@@ -45,6 +45,11 @@ func _ready() -> void:
 	# Varsayilan olarak ilk sekme
 	grid = tab.get_node("Weapons").get_node("GridContainer")
 
+	close_btn.pressed.connect(func():
+		get_tree().paused = false
+		queue_free()
+	)
+
 	tab.tab_changed.connect(func(tab_idx: int):
 		if tab_idx == 0: grid = tab.get_node("Weapons").get_node("GridContainer")
 		elif tab_idx == 1: grid = tab.get_node("Pets").get_node("GridContainer")
@@ -69,7 +74,7 @@ func _on_spin() -> void:
 
 	# Flattening ve Dinamik Ihtimal Dagitimi
 	# Kalan esyalarin tierlarina gore temel agirliklari toplayalim
-	var tier_weights = {1: 0.60, 2: 0.25, 3: 0.10, 4: 0.04, 5: 0.01}
+	var tier_weights = {1: 0.60, 2: 0.25, 3: 0.10, 4: 0.04, 5: 0.05}
 	var available_weights = 0.0
 	for i in active_items:
 		var p = grid.get_child(i)
@@ -167,3 +172,25 @@ func _award_item(idx: int) -> void:
 	tw.tween_property(p, "scale", Vector2(1.5, 1.5), 0.2).set_trans(Tween.TRANS_BOUNCE)
 	tw.tween_property(p, "scale", Vector2.ONE, 0.3)
 	p.modulate = Color.GREEN # Gecici Yesil
+
+func _populate_tab(tab_node: Node, category: String) -> void:
+	var grid_container = tab_node.get_node("GridContainer")
+	for child in grid_container.get_children():
+		child.queue_free()
+
+	var cat_items = items[category]
+	for i in range(cat_items.size()):
+		var item = cat_items[i]
+		var panel_container = PanelContainer.new()
+		panel_container.custom_minimum_size = Vector2(180, 120)
+		panel_container.set_meta("category", category)
+		panel_container.set_meta("item_index", i)
+		panel_container.set_meta("level", 0)
+
+		var label = Label.new()
+		label.text = item["name"] + "\nTier " + str(item["tier"]) + "\nLvl 0/20"
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		panel_container.add_child(label)
+
+		grid_container.add_child(panel_container)

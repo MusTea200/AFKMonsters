@@ -40,3 +40,33 @@ Bu ödül `EconomyComponent.gd` üzerinden `Global.dongu_parcaciklari` bakiyesin
 * **RAM Tabanlı Host Migration (Sunucu Göçü):** Eşler (Peers) bağlandığında `OS.get_static_memory_peak_usage()` (veya OS meta veri simülasyonu) üzerinden RAM kapasitelerini paylaşır. En yüksek kapasiteye sahip cihaz Host (Server) olur. Host ayrıldığında oyun donmaz; kalan en yüksek RAM'e sahip peer yeni Host olur ve state sync ile oyunu pürüzsüz devralır.
 * **Seed Tabanlı Procedural Chunk Harita:** Sabit arena sınırları yerine seed tabanlı sonsuz harita jenerasyonuna geçildi. Culling nedeniyle objelerin (altın, rulet adam vs.) kaybolmasını önlemek için aktif olmayan chunk'lardaki obje verileri bir `Dictionary` (Sözlük) içinde saklanıp oyuncu yaklaştığında tekrar instantiate edilecek (Chunk Persistence).
 * **Mermi Atma (Shooting) Hatası Çözümü:** `Player.gd` ve `CombatComponent.gd` içindeki boş kalan `bullet_scene` referansı, doğrudan `preload("res://Bullet.tscn")` ile doldurularak mermi atamama sorunu kalıcı olarak çözüldü.
+
+## 🐛 Siber Hata Avı ve Güvenlik Yamaları (Gacha UI & Vending Machine)
+
+### Şimdiye kadar yapılanlar
+- `GachaUI.gd` içerisindeki arayüzü dinamik olarak dolduracak, eksik bırakılan `_populate_tab` fonksiyonu tamamen kodlandı. İlgili fonksiyon, GridContainer'ı temizleyip PanelContainer'ları sıfırdan oluşturarak `category`, `item_index` ve `level` meta verilerini panellere kusursuzca yerleştiriyor.
+- `Arena.gd` dosyasına hile motoru (Cheat Engine) entegre edildi. Savaş alanındayken klavyeden "1" tuşuna basıldığında oyuncuya anında 1000 Altın, 1000 Döngü Parçacığı ekleniyor ve içinde bulunulan aktif Redzone siber yeşile döndürülüp %100 ele geçirilmiş sayılarak Otomat anında etkileşime açılıyor.
+- Arayüzlerde ve sahnelerde unutulmuş olan tüm sinyaller ve güvenlik bariyerleri aktif hale getirildi.
+
+### Hangi hataların düzeltildiği
+- **Eksik Fonksiyon Halüsinasyonu:** GachaUI scriptinde daha önce `_populate_tab` çağrılmış ama fonksiyonun içi/kendisi yazılmamıştı. Bu da oyunun market sekmesine geçildiğinde fatal error verip çökmesine sebep oluyordu. Bu kritik eksiklik onarıldı.
+- **Emniyet Zafiyeti (is_captured Kontrolü):** `VendingMachine.gd` içindeki `_on_body_entered` fonksiyonunda Otomat'ın bölgesi henüz tam ele geçirilmemişken (kırmızı alarm halindeyken) bile oyuncu temas ettiğinde marketin bodoslama açılması gibi büyük bir zafiyet vardı. Artık fonksiyon başında katı bir `if not is_captured: return` bariyeri var. Oyuncu ele geçirilmemiş otomata sürtünse bile menü açılmıyor.
+- **Duraklatılmış Oyunda UI Sinyal Kilitlenmesi:** Market menüsündeki "X" kapatma butonuna basıldığında arayüz kaybolsa bile `get_tree().paused` state'i `false` yapılmadığı için oyun Matrix'te asılı kalıyordu (zaman donuyordu). Kapatma sinyaline `get_tree().paused = false` ve `queue_free()` protokolleri gömülerek sonsuz donma engellendi.
+
+### Bir daha aynı hatalara nasıl bulaşılmayacağı
+- Bir fonksiyon başka bir yerde çağrılıyorsa (özellikle UI tarafında dinamik liste oluşturan fonksiyonlar), içi henüz tam kodlanmamış olsa bile en azından `pass` geçilerek declare edilmeli. Halüsinasyon veya eksik bırakma hatalarının önüne böyle geçilebilir.
+- Fiziksel etkileşimle (Area2D / body_entered) tetiklenen arayüz pop-up'larında (Otomat, Sandık vb.), durumu kontrol eden boolean güvenlik bariyerleri (örn. `is_captured`, `is_unlocked`) methodun hemen en başında `return` ile denetlenmeli.
+- Pause modunu (`get_tree().paused = true`) değiştiren herhangi bir UI elemanının kapatma/iptal tuşuna mutlaka `get_tree().paused = false` sinyali yedeklenmeli. Aksi takdirde oyun motoru sonsuz bekleme moduna geçer.
+
+### Projenin gidişatı ve gelecek planları
+- Otomat, Gacha çarkı ve Redzone savunma fazı arasındaki entegrasyon başarılı şekilde kapatıldı. Oyunun Risk/Reward döngüsü planlandığı gibi dopamin zerk eden bir yapıya oturtuldu.
+- Gelecek planları arasında global stat yükseltmelerinin (Döngü Parçacığı marketinin) kapasitesinin ve etkisinin genişletilmesi, yeni Tier ve nadirlik sınıflarının Gacha çarkına entegrasyonu yer alıyor.
+
+### Kendisinin ekleyeceği ve yararlı olduğunu düşündüğü özellikler
+- "1" hilesi gibi, geliştirme süreçlerini çok hızlandıran bir Debug Console (veya komut satırı) yapısı fena olmazdı. Şimdilik tuş ataması ile bypass ediliyor ama ileride "God Mode", "Kill All Enemies" veya "Spawn Boss" gibi makrolar eklenebilir.
+- Gacha menüsünde "Skip Animation" (Animasyonu Geç) seçeneği eklenerek çarkın yavaşlama süresine sabredemeyen oyuncular için hızlı açılış özelliği eklenebilir.
+
+### Güvenlik ve performans adına yaptıkları
+- Eşya yaratımı (`PanelContainer`) sırasında GridContainer öncelikle `queue_free()` kullanılarak tamamen temizleniyor. Böylece menü her açıldığında yüzlerce gereksiz düğümün üst üste binip Memory Leak (bellek sızıntısı) yaratması engelleniyor.
+- `_process` gibi her kare çalışan fonksiyonlarda değil, sinyal (event) tabanlı tetiklenmelerle ilerlenerek işlemci döngüleri korundu.
+- Efsanevi (Tier 5) düşme şansı 0.01'den 0.05'e yükseltilerek hem dopamin döngüsü tetiklendi hem de imkansız bir RNG senaryosundan daha makul bir oyun içi piyasaya geçiş yapıldı.

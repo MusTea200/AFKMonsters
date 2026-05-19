@@ -31,6 +31,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		current_input_type = InputType.TOUCH
 
 var dongu_parcaciklari: int = 0
+var otomat_parasi: int = 0
 var perm_max_health: float = 100.0
 var perm_starting_damage: float = 25.0
 var base_speed: float = 1200.0
