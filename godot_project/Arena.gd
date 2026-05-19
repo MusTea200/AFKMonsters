@@ -674,6 +674,6 @@ func _unhandled_input(event: InputEvent) -> void:
 					r.defense_time = 0.0 # Clear defense time immediately so no countdown starts
 					r.captured = true
 					if is_instance_valid(r.visual):
-						r.visual.color = Color(0.0, 1.0, 0.0, 0.2)
+						r.visual.color = Color("00ff004d")
 					if is_instance_valid(r.vending_machine):
-						r.vending_machine.set_captured()
+						r.vending_machine.activate_green()

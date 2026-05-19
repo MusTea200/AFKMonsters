@@ -23,6 +23,33 @@ var original_regen: float = 0.0
 func _ready() -> void:
 	add_to_group("redzones")
 
+	if not progress_bar:
+		push_warning("ProgressBar eksik! Dinamik olarak uretiliyor.")
+		progress_bar = ProgressBar.new()
+		progress_bar.max_value = 100.0
+		progress_bar.custom_minimum_size = Vector2(200, 20)
+		progress_bar.position = Vector2(-100, -350)
+		add_child(progress_bar)
+
+	if not countdown_label:
+		push_warning("CountdownLabel eksik! Dinamik olarak uretiliyor.")
+		countdown_label = Label.new()
+		countdown_label.add_theme_font_size_override("font_size", 64)
+		countdown_label.set_anchors_preset(Control.PRESET_CENTER)
+		countdown_label.position = Vector2(-50, -100)
+		add_child(countdown_label)
+
+	if not visual:
+		push_warning("ZoneVisual eksik! Dinamik olarak uretiliyor.")
+		visual = Polygon2D.new()
+		add_child(visual)
+
+	if not vending_machine:
+		push_warning("VendingMachine eksik! Dinamik olarak uretiliyor.")
+		var vending = load("res://VendingMachine.tscn").instantiate()
+		call_deferred("add_child", vending)
+		vending_machine = vending
+
 	progress_bar.hide()
 	countdown_label.hide()
 	visual.color = Color("ff00004d")

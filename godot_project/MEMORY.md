@@ -103,3 +103,9 @@ Bu ödül `EconomyComponent.gd` üzerinden `Global.dongu_parcaciklari` bakiyesin
 - Daha öncesinde `Redzone.gd` dosyasının içerisinde `.new()` ile oluşturulan `Polygon2D`, `ProgressBar`, `Label` ve `VendingMachine` nesneleri tamamen kod içerisinden temizlenerek silinmiştir.
 - Bunun yerine bu düğümlerin oyuncunun sahnede (`Redzone.tscn`) editör üzerinden yerleştirileceği varsayılarak tüm nesneler `@onready` ile bağlanmıştır.
 - **Neden Yapıldı?:** Kod ile arayüz oluşturmak, arayüzün (UI) sahne görünümünde görünmez olmasına, görsel hizalama sorunlarına ve her seferinde kod içindeki koordinatların körlemesine denenmesine sebep oluyordu. Düğümleri editöre taşıyıp sadece lojiği koda bağlamak (örneğin `$ProgressBar` referansı) tasarım özgürlüğünü ve görsel geri bildirimi (UX tweaking) büyük oranda artırmıştır.
+
+### Çökme Koruma Zırhı ve Dosya Manipülasyonları
+- `Redzone.tscn` dosyası ham metin üzerinden doğrudan manipüle edilerek `ZoneVisual`, `ProgressBar`, `CountdownLabel` ve `VendingMachine` çocuk düğümleri editörde görünecek biçimde sahne ağacına inşa edildi.
+- `Redzone.gd` içindeki `_ready()` bloğunun başına `@onready` ile çağrılan bu düğümlerin yok olma ihtimaline karşı `if not` kontrolü eklenerek `push_warning()` ile beraber anında dinamik olarak üretilme (Null-Safe Guard) koruması getirildi. Düğümler bir nedenle silinse bile oyun çökmeyecek, arka planda kendisi oluşturacaktır.
+- `RigidBody2D` olarak tasarlanan Player'ın alanlarla (`Area2D`) fiziksel etkileşime girebilmesi için hatalı olan `area_entered` sinyalleri kazınarak mutlak suretle gövde temasını yakalayan `body_entered` yapısına geçirildi.
+- "1" hilesi üzerinden Arena.gd içindeki bypass komutları, istenilen Hex değerleriyle (`00ff004d` ve `00ff33`) tam uyumlu hale getirildi.
