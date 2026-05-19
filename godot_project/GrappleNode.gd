@@ -5,6 +5,7 @@ enum NodeType { NORMAL, QUANTUM, PRISM, STASIS }
 
 @export var node_type: NodeType = NodeType.NORMAL
 
+# Defaults
 var stiffness: float = 20.0
 var max_rope_length: float = 400.0
 var type_activated: bool = false

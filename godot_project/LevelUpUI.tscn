@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://dlvlup1234"]
 
-[ext_resource type="Script" uid="uid://dos1ocavxcocx" path="res://LevelUpUI.gd" id="1_lvlup"]
+[ext_resource type="Script" path="res://LevelUpUI.gd" id="1_lvlup"]
 
 [node name="LevelUpUI" type="CanvasLayer"]
 script = ExtResource("1_lvlup")
@@ -43,10 +43,3 @@ text = "2) Yay Esnekliği (Stiffness Up)"
 [node name="BtnOrbital" type="Button" parent="Panel/VBoxContainer"]
 layout_mode = 2
 text = "3) Yörünge Silahı (Orbital)"
-
-[node name="RerollButton" type="Button" parent="Panel"]
-layout_mode = 0
-offset_top = 242.0
-offset_right = 400.0
-offset_bottom = 273.0
-text = "Yenile (Maliyet:10 Altın)"

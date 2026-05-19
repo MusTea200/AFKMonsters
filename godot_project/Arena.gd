@@ -89,18 +89,10 @@ func _create_node_instance(pos: Vector2) -> void:
 	# Type is randomized in GrappleNode._ready() now
 	add_child(node_instance)
 
-	# 5% chance to spawn RouletteMan on a node
-	if randf() < 0.05 and not get_meta("roulette_spawned", false):
-		set_meta("roulette_spawned", true)
-		var rman = load("res://RouletteMan.gd").new()
-		rman.target_node = node_instance
-		add_child(rman)
-
 func _setup_enemy_spawner() -> void:
 	spawn_timer = Timer.new()
-	spawn_timer.wait_time = enemy_spawn_rate * pow(0.95, Global.successful_loops)
+	spawn_timer.wait_time = enemy_spawn_rate
 	spawn_timer.autostart = true
-	spawn_timer.process_mode = Node.PROCESS_MODE_PAUSABLE # Timer oyun durunca dursun!
 	spawn_timer.timeout.connect(_on_spawn_timer_timeout)
 	add_child(spawn_timer)
 
