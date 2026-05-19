@@ -1,7 +1,7 @@
-[gd_scene format=3 uid="uid://bpi4dkqayxw3r"]
+[gd_scene format=3 uid="uid://cxmainmenu01"]
 
-[ext_resource type="Script" path="res://MainMenu.gd" id="1_main"]
-[ext_resource type="Shader" path="res://neon_glitch.gdshader" id="2_glitch"]
+[ext_resource type="Script" uid="uid://cfwnyfbo6mudj" path="res://MainMenu.gd" id="1_main"]
+[ext_resource type="Shader" uid="uid://2ilkbfd1fmy" path="res://neon_glitch.gdshader" id="2_glitch"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_title"]
 shader = ExtResource("2_glitch")

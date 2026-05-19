@@ -1,7 +1,7 @@
-[gd_scene format=3 uid="uid://cumhvg3gopdo5"]
+[gd_scene format=3 uid="uid://ylyfbwxtcexo"]
 
 [ext_resource type="Script" uid="uid://c018locg6c1dy" path="res://Enemy.gd" id="1_oy4e5"]
-[ext_resource type="Script" path="res://circle.gd" id="2_6sxmr"]
+[ext_resource type="Script" uid="uid://cmemngqxnjyfv" path="res://circle.gd" id="2_6sxmr"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_enemy"]
 radius = 71.00704
@@ -23,7 +23,7 @@ metadata/_edit_use_anchors_ = true
 
 [node name="Polygon2D" type="Polygon2D" parent="." unique_id=716399351]
 color = Color(0.60038817, 0, 0, 1)
-polygon = PackedVector2Array(50, 0, 49.03926, 9.754517, 46.193974, 19.13417, 41.57348, 27.778513, 35.35534, 35.35534, 27.778513, 41.57348, 19.13417, 46.193974, 9.754517, 49.03926, 3.0615159e-15, 50, -9.754517, 49.03926, -19.13417, 46.193974, -27.778513, 41.57348, -35.35534, 35.35534, -41.57348, 27.778513, -46.193974, 19.13417, -49.03926, 9.754517, -50, 6.1230318e-15, -49.03926, -9.754517, -46.193974, -19.13417, -41.57348, -27.778513, -35.35534, -35.35534, -27.778513, -41.57348, -19.13417, -46.193974, -9.754517, -49.03926, -9.184548e-15, -50, 9.754517, -49.03926, 19.13417, -46.193974, 27.778513, -41.57348, 35.35534, -35.35534, 41.57348, -27.778513, 46.193974, -19.13417, 49.03926, -9.754517)
+polygon = PackedVector2Array(0, -72, -72, 0, 0, 72, 72, 0)
 script = ExtResource("2_6sxmr")
 yaricap = 50.0
 kose_sayisi = 32

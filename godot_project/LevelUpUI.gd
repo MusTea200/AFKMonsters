@@ -32,7 +32,7 @@ func _ready() -> void:
 	reroll_btn = panel.find_child("RerollButton", true, false)
 	if reroll_btn:
 		reroll_btn.pressed.connect(_on_reroll_pressed)
-
+		
 	# Find player
 	var scene_nodes = get_tree().current_scene.get_children()
 	for n in scene_nodes:
@@ -44,7 +44,7 @@ func _ready() -> void:
 	# Clear existing static buttons
 	for child in vbox.get_children():
 		child.queue_free()
-
+		
 	# Create 3 dynamic buttons
 	for i in range(3):
 		var btn = Button.new()
@@ -56,39 +56,39 @@ func _ready() -> void:
 func show_upgrades() -> void:
 	get_tree().paused = true
 	Engine.time_scale = 0.0
-
+	
 	_roll_upgrades()
 	panel.show()
 
 func _roll_upgrades() -> void:
 	# Gacha sistemi: Ağırlıklara göre 3 rastgele benzersiz seçenek seç
 	var available_upgrades = upgrade_pool.duplicate(true)
-
+	
 	for btn in buttons:
 		if available_upgrades.is_empty():
 			btn.hide()
 			continue
-
+			
 		btn.show()
 		var total_weight = 0
 		for upg in available_upgrades:
 			total_weight += upg["weight"]
-
+			
 		var roll = randi() % total_weight
 		var current_weight = 0
 		var selected_index = -1
-
+		
 		for i in range(available_upgrades.size()):
 			current_weight += available_upgrades[i]["weight"]
 			if roll < current_weight:
 				selected_index = i
 				break
-
+				
 		var selected_upgrade = available_upgrades[selected_index]
 		btn.text = selected_upgrade["text"]
 		# Store the ID in metadata so we know what was clicked
 		btn.set_meta("upgrade_id", selected_upgrade["id"])
-
+		
 		available_upgrades.remove_at(selected_index)
 
 func _on_button_pressed(btn: Button) -> void:
@@ -102,6 +102,6 @@ func _resume_and_emit(type: String) -> void:
 	upgrade_selected.emit(type)
 
 func _on_reroll_pressed() -> void:
-	if is_instance_valid(player_node) and player_node.gold >= reroll_cost:
+	if is_instance_valid(player_node) and player_node.economy_comp.gold >= reroll_cost:
 		player_node.add_gold(-reroll_cost)
 		_roll_upgrades()

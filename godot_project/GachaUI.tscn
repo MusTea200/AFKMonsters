@@ -1,6 +1,6 @@
-[gd_scene format=3 uid="uid://dwkvmspykbd8i"]
+[gd_scene format=3 uid="uid://dnwg31q364wx7"]
 
-[ext_resource type="Script" path="res://GachaUI.gd" id="1_gacha"]
+[ext_resource type="Script" uid="uid://dx4ukuo41p7h5" path="res://GachaUI.gd" id="1_gacha"]
 
 [node name="GachaUI" type="Control" unique_id=981622123]
 layout_mode = 3
@@ -52,29 +52,27 @@ current_tab = 0
 layout_mode = 2
 metadata/_tab_index = 0
 
-[node name="GridContainer" type="GridContainer" parent="PanelContainer/VBoxContainer/TabContainer/Weapons" unique_id=179590558]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-columns = 4
-
-[node name="Pets" type="ScrollContainer" parent="PanelContainer/VBoxContainer/TabContainer" unique_id=1759358398]
-visible = false
+[node name="Pets" type="ScrollContainer" parent="PanelContainer/VBoxContainer/TabContainer"]
 layout_mode = 2
 metadata/_tab_index = 1
 
-[node name="GridContainer" type="GridContainer" parent="PanelContainer/VBoxContainer/TabContainer/Pets" unique_id=784651516]
+[node name="GridContainer" type="GridContainer" parent="PanelContainer/VBoxContainer/TabContainer/Pets"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 columns = 4
 
-[node name="Costumes" type="ScrollContainer" parent="PanelContainer/VBoxContainer/TabContainer" unique_id=525898482]
-visible = false
+[node name="Costumes" type="ScrollContainer" parent="PanelContainer/VBoxContainer/TabContainer"]
 layout_mode = 2
 metadata/_tab_index = 2
 
-[node name="GridContainer" type="GridContainer" parent="PanelContainer/VBoxContainer/TabContainer/Costumes" unique_id=632495055]
+[node name="GridContainer" type="GridContainer" parent="PanelContainer/VBoxContainer/TabContainer/Costumes"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+columns = 4
+
+[node name="GridContainer" type="GridContainer" parent="PanelContainer/VBoxContainer/TabContainer/Weapons" unique_id=179590558]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3

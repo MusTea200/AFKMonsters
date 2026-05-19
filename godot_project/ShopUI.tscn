@@ -1,7 +1,7 @@
-[gd_scene format=3 uid="uid://dqrmsoair1kif"]
+[gd_scene format=3 uid="uid://c8etx0xem2gbr"]
 
-[ext_resource type="Script" path="res://ShopUI.gd" id="1_shopui"]
-[ext_resource type="Shader" path="res://neon_grid.gdshader" id="2_shader"]
+[ext_resource type="Script" uid="uid://3t1j2otu0myi" path="res://ShopUI.gd" id="1_shopui"]
+[ext_resource type="Shader" uid="uid://kwt4itubdcgj" path="res://neon_grid.gdshader" id="2_shader"]
 
 [sub_resource type="Environment" id="Environment_cybr"]
 background_mode = 3

@@ -1,7 +1,6 @@
-[gd_scene format=3 uid="uid://qmgbbqbmpdgy"]
+[gd_scene format=3 uid="uid://iyhghdvuderj"]
 
 [ext_resource type="Script" path="res://Redzone.gd" id="res://Redzone.gd"]
-
 [sub_resource type="CircleShape2D" id="CircleShape2D_mxqyh"]
 
 [node name="Redzone" type="Area2D" unique_id=1267312441]

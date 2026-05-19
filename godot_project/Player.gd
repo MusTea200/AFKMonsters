@@ -4,155 +4,201 @@ class_name Player
 @export var move_force: float = 1000.0
 @export var max_speed: float = 1200.0
 
-
 @export var max_health: float = 100.0
 @export var grapple_radius: float = 600.0
 
 var current_health: float
+var _is_hook_held: bool = false
+var active_redzone_count: int = 0
 var active_springs: Dictionary = {}
 var current_target_node: Node2D = null
 
-# RPG Stats
-@export var can_yenileme: float = 1.0
-@export var hasar_azaltma: float = 0.0 # percentage (0.0 to 1.0)
-@export var dikenli_deri: float = 0.0
-@export var kacis_sansi: float = 0.0 # percentage (0.0 to 1.0)
-@export var ip_uzunlugu: float = 600.0 # Replaces grapple_radius for physical length
-@export var atis_hizi: float = 1.0 # Shots per second
-@export var mermi_sayisi: int = 1
-@export var delip_gecme: int = 0
-@export var mermi_hasari: float = 25.0
-
-var shoot_timer: float = 0.0
-var bullet_scene = preload("res://Bullet.tscn")
+@export var ip_uzunlugu: float = 600.0
+var bullet_scene: PackedScene = preload("res://Bullet.tscn")
 var health_bar: ProgressBar
-var balance_label: Label
 
-
-# Combo System
-var combo_multiplier: int = 1
-var combo_timer: float = 0.0
-var combo_speed_threshold: float = 800.0
-var combo_drop_threshold: float = 300.0
-var combo_label: Label
-
-# Economy & Level
-var exp: float = 0.0
-var level: int = 1
-var gold: float = 0.0
-var next_level_exp: float = 100.0
-
-var exp_bar: ProgressBar
 var camera: Camera2D
+var is_stunned: bool = false
+var is_jammed: bool = false
+var shield_charges: int = 0
+var orbit_count: int = 0
+var orbit_radius: float = 120.0
+var orbital_angle_offset: float = 0.0
+
+var orbitals: Array = []
+
+var stun_icon: Sprite2D
+var momentum_label: Label
+var speed_lines: ColorRect
+
 @export var min_zoom: float = 0.5
 @export var max_zoom: float = 3.0
 @export var zoom_speed: float = 0.1
 
-# Upgrades
 var mass_multiplier: float = 1.0
 var stiffness_multiplier: float = 1.0
 
-
-# Reference to UI (You would typically inject this or autoload it)
 var level_up_ui: LevelUpUI
+var economy_comp: EconomyComponent
+var combat_comp: CombatComponent
 
 func _ready() -> void:
+	max_health = Global.perm_max_health
+	max_speed = Global.base_speed
+	shield_charges = Global.shield_capacity
+	orbit_count = Global.orbital_count
+	_create_orbitals()
 	current_health = max_health
+	Global.start_run()
 	gravity_scale = 0.0
-	# Lower linear damp allows for more natural "Spider-Man" style swinging and gliding
 	linear_damp = 1.0
 	lock_rotation = true
+	
+
+	var canvas = get_tree().current_scene.find_child("CanvasLayer", true, false)
+	if canvas:
+		momentum_label = canvas.find_child("MomentumLabel", true, false) as Label
+		speed_lines = canvas.find_child("SpeedLines", true, false) as ColorRect
 
 	health_bar = get_tree().current_scene.find_child("PlayerHealthBar", true, false) as ProgressBar
 	if is_instance_valid(health_bar):
 		health_bar.max_value = max_health
 		health_bar.value = current_health
+	
+	var exp_bar = get_tree().current_scene.find_child("ExpBar", true, false) as ProgressBar
 
-
-
-	# Find ExpBar and initialize
-	exp_bar = get_tree().current_scene.find_child("ExpBar", true, false) as ProgressBar
-	if is_instance_valid(exp_bar):
-		exp_bar.max_value = next_level_exp
-		exp_bar.value = exp
-
-	# Find Camera2D
 	for child in get_children():
 		if child is Camera2D:
 			camera = child
 			break
-
-	# Find ComboLabel
-	combo_label = get_tree().current_scene.find_child("ComboLabel", true, false) as Label
-	if is_instance_valid(combo_label):
-		combo_label.text = ""
-		combo_label.visible = false
-
-
-
+			
 	var ui_scene = preload("res://LevelUpUI.tscn")
 	if ui_scene:
 		level_up_ui = ui_scene.instantiate()
 		add_child(level_up_ui)
-		level_up_ui.upgrade_selected.connect(_apply_upgrade)
+
+	# Components Initialization
+	economy_comp = EconomyComponent.new()
+	economy_comp.name = "EconomyComponent"
+	add_child(economy_comp)
+
+	combat_comp = CombatComponent.new()
+	combat_comp.name = "CombatComponent"
+	add_child(combat_comp)
+
+	economy_comp.initialize(self, exp_bar, level_up_ui)
+	combat_comp.initialize(self)
+
+	if is_instance_valid(level_up_ui):
+		level_up_ui.upgrade_selected.connect(economy_comp.apply_upgrade)
 
 func _physics_process(delta: float) -> void:
-	var input_vector = Vector2.ZERO
-	if Input.is_key_pressed(KEY_D) or Input.is_action_pressed("ui_right"):
-		input_vector.x += 1
-	if Input.is_key_pressed(KEY_A) or Input.is_action_pressed("ui_left"):
-		input_vector.x -= 1
-	if Input.is_key_pressed(KEY_S) or Input.is_action_pressed("ui_down"):
-		input_vector.y += 1
-	if Input.is_key_pressed(KEY_W) or Input.is_action_pressed("ui_up"):
-		input_vector.y -= 1
+	if is_stunned:
+		linear_velocity = linear_velocity.move_toward(Vector2.ZERO, 50.0 * delta)
+		if stun_icon:
+			stun_icon.rotation += 5.0 * delta
+		return
 
-	input_vector = input_vector.normalized()
+	if _is_hook_held and active_springs.is_empty() and Global.grapple_hold_mode:
+		var aim_dir = Vector2.ZERO
+		if Global.right_joystick and Global.right_joystick.is_dragging:
+			aim_dir = Global.right_joystick.get_joystick_vector().normalized()
+		elif Global.left_joystick and Global.left_joystick.is_dragging:
+			aim_dir = Global.left_joystick.get_joystick_vector().normalized()
+		elif Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down").length() > 0:
+			aim_dir = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down").normalized()
+
+		if is_instance_valid(current_target_node):
+			_create_spring_joint(current_target_node)
+		elif aim_dir.length() > 0.1:
+			_try_attach_spring_dir(aim_dir)
+
+
+	var input_vector = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
+
+	if Global.left_joystick and Global.left_joystick.is_dragging:
+		var joy_vec = Global.left_joystick.get_joystick_vector()
+		if joy_vec.length() > 0.1:
+			input_vector = joy_vec
+
 	if input_vector.length() > 0:
 		apply_central_force(input_vector * move_force)
 
 	# Apply custom rope physics
 	for node in active_springs.keys():
 		if is_instance_valid(node):
-			var dist = global_position.distance_to(node.global_position)
-			if dist > ip_uzunlugu:
+			if node is GrappleNode and node.node_type == GrappleNode.NodeType.VORTEX:
+				# VORTEX: no dampening, continuous high pull
 				var pull_dir = global_position.direction_to(node.global_position)
-				# Spring force = k * x. 'stiffness' from node, default 20.
-				var stretch = dist - ip_uzunlugu
-				var force_mag = stretch * 20.0 * stiffness_multiplier
-				apply_central_force(pull_dir * force_mag)
+				apply_central_force(pull_dir * 10000.0) # High constant pull
+			else:
+				var dist = global_position.distance_to(node.global_position)
+				if dist > ip_uzunlugu:
+					var pull_dir = global_position.direction_to(node.global_position)
+					var stretch = dist - ip_uzunlugu
+
+					if node is GrappleNode and node.node_type == GrappleNode.NodeType.RIGID:
+						# RIGID: act like a steel rod
+						var node_stiffness = node.stiffness if node is GrappleNode else 20.0
+						var force_mag = stretch * node_stiffness * stiffness_multiplier
+						apply_central_force(pull_dir * force_mag)
+					else:
+						var node_stiffness = node.stiffness if node is GrappleNode else 20.0
+						var force_mag = stretch * node_stiffness * stiffness_multiplier
+						apply_central_force(pull_dir * force_mag)
+	
 	_update_ropes()
-	# Health Regen
-	if current_health < max_health and current_health > 0:
-		current_health += can_yenileme * delta
-		current_health = min(current_health, max_health)
-		if is_instance_valid(health_bar):
-			health_bar.value = current_health
+	combat_comp.process_combat(delta)
 
-
-	# Auto Shooting
-	shoot_timer += delta
-	if shoot_timer >= (1.0 / atis_hizi):
-		shoot_timer = 0.0
-		_shoot_closest_enemy()
-
+	# Omni-Input Gamepad Grapple Aim
+	if Global.current_input_type == Global.InputType.JOYPAD:
+		var aim_dir = Vector2(Input.get_joy_axis(0, JOY_AXIS_RIGHT_X), Input.get_joy_axis(0, JOY_AXIS_RIGHT_Y))
+		if aim_dir.length() > 0.2:
+			_try_attach_spring_dir(aim_dir.normalized())
+		else:
+			_release_slingshot() # Release if analog stick returns to center
 	_update_targeting()
-	_update_combo(delta)
+	# Update Orbitals Geometry
+	if orbitals.size() > 0:
+		var speed_factor = linear_velocity.length() / max_speed
+		var rot_speed = 2.0 + speed_factor * 8.0 # Faster when moving
+		orbital_angle_offset += rot_speed * delta
+
+		for i in range(orbitals.size()):
+			var angle = orbital_angle_offset + (i * 2.0 * PI / orbitals.size())
+			orbitals[i].global_position = global_position + Vector2(cos(angle), sin(angle)) * orbit_radius
+
 	queue_redraw()
 
-# Limit the maximum velocity safely through physics integration
 func _integrate_forces(state: PhysicsDirectBodyState2D) -> void:
 	if state.linear_velocity.length() > max_speed:
 		state.linear_velocity = state.linear_velocity.limit_length(max_speed)
 
+	# RIGID Logic execution in _integrate_forces for better physics stability
+	for node in active_springs.keys():
+		if is_instance_valid(node) and node is GrappleNode and node.node_type == GrappleNode.NodeType.RIGID:
+			var dist = global_position.distance_to(node.global_position)
+			if dist > ip_uzunlugu:
+				var pull_dir = global_position.direction_to(node.global_position)
+				# Cancel outward velocity (projection of velocity onto outward direction)
+				var outward_vel = state.linear_velocity.dot(-pull_dir)
+				if outward_vel > 0:
+					state.linear_velocity += pull_dir * outward_vel
+
 func _unhandled_input(event: InputEvent) -> void:
+	if is_stunned: return
+
 	if event is InputEventMouseButton:
-		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-			_try_attach_spring(get_global_mouse_position())
-		elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
-			_release_slingshot()
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			if event.pressed:
+				_is_hook_held = true
+				if not Global.grapple_hold_mode:
+					_try_attach_spring(get_global_mouse_position())
+			else:
+				_is_hook_held = false
+				if Global.grapple_hold_mode:
+					_release_slingshot()
 		elif event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:
-			if is_instance_valid(camera):
 				var new_zoom = clamp(camera.zoom.x + zoom_speed, min_zoom, max_zoom)
 				camera.zoom = Vector2(new_zoom, new_zoom)
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN and event.pressed:
@@ -160,26 +206,43 @@ func _unhandled_input(event: InputEvent) -> void:
 				var new_zoom = clamp(camera.zoom.x - zoom_speed, min_zoom, max_zoom)
 				camera.zoom = Vector2(new_zoom, new_zoom)
 
+
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_Q and Global.get("turret_unlocked"):
+			var turret = load("res://Turret.gd").new()
+			turret.global_position = global_position
+			get_tree().current_scene.add_child(turret)
+			Global.turret_unlocked = false # Consumed
+
+		elif event.keycode == KEY_E and Global.get("portable_magnet_unlocked"):
+			var magnet = load("res://PortableMagnet.gd").new()
+			get_tree().current_scene.add_child(magnet)
+			Global.portable_magnet_unlocked = false # Consumed
+
+		elif event.keycode == KEY_R and Global.get("poison_flask_unlocked"):
+			var flask = load("res://PoisonFlask.gd").new()
+			flask.global_position = global_position
+			flask.target_pos = get_global_mouse_position()
+			get_tree().current_scene.add_child(flask)
+			Global.poison_flask_unlocked = false # Consumed
 	if event is InputEventKey and event.keycode == KEY_SPACE and event.pressed:
 		if not event.echo:
 			_release_slingshot()
 
 func _try_attach_spring(click_pos: Vector2) -> void:
 	var space_state = get_world_2d().direct_space_state
-
 	var query = PhysicsShapeQueryParameters2D.new()
 	var circle_shape = CircleShape2D.new()
 	circle_shape.radius = grapple_radius
-
+	
 	query.shape = circle_shape
-	query.transform = global_transform # Shape centered on player
+	query.transform = global_transform
 	query.collide_with_bodies = true
-
+	
 	var results = space_state.intersect_shape(query)
-
 	var closest_node = null
 	var closest_dist = INF
-
+	
 	for hit in results:
 		var collider = hit["collider"]
 		if collider is GrappleNode:
@@ -187,26 +250,22 @@ func _try_attach_spring(click_pos: Vector2) -> void:
 			if dist_to_mouse < closest_dist:
 				closest_dist = dist_to_mouse
 				closest_node = collider
-
+	
 	if closest_node:
-		closest_node.modulate = Color(2.0, 2.0, 2.0) # Bright white
-		var dist_to_player = global_position.distance_to(closest_node.global_position)
-		if dist_to_player <= closest_node.max_rope_length:
-			_create_spring_joint(closest_node)
-		else:
-			_create_spring_joint(closest_node) # User requested auto-aim, we can probably attach even if slightly further, or just fallback to generic? Let's attach.
+		# Removed outside scale/modulate alteration
+		_create_spring_joint(closest_node)
 	else:
-		# Fallback to direct point query for static bodies (walls) if we didn't find any GrappleNodes
 		var pt_query = PhysicsPointQueryParameters2D.new()
 		pt_query.position = click_pos
 		pt_query.collide_with_bodies = true
-
+		
 		var pt_results = space_state.intersect_point(pt_query)
 		for hit in pt_results:
 			var collider = hit["collider"]
 			if collider is StaticBody2D or collider is AnimatableBody2D or (collider is RigidBody2D and collider.freeze):
 				_create_spring_joint(collider, 20.0)
 				break
+
 func _create_spring_joint(target_body: Node2D, override_stiffness: float = -1.0) -> void:
 	if not active_springs.has(target_body):
 		var line = Line2D.new()
@@ -214,8 +273,7 @@ func _create_spring_joint(target_body: Node2D, override_stiffness: float = -1.0)
 		line.default_color = Color.WHITE
 		get_tree().current_scene.add_child(line)
 		active_springs[target_body] = line
-
-		# Trigger effect if GrappleNode
+		
 		if target_body is GrappleNode:
 			if target_body.has_method("trigger_effect"):
 				target_body.trigger_effect(self)
@@ -234,7 +292,7 @@ func _update_ropes() -> void:
 				line.add_point(node.global_position)
 
 				var tension_ratio = min(1.0, stretch / max(1.0, ip_uzunlugu * 0.5))
-				line.default_color = Color.WHITE.lerp(Color.RED, tension_ratio)
+				line.default_color = Color(0, 1, 1, 0.8).lerp(Color(1, 0, 0.5, 0.8), tension_ratio) # Cyberpunk Neon Tension
 		else:
 			nodes_to_remove.append(node)
 
@@ -243,105 +301,29 @@ func _update_ropes() -> void:
 			if is_instance_valid(active_springs[n]):
 				active_springs[n].queue_free()
 			active_springs.erase(n)
+
 func _release_slingshot() -> void:
 	for node in active_springs:
 		if is_instance_valid(active_springs[node]):
 			active_springs[node].queue_free()
 	active_springs.clear()
-# Economy & Stats
+
+# Pass-through for signals / economy logic
 func add_exp(amount: float) -> void:
-	exp += amount
-	if is_instance_valid(exp_bar):
-		exp_bar.value = exp
-	while exp >= next_level_exp:
-		_level_up()
+	economy_comp.add_exp(amount)
 
 func add_gold(amount: float) -> void:
-	gold += amount
-	if is_instance_valid(balance_label):
-		balance_label.text = "Gold: " + str(gold)
+	economy_comp.add_gold(amount)
 
-func _level_up() -> void:
-	exp -= next_level_exp
-	level += 1
-	next_level_exp *= 1.5
-
-	if is_instance_valid(exp_bar):
-		exp_bar.max_value = next_level_exp
-		exp_bar.value = exp
-
-	if is_instance_valid(level_up_ui):
-		level_up_ui.show_upgrades()
-
-func _apply_upgrade(type: String) -> void:
-	match type:
-		"max_health":
-			max_health += 20.0
-			current_health += 20.0
-			if is_instance_valid(health_bar):
-				health_bar.max_value = max_health
-				health_bar.value = current_health
-
-		"regen":
-			can_yenileme += 0.5
-		"armor":
-			hasar_azaltma = min(hasar_azaltma + 0.05, 0.8) # Max 80%
-		"thorns":
-			dikenli_deri += 5.0
-		"dodge":
-			kacis_sansi = min(kacis_sansi + 0.05, 0.6) # Max 60%
-		"rope_len":
-			ip_uzunlugu += 100.0
-		"fire_rate":
-			atis_hizi += 0.5
-		"bullet_count":
-			mermi_sayisi += 1
-		"piercing":
-			delip_gecme += 1
-		"damage":
-			mermi_hasari += 10.0
-		# Fallbacks for old upgrades just in case
-		"mass":
-			mass_multiplier += 0.5
-			mass = 1.0 * mass_multiplier
-		"stiffness":
-			stiffness_multiplier += 0.5
-
-# Combat
+# Pass-through for combat
 func take_damage(amount: float) -> void:
-	if randf() < kacis_sansi:
-		# Dodged!
-		_show_floating_text("Dodge!", Color.AQUA)
-		return
-
-	var actual_damage = amount * (1.0 - hasar_azaltma)
-	current_health -= actual_damage
-
-	if is_instance_valid(health_bar):
-		health_bar.value = current_health
-
-
-	if current_health <= 0:
-		print("Player died!")
-
-func _show_floating_text(text_str: String, color: Color) -> void:
-	var label = Label.new()
-	label.text = text_str
-	label.modulate = color
-	var scene_root = get_tree().current_scene
-	scene_root.add_child(label)
-	label.global_position = global_position + Vector2(randf_range(-20, 20), -30)
-	var tween = label.create_tween()
-	tween.tween_property(label, "global_position", label.global_position + Vector2(0, -50), 1.0).set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
-	tween.parallel().tween_property(label, "modulate:a", 0.0, 1.0)
-	tween.tween_callback(label.queue_free)
+	combat_comp.take_damage(amount)
 
 func bounce_back(dir: Vector2, force: float) -> void:
 	linear_velocity = Vector2.ZERO
 	apply_central_impulse(dir * force)
 
 func _draw() -> void:
-	# Draw dashed circle for grapple radius
 	var points = 64
 	var dash_length = 10.0
 	var space_length = 10.0
@@ -349,24 +331,114 @@ func _draw() -> void:
 	var total_circumference = 2.0 * PI * grapple_radius
 	var num_segments = int(total_circumference / (dash_length + space_length))
 	var angle_step = (2.0 * PI) / num_segments
-
+	
 	for i in range(num_segments):
 		var start_angle = current_angle
 		var end_angle = current_angle + (dash_length / total_circumference) * 2.0 * PI
-
-		# Local coords since draw is local
 		var p1 = Vector2(cos(start_angle), sin(start_angle)) * grapple_radius
 		var p2 = Vector2(cos(end_angle), sin(end_angle)) * grapple_radius
-
 		draw_line(p1, p2, Color(1, 1, 1, 0.5), 2.0)
-
 		current_angle += angle_step
-
 
 func _update_targeting() -> void:
 	var mouse_pos = get_global_mouse_position()
 	var space_state = get_world_2d().direct_space_state
+	
+	var query = PhysicsShapeQueryParameters2D.new()
+	var circle_shape = CircleShape2D.new()
+	circle_shape.radius = grapple_radius # 600 birimlik menzil
+	query.shape = circle_shape
+	query.transform = global_transform
+	query.collide_with_bodies = true
+	
+	var results = space_state.intersect_shape(query)
+	var closest_node = null
+	var closest_dist = INF
+	
+	for hit in results:
+		var collider = hit["collider"]
+		if collider is GrappleNode:
+			var dist_to_mouse = collider.global_position.distance_to(mouse_pos)
+			if dist_to_mouse < closest_dist:
+				closest_dist = dist_to_mouse
+				closest_node = collider
+				
+	# HEDEF DEĞİŞTİĞİNDE GÖRSEL EFEKTİ YÖNET
+	if current_target_node != closest_node:
+		# 1. Eski hedefin büyümesini geri al
+		if is_instance_valid(current_target_node):
+			# Eğer düğümün kendi original_scale değişkeni varsa onu kullan, yoksa 1.0 yap
+			var old_scale = current_target_node.get("original_scale") if current_target_node.has_method("get") and current_target_node.get("original_scale") != null else Vector2.ONE
+			current_target_node.scale = old_scale
+			current_target_node.modulate.v = 1.0 # Parlaklığı normale döndür
 
+		current_target_node = closest_node # Yeni hedefi kaydet
+
+		# 2. Yeni hedefi büyüt ve parlat
+		if is_instance_valid(current_target_node):
+			var new_scale = current_target_node.get("original_scale") if current_target_node.has_method("get") and current_target_node.get("original_scale") != null else Vector2.ONE
+			current_target_node.scale = new_scale * 1.3 # %30 büyüt
+			current_target_node.modulate.v = 1.5 # Daha parlak yap (HDR/Glow efekti için)
+
+func apply_stun(duration: float) -> void:
+	if is_stunned: return
+	is_stunned = true
+	_release_slingshot()
+
+	# Create visual stun effect
+	stun_icon = Sprite2D.new()
+	# Fallback to godot icon if no special stun icon exists
+	stun_icon.texture = load("res://icon.svg")
+	stun_icon.scale = Vector2(0.3, 0.3)
+	stun_icon.modulate = Color(1.0, 1.0, 0.0, 0.8)
+	stun_icon.position = Vector2(0, -60)
+	add_child(stun_icon)
+
+	await get_tree().create_timer(duration).timeout
+	is_stunned = false
+	if is_instance_valid(stun_icon):
+		stun_icon.queue_free()
+
+func _create_orbitals() -> void:
+	for i in range(orbit_count):
+		var orb = Area2D.new()
+		var col = CollisionShape2D.new()
+		var shape = CircleShape2D.new()
+		shape.radius = 15.0
+		col.shape = shape
+		orb.add_child(col)
+
+		var mesh = MeshInstance2D.new()
+		var quad = QuadMesh.new()
+		quad.size = Vector2(20, 20)
+		mesh.mesh = quad
+		mesh.modulate = Color(0.0, 1.0, 1.0, 0.8) # Cyan Neon
+		orb.add_child(mesh)
+
+		orb.area_entered.connect(self._on_orbital_hit.bind(orb))
+		get_tree().current_scene.call_deferred("add_child", orb)
+		orbitals.append(orb)
+
+func _on_orbital_hit(area: Area2D, orb: Area2D) -> void:
+	if area is Enemy:
+		area._take_damage(combat_comp.mermi_hasari * 2.0)
+
+		# Juice: Sparks
+		var sparks = CPUParticles2D.new()
+		sparks.emitting = false
+		sparks.one_shot = true
+		sparks.lifetime = 0.3
+		sparks.spread = 180.0
+		sparks.initial_velocity_min = 100.0
+		sparks.initial_velocity_max = 200.0
+		sparks.color = Color.CYAN
+		get_tree().current_scene.add_child(sparks)
+		sparks.global_position = orb.global_position
+		sparks.emitting = true
+
+func _try_attach_spring_dir(dir: Vector2) -> void:
+	var target_pos = global_position + dir * grapple_radius
+	var space_state = get_world_2d().direct_space_state
 	var query = PhysicsShapeQueryParameters2D.new()
 	var circle_shape = CircleShape2D.new()
 	circle_shape.radius = grapple_radius
@@ -376,88 +448,18 @@ func _update_targeting() -> void:
 	query.collide_with_bodies = true
 
 	var results = space_state.intersect_shape(query)
-
 	var closest_node = null
-	var closest_dist = INF
+	var closest_angle_diff = INF
 
 	for hit in results:
 		var collider = hit["collider"]
 		if collider is GrappleNode:
-			var dist_to_mouse = collider.global_position.distance_to(mouse_pos)
-			if dist_to_mouse < closest_dist:
-				closest_dist = dist_to_mouse
+			var node_dir = global_position.direction_to(collider.global_position)
+			var angle_diff = abs(dir.angle_to(node_dir))
+			# If within 45 degrees of aiming stick
+			if angle_diff < deg_to_rad(45.0) and angle_diff < closest_angle_diff:
+				closest_angle_diff = angle_diff
 				closest_node = collider
 
-	if current_target_node != closest_node:
-		if is_instance_valid(current_target_node):
-			current_target_node.modulate = Color.WHITE
-			current_target_node.scale = Vector2.ONE
-
-		current_target_node = closest_node
-
-		if is_instance_valid(current_target_node):
-			current_target_node.modulate = Color(1.0, 1.0, 0.0) # Yellow
-			current_target_node.scale = Vector2(1.2, 1.2)
-
-func _update_combo(delta: float) -> void:
-	var speed = linear_velocity.length()
-	if speed > combo_speed_threshold:
-		combo_timer += delta
-		if combo_timer >= 0.5:
-			combo_timer -= 0.5
-			combo_multiplier += 1
-			_animate_combo_label()
-	elif speed < combo_drop_threshold:
-		if combo_multiplier > 1:
-			combo_multiplier = 1
-			combo_timer = 0.0
-			_animate_combo_label()
-
-func _animate_combo_label() -> void:
-	if not is_instance_valid(combo_label):
-		return
-
-	if combo_multiplier > 1:
-		combo_label.text = "x" + str(combo_multiplier)
-		combo_label.visible = true
-	else:
-		combo_label.text = ""
-		combo_label.visible = false
-		return
-
-	var tween = create_tween()
-	combo_label.scale = Vector2(1.5, 1.5)
-	tween.tween_property(combo_label, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
-
-func _shoot_closest_enemy() -> void:
-	if not bullet_scene:
-		return
-
-	var enemies = get_tree().get_nodes_in_group("enemies") # Wait, we don't have enemies group. We can find by class.
-	var closest_enemy = null
-	var closest_dist = INF
-	var scene_root = get_tree().current_scene
-
-	for child in scene_root.get_children():
-		if child is Enemy:
-			var dist = global_position.distance_to(child.global_position)
-			if dist < 1500.0: # Range limit
-				if dist < closest_dist:
-					closest_dist = dist
-					closest_enemy = child
-
-	if closest_enemy:
-		var base_dir = global_position.direction_to(closest_enemy.global_position)
-		var spread_angle = deg_to_rad(15.0)
-
-		var start_angle = -spread_angle * (mermi_sayisi - 1) / 2.0
-		for i in range(mermi_sayisi):
-			var current_angle = start_angle + (spread_angle * i if mermi_sayisi > 1 else 0.0)
-			var final_dir = base_dir.rotated(current_angle)
-
-			var bullet = bullet_scene.instantiate() as Bullet
-			bullet.global_position = global_position
-			bullet.direction = final_dir
-			bullet.damage = mermi_hasari * combo_multiplier # Apply combo to bullet!
-			bullet.pierce_count = delip_gecme
-			scene_root.add_child(bullet)
+	if closest_node:
+		_create_spring_joint(closest_node)
