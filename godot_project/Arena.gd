@@ -690,7 +690,9 @@ func _unhandled_input(event: InputEvent) -> void:
 				if is_instance_valid(r) and r.player == player_node: # Inside redzone
 					r.capture_time = r.capture_target
 					r.defense_time = 0.0 # Clear defense time immediately so no countdown starts
+					r.healing_time = 0.0 # Skip healing phase to unlock vending machine instantly
 					r.captured = true
+					r.is_healing = true # Force into healing loop which immediately completes next frame
 					if is_instance_valid(r.visual):
 						r.visual.color = Color("00ff004d")
 					if is_instance_valid(r.vending_machine):

@@ -9,6 +9,8 @@ var captured: bool = false
 var capture_time: float = 0.0
 var capture_target: float = 10.0
 var defense_time: float = 10.0
+var healing_time: float = 10.0
+var is_healing: bool = false
 var last_spawn_percent: float = 0.0
 var is_used: bool = false
 var original_speed: float = 0.0
@@ -62,6 +64,18 @@ func _process(delta: float) -> void:
 	if get_tree().paused: return
 	if is_used: return
 
+	if is_healing:
+		healing_time -= delta
+		if is_instance_valid(player):
+			player.current_health = min(player.max_health, player.current_health + player.max_health * 0.05 * delta)
+
+		if healing_time <= 0:
+			if is_instance_valid(vending_machine):
+				vending_machine.activate_green()
+			is_used = true
+			is_healing = false
+		return
+
 	if captured:
 		defense_time -= delta
 		if defense_time > 0:
@@ -76,13 +90,11 @@ func _process(delta: float) -> void:
 
 		if defense_time <= 0:
 			countdown_label.hide()
-			_trigger_emp()
-
+			_remove_debuff()
 			# Mutlak Matrix Renk Dönüşümleri
 			visual.color = Color("00ff004d")
-			if is_instance_valid(vending_machine):
-				vending_machine.activate_green()
-			is_used = true
+
+			is_healing = true
 		return
 
 	if is_instance_valid(player):

@@ -71,6 +71,9 @@ var upgrade_levels = {
 	"poison_flask_unlock": 0
 }
 
+var gacha_levels = {}
+
+
 func get_upgrade_cost(type: String) -> int:
 	var base_costs = {"health": 100, "damage": 150, "magnet": 200, "speed": 120, "shield": 500, "orbital": 300, "clock": 1000, "particle_chance": 300, "particle_amount": 500, "turret_unlock": 2500, "portable_magnet_unlock": 3000, "poison_flask_unlock": 3500}
 	return int(base_costs[type] * pow(1.5, upgrade_levels[type]))
@@ -94,6 +97,7 @@ func save_game() -> void:
 	config.set_value("Stats", "portable_magnet_unlocked", portable_magnet_unlocked)
 	config.set_value("Stats", "poison_flask_unlocked", poison_flask_unlocked)
 	config.set_value("Stats", "upgrade_levels", upgrade_levels)
+	config.set_value("Stats", "gacha_levels", gacha_levels)
 	config.set_value("Settings", "control_mode", settings_control_mode)
 	config.set_value("Settings", "use_manual_aim_joystick", use_manual_aim_joystick)
 	config.set_value("Settings", "grapple_hold_mode", grapple_hold_mode)
@@ -117,6 +121,7 @@ func load_game() -> void:
 		portable_magnet_unlocked = config.get_value("Stats", "portable_magnet_unlocked", false)
 		poison_flask_unlocked = config.get_value("Stats", "poison_flask_unlocked", false)
 		upgrade_levels = config.get_value("Stats", "upgrade_levels", {"health": 0, "damage": 0, "magnet": 0, "speed": 0, "shield": 0, "orbital": 0, "clock": 0})
+		gacha_levels = config.get_value("Stats", "gacha_levels", {})
 		settings_control_mode = config.get_value("Settings", "control_mode", ControlMode.AUTO)
 		use_manual_aim_joystick = config.get_value("Settings", "use_manual_aim_joystick", true)
 		grapple_hold_mode = config.get_value("Settings", "grapple_hold_mode", true)

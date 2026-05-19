@@ -37,6 +37,7 @@ var spin_step_timer: float = 0.0
 var current_index: int = 0
 var target_index: int = 0
 var roll_count: int = 0
+var locked_grid: GridContainer
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS # Donma hissi icin pause=true altinda calis
@@ -75,11 +76,12 @@ func _ready() -> void:
 func _on_spin() -> void:
 	if is_spinning: return
 	is_spinning = true
+	locked_grid = grid
 
 	# Sadece havuzda kalan (level < 20) esyalari bulalim
 	var active_items = []
-	for i in range(grid.get_child_count()):
-		var p = grid.get_child(i)
+	for i in range(locked_grid.get_child_count()):
+		var p = locked_grid.get_child(i)
 		if p.get_meta("level") < 20:
 			active_items.append(i)
 
@@ -135,45 +137,52 @@ func _process(delta: float) -> void:
 	if spin_step_timer >= spin_delay:
 		spin_step_timer = 0.0
 
-		if current_index < grid.get_child_count():
-			grid.get_child(current_index).modulate = Color.WHITE
-			grid.get_child(current_index).scale = Vector2.ONE
+		if current_index < locked_grid.get_child_count():
+			locked_grid.get_child(current_index).modulate = Color.WHITE
+			locked_grid.get_child(current_index).scale = Vector2.ONE
 
-		current_index = (current_index + 1) % grid.get_child_count()
+		current_index = (current_index + 1) % locked_grid.get_child_count()
 
 		if t > 0.8:
-			grid.get_child(current_index).modulate = Color(1.0, 0.0, 1.0) # Sinsi neon mor!
+			locked_grid.get_child(current_index).modulate = Color(1.0, 0.0, 1.0) # Sinsi neon mor!
 		else:
-			grid.get_child(current_index).modulate = Color(1.5, 1.5, 0.0) # Intense Yellow/Gold
+			locked_grid.get_child(current_index).modulate = Color(1.5, 1.5, 0.0) # Intense Yellow/Gold
 
-		grid.get_child(current_index).scale = Vector2(1.1, 1.1)
+		locked_grid.get_child(current_index).scale = Vector2(1.1, 1.1)
 
 	if spin_time_elapsed >= 5.0:
 		is_spinning = false
 
 		# Gorseli hedefe kilitle
-		if current_index < grid.get_child_count():
-			grid.get_child(current_index).modulate = Color.WHITE
-			grid.get_child(current_index).scale = Vector2.ONE
+		if current_index < locked_grid.get_child_count():
+			locked_grid.get_child(current_index).modulate = Color.WHITE
+			locked_grid.get_child(current_index).scale = Vector2.ONE
 
 		current_index = target_index
 
 		_award_item(target_index)
-
 func _award_item(idx: int) -> void:
-	var p = grid.get_child(idx)
+	var p = locked_grid.get_child(idx)
 	var cat = p.get_meta("category")
 	var item_idx = p.get_meta("item_index")
-	var lvl = p.get_meta("level") + 1
+
+	var item_name = items[cat][item_idx]["name"]
+	var lvl = Global.gacha_levels[item_name] + 1
+	Global.gacha_levels[item_name] = lvl
+	Global.save_game()
+
 	p.set_meta("level", lvl)
 
 	var l = p.get_child(0) as Label
-	l.text = items[cat][item_idx]["name"] + "\nTier " + str(items[cat][item_idx]["tier"]) + "\nLvl " + str(lvl) + "/20"
+	l.text = item_name + "
+Tier " + str(items[cat][item_idx]["tier"]) + "
+Lvl " + str(lvl) + "/20"
 
 	# MAX Seviyeye ulastiysa karart
 	if lvl >= 20:
 		p.modulate = Color(0.3, 0.3, 0.3)
-		l.text += "\n(MAXED)"
+		l.text += "
+(MAXED)"
 
 	# Global Pasif Enjeksiyonlari (10. ve 20. seviyelerde)
 	if lvl == 10:
@@ -213,16 +222,28 @@ func _populate_tab(tab_node: Node, category: String) -> void:
 	var cat_items = items[category]
 	for i in range(cat_items.size()):
 		var item = cat_items[i]
+		var item_name = item["name"]
+		if not Global.gacha_levels.has(item_name):
+			Global.gacha_levels[item_name] = 0
+		var current_lvl = Global.gacha_levels[item_name]
+
 		var panel_container = PanelContainer.new()
 		panel_container.custom_minimum_size = Vector2(180, 120)
 		panel_container.set_meta("category", category)
 		panel_container.set_meta("item_index", i)
-		panel_container.set_meta("level", 0)
+		panel_container.set_meta("level", current_lvl)
 
 		var label = Label.new()
-		label.text = item["name"] + "\nTier " + str(item["tier"]) + "\nLvl 0/20"
+		label.text = item_name + "
+Tier " + str(item["tier"]) + "
+Lvl " + str(current_lvl) + "/20"
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		panel_container.add_child(label)
+
+		if current_lvl >= 20:
+			panel_container.modulate = Color(0.3, 0.3, 0.3)
+			label.text += "
+(MAXED)"
 
 		grid_container.add_child(panel_container)
