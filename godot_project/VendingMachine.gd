@@ -33,6 +33,8 @@ func set_captured() -> void:
 	visual.color = Color(0.8, 0.8, 0.8) # Temiz beyaz eşya
 
 func _on_body_entered(body: Node2D) -> void:
+	if not is_captured:
+		return
 	if body.name == "Player" and interact_cooldown <= 0:
 		get_tree().paused = true
 		_open_gacha_shop()

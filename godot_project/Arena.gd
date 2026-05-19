@@ -657,3 +657,22 @@ func _setup_map_variation() -> void:
 	var tw = create_tween()
 	tw.tween_property(label, "modulate:a", 0.0, 5.0).set_trans(Tween.TRANS_EXPO)
 	tw.tween_callback(label.queue_free)
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.keycode == KEY_1 and event.pressed and not event.echo:
+		if is_instance_valid(player_node):
+			if player_node.has_node("EconomyComponent"):
+				var eco = player_node.get_node("EconomyComponent")
+				eco.add_gold(1000)
+			Global.dongu_parcaciklari += 1000
+			if "otomat_parasi" in Global:
+				Global.otomat_parasi += 1000
+
+			var redzones = get_tree().get_nodes_in_group("redzones")
+			for r in redzones:
+				if is_instance_valid(r) and r.player == player_node: # Inside redzone
+					r.capture_time = r.capture_target
+					r.captured = true
+					if is_instance_valid(r.visual):
+						r.visual.color = Color(0.0, 1.0, 0.0, 0.2)
+					if is_instance_valid(r.vending_machine):
+						r.vending_machine.set_captured()
