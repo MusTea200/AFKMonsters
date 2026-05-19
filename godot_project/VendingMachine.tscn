@@ -1,18 +1,18 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=3 uid="uid://bwlyuhn78snxl"]
 
-[ext_resource type="Script" path="res://VendingMachine.gd" id="1_vend"]
+[ext_resource type="Script" uid="uid://b7q534kq8w2te" path="res://VendingMachine.gd" id="1_vend"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_vend"]
 radius = 80.0
 
-[node name="VendingMachine" type="Area2D"]
+[node name="VendingMachine" type="Area2D" unique_id=2053254092]
 script = ExtResource("1_vend")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=532191123]
 shape = SubResource("CircleShape2D_vend")
 
-[node name="Visual" type="Polygon2D" parent="."]
+[node name="Visual" type="Polygon2D" parent="." unique_id=1458768393]
 color = Color(1, 0.2, 0.2, 1)
 polygon = PackedVector2Array(-30, -50, 30, -50, 30, 50, -30, 50)
 
-[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="." unique_id=1632534042]
