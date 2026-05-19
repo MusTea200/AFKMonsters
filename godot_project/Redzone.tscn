@@ -1,7 +1,8 @@
-[gd_scene format=3 uid="uid://iyhghdvuderj"]
+[gd_scene format=3 uid="uid://qmgbbqbmpdgy"]
 
-[ext_resource type="Script" path="res://Redzone.gd" id="res://Redzone.gd"]
-[ext_resource type="PackedScene" path="res://VendingMachine.tscn" id="2_vending"]
+[ext_resource type="PackedScene" uid="uid://bwlyuhn78snxl" path="res://VendingMachine.tscn" id="2_vending"]
+[ext_resource type="Script" uid="uid://wd1lpumebmju" path="res://Redzone.gd" id="res://Redzone.gd"]
+
 [sub_resource type="CircleShape2D" id="CircleShape2D_mxqyh"]
 
 [node name="Redzone" type="Area2D" unique_id=1267312441]
@@ -12,18 +13,18 @@ scale = Vector2(50, 50)
 shape = SubResource("CircleShape2D_mxqyh")
 
 [node name="ZoneVisual" type="Polygon2D" parent="." unique_id=1692134813]
+scale = Vector2(50, 50)
 color = Color(1, 0, 0, 0.3)
 polygon = PackedVector2Array(0, -10, -5, -9, -9, -5, -10, 0, -9, 5, -5, 9, 0, 10, 5, 9, 9, 5, 10, 0, 9, -5, 5, -9)
 
-
-[node name="ProgressBar" type="ProgressBar" parent="."]
+[node name="ProgressBar" type="ProgressBar" parent="." unique_id=1307617161]
 custom_minimum_size = Vector2(200, 20)
 offset_left = -100.0
 offset_top = -350.0
 offset_right = 100.0
 offset_bottom = -330.0
 
-[node name="CountdownLabel" type="Label" parent="."]
+[node name="CountdownLabel" type="Label" parent="." unique_id=174355814]
 offset_left = -50.0
 offset_top = -100.0
 offset_right = 50.0
@@ -31,6 +32,6 @@ offset_bottom = -36.0
 theme_override_font_sizes/font_size = 64
 horizontal_alignment = 1
 
-[node name="VendingMachine" parent="." instance=ExtResource("2_vending")]
+[node name="VendingMachine" parent="." unique_id=1014674215 instance=ExtResource("2_vending")]
 
 [node name="Timer" type="Timer" parent="." unique_id=1632979599]
