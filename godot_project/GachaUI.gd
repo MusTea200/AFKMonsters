@@ -167,3 +167,34 @@ func _award_item(idx: int) -> void:
 	tw.tween_property(p, "scale", Vector2(1.5, 1.5), 0.2).set_trans(Tween.TRANS_BOUNCE)
 	tw.tween_property(p, "scale", Vector2.ONE, 0.3)
 	p.modulate = Color.GREEN # Gecici Yesil
+
+func _populate_tab(tab_node: Node, category: String) -> void:
+	# Tab içindeki gerçek GridContainer'ı bulalım
+	var tab_grid = tab_node.get_node("GridContainer") as GridContainer
+	if not tab_grid: return
+	
+	# Eski paneller kalmışsa temizleyelim
+	for child in tab_grid.get_children():
+		child.queue_free()
+		
+	# Kategorideki eşyaları tek tek Grid içine basalım
+	for i in range(items[category].size()):
+		var item_data = items[category][i]
+		
+		# Her eşya için siber bir Panel oluşturalım
+		var panel = PanelContainer.new()
+		panel.custom_minimum_size = Vector2(180, 120)
+		
+		# Jules'ün yukarda aradığı tüm kritik meta verileri (meta-data) düğüme enjekte edelim
+		panel.set_meta("category", category)
+		panel.set_meta("item_index", i)
+		panel.set_meta("level", 0) # Başlangıç seviyesi 0
+		
+		# Panel içine metin etiketi
+		var label = Label.new()
+		label.text = item_data["name"] + "\nTier " + str(item_data["tier"]) + "\nLvl 0/20"
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		
+		panel.add_child(label)
+		tab_grid.add_child(panel)

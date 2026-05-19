@@ -52,27 +52,29 @@ current_tab = 0
 layout_mode = 2
 metadata/_tab_index = 0
 
-[node name="Pets" type="ScrollContainer" parent="PanelContainer/VBoxContainer/TabContainer"]
+[node name="GridContainer" type="GridContainer" parent="PanelContainer/VBoxContainer/TabContainer/Weapons" unique_id=179590558]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+columns = 4
+
+[node name="Pets" type="ScrollContainer" parent="PanelContainer/VBoxContainer/TabContainer" unique_id=1759358398]
+visible = false
 layout_mode = 2
 metadata/_tab_index = 1
 
-[node name="GridContainer" type="GridContainer" parent="PanelContainer/VBoxContainer/TabContainer/Pets"]
+[node name="GridContainer" type="GridContainer" parent="PanelContainer/VBoxContainer/TabContainer/Pets" unique_id=784651516]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 columns = 4
 
-[node name="Costumes" type="ScrollContainer" parent="PanelContainer/VBoxContainer/TabContainer"]
+[node name="Costumes" type="ScrollContainer" parent="PanelContainer/VBoxContainer/TabContainer" unique_id=525898482]
+visible = false
 layout_mode = 2
 metadata/_tab_index = 2
 
-[node name="GridContainer" type="GridContainer" parent="PanelContainer/VBoxContainer/TabContainer/Costumes"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-columns = 4
-
-[node name="GridContainer" type="GridContainer" parent="PanelContainer/VBoxContainer/TabContainer/Weapons" unique_id=179590558]
+[node name="GridContainer" type="GridContainer" parent="PanelContainer/VBoxContainer/TabContainer/Costumes" unique_id=632495055]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
