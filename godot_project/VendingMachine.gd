@@ -6,10 +6,9 @@ var visual: Polygon2D
 var interact_cooldown: float = 0.0
 
 func _ready() -> void:
-
 	visual = $Visual
 	audio = $AudioStreamPlayer2D
-
+	visual.color = Color("ff3333")
 
 	var timer = Timer.new()
 	timer.wait_time = 2.0
@@ -30,7 +29,7 @@ func _process(delta: float) -> void:
 
 func set_captured() -> void:
 	is_captured = true
-	visual.color = Color("#00ff33")
+	visual.color = Color("00ff33")
 
 func _on_body_entered(body: Node2D) -> void:
 	if not is_captured:
@@ -49,9 +48,9 @@ func _open_gacha_shop() -> void:
 
 	gacha.tree_exited.connect(func():
 		is_captured = false
-		visual.color = Color("#7c7c7c")
+		visual.color = Color("7c7c7c")
 	)
 
 func activate_green() -> void:
 	is_captured = true
-	visual.color = Color("#00ff33")
+	visual.color = Color("00ff33")

@@ -98,3 +98,8 @@ Bu ödül `EconomyComponent.gd` üzerinden `Global.dongu_parcaciklari` bakiyesin
 ### Güvenlik ve performans adına yaptıkları
 - `_process` üzerinde yorucu olan düğüm yaratma işlemleri ve döngüler, yalnızca yüzde kontrolü her %10'luk eşiği geçtiğinde bir defaya mahsus çalışacak şekilde sınırlanarak performans korundu.
 - Yaratılan şok dalgası `Polygon2D` düğümü, Tween bitiminde belleği işgal etmemesi adına doğrudan `queue_free()` fonksiyonuna (`tween_callback` aracılığıyla) bağlandı.
+
+### Mimari Değişim: Editör Odaklı (UI) Kodlama (@onready)
+- Daha öncesinde `Redzone.gd` dosyasının içerisinde `.new()` ile oluşturulan `Polygon2D`, `ProgressBar`, `Label` ve `VendingMachine` nesneleri tamamen kod içerisinden temizlenerek silinmiştir.
+- Bunun yerine bu düğümlerin oyuncunun sahnede (`Redzone.tscn`) editör üzerinden yerleştirileceği varsayılarak tüm nesneler `@onready` ile bağlanmıştır.
+- **Neden Yapıldı?:** Kod ile arayüz oluşturmak, arayüzün (UI) sahne görünümünde görünmez olmasına, görsel hizalama sorunlarına ve her seferinde kod içindeki koordinatların körlemesine denenmesine sebep oluyordu. Düğümleri editöre taşıyıp sadece lojiği koda bağlamak (örneğin `$ProgressBar` referansı) tasarım özgürlüğünü ve görsel geri bildirimi (UX tweaking) büyük oranda artırmıştır.

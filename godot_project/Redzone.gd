@@ -9,75 +9,26 @@ var captured: bool = false
 var capture_time: float = 0.0
 var capture_target: float = 10.0
 var defense_time: float = 10.0
-var vending_machine: Node2D
-var progress_bar: ProgressBar
-var countdown_label: Label
 var last_spawn_percent: float = 0.0
 var is_used: bool = false
-
-
 var original_speed: float = 0.0
 var original_regen: float = 0.0
 
-var visual: Polygon2D
+@onready var visual = $ZoneVisual
+@onready var progress_bar = $ProgressBar
+@onready var countdown_label = $CountdownLabel
+@onready var vending_machine = $VendingMachine
+
 
 func _ready() -> void:
 	add_to_group("redzones")
 
-	# Circular neon visuals using custom drawing
-	var poly = Polygon2D.new()
-	var points = PackedVector2Array()
-	var radius = 300.0
-	for i in range(64):
-		var angle = (i / 64.0) * TAU
-		points.append(Vector2(cos(angle), sin(angle)) * radius)
-	poly.polygon = points
-	poly.color = Color(1.0, 0.0, 0.0, 0.2)
-
-	# Create a visual node to override _draw
-	var visual_node = Control.new()
-	visual_node.name = "Visual"
-	visual_node.set_script(load("res://RedzoneVisual.gd"))
-	visual_node.set("radius", radius)
-
-	add_child(poly)
-	add_child(visual_node)
-	self.visual = poly # keep reference
-	visual.texture = load("res://icon.svg")
-	visual.modulate = Color(1.0, 0.0, 0.0, 0.3)
-
-
-
-	progress_bar = ProgressBar.new()
-	progress_bar.max_value = 100.0
-	progress_bar.custom_minimum_size = Vector2(200, 20)
-	progress_bar.position = Vector2(-100, -350)
 	progress_bar.hide()
-
-	# To make progress bar look cyberpunk
-	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.2, 0.2, 0.2, 0.8)
-	var sbf = StyleBoxFlat.new()
-	sbf.bg_color = Color(1.0, 0.0, 0.0)
-	progress_bar.add_theme_stylebox_override("background", sb)
-	progress_bar.add_theme_stylebox_override("fill", sbf)
-	add_child(progress_bar)
-
-	countdown_label = Label.new()
-	countdown_label.add_theme_font_size_override("font_size", 64)
-	countdown_label.set_anchors_preset(Control.PRESET_CENTER)
-	countdown_label.position = Vector2(-50, -100) # Local center rough
 	countdown_label.hide()
-	add_child(countdown_label)
+	visual.color = Color("ff00004d")
 
-	area_entered.connect(_on_area_entered)
-
-	# Vending Machine Ekle
-	var vending = load("res://VendingMachine.tscn").instantiate()
-	vending.position = Vector2.ZERO # Sahne agaci altinda 0,0 a koy
-	call_deferred("add_child", vending)
-	vending_machine = vending
-	area_exited.connect(_on_area_exited)
+	body_entered.connect(_on_body_entered)
+	body_exited.connect(_on_body_exited)
 
 func _process(delta: float) -> void:
 	if is_used: return
@@ -99,7 +50,7 @@ func _process(delta: float) -> void:
 			_trigger_emp()
 
 			# Mutlak Matrix Renk Dönüşümleri
-			visual.color = Color("#00ff004d")
+			visual.color = Color("00ff004d")
 			if is_instance_valid(vending_machine):
 				vending_machine.activate_green()
 			is_used = true
@@ -133,27 +84,18 @@ func _process(delta: float) -> void:
 		visual.modulate.a = max(0.3, visual.modulate.a - delta * 0.2)
 		inside_time = max(0.0, inside_time - delta * 2.0)
 
-func _on_area_entered(area: Area2D) -> void:
-	if area.name == "Player" or (area.get_parent() and area.get_parent().name == "Player"):
-		var p = area if area.name == "Player" else area.get_parent()
-		if p.has_method("get"):
-			if "active_redzone_count" in p:
-				p.active_redzone_count += 1
-	if area is Enemy: return
-	if area.name == "Player" or area.get_parent().name == "Player":
-		player = area if area.name == "Player" else area.get_parent()
+func _on_body_entered(body: Node2D) -> void:
+	if body.name == "Player":
+		player = body
+		if body.has_method("get") and "active_redzone_count" in body:
+			body.active_redzone_count += 1
 
-func _on_area_exited(area: Area2D) -> void:
-	if area.name == "Player" or (area.get_parent() and area.get_parent().name == "Player"):
-		var p = area if area.name == "Player" else area.get_parent()
-		if p.has_method("get"):
-			if "active_redzone_count" in p:
-				p.active_redzone_count -= 1
-				if p.active_redzone_count < 0: p.active_redzone_count = 0
-	if area is Enemy: return
-	if area.name == "Player" or area.get_parent().name == "Player":
+func _on_body_exited(body: Node2D) -> void:
+	if body.name == "Player":
 		player = null
-		# Çıkınca sürenin 1/3'ü kadar debuff devam eder
+		if body.has_method("get") and "active_redzone_count" in body:
+			body.active_redzone_count -= 1
+			if body.active_redzone_count < 0: body.active_redzone_count = 0
 		debuff_timer = inside_time / 3.0
 
 func _apply_debuff() -> void:
@@ -203,7 +145,7 @@ func _trigger_emp() -> void:
 	for enemy in enemies:
 		if is_instance_valid(enemy) and global_position.distance_to(enemy.global_position) < 1500.0:
 			if enemy.has_method("_take_damage"): enemy._take_damage(99999.0)
-	queue_free()
+
 func _remove_debuff() -> void:
 	var p = get_tree().current_scene.find_child("Player", true, false)
 	if is_instance_valid(p) and p.get("active_redzone_count") != null and p.active_redzone_count > 0:
