@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://iyhghdvuderj"]
 
 [ext_resource type="Script" path="res://Redzone.gd" id="res://Redzone.gd"]
+[ext_resource type="PackedScene" path="res://VendingMachine.tscn" id="2_vending"]
 [sub_resource type="CircleShape2D" id="CircleShape2D_mxqyh"]
 
 [node name="Redzone" type="Area2D" unique_id=1267312441]
@@ -10,8 +11,26 @@ script = ExtResource("res://Redzone.gd")
 scale = Vector2(50, 50)
 shape = SubResource("CircleShape2D_mxqyh")
 
-[node name="Polygon2D" type="Polygon2D" parent="CollisionShape2D" unique_id=1692134813]
+[node name="ZoneVisual" type="Polygon2D" parent="." unique_id=1692134813]
 color = Color(1, 0, 0, 0.3)
 polygon = PackedVector2Array(0, -10, -5, -9, -9, -5, -10, 0, -9, 5, -5, 9, 0, 10, 5, 9, 9, 5, 10, 0, 9, -5, 5, -9)
 
-[node name="Timer" type="Timer" parent="CollisionShape2D" unique_id=1632979599]
+
+[node name="ProgressBar" type="ProgressBar" parent="."]
+custom_minimum_size = Vector2(200, 20)
+offset_left = -100.0
+offset_top = -350.0
+offset_right = 100.0
+offset_bottom = -330.0
+
+[node name="CountdownLabel" type="Label" parent="."]
+offset_left = -50.0
+offset_top = -100.0
+offset_right = 50.0
+offset_bottom = -36.0
+theme_override_font_sizes/font_size = 64
+horizontal_alignment = 1
+
+[node name="VendingMachine" parent="." instance=ExtResource("2_vending")]
+
+[node name="Timer" type="Timer" parent="." unique_id=1632979599]
