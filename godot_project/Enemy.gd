@@ -48,14 +48,6 @@ func _ready() -> void:
 
 
 	# Attempt to find the user's manually added ProgressBar named HealthBar
-	if is_boss:
-		jammer_visual = ColorRect.new()
-		jammer_visual.color = Color(0.8, 0, 0, 0.2)
-		jammer_visual.custom_minimum_size = Vector2(2000, 2000)
-		jammer_visual.position = Vector2(-1000, -1000)
-		jammer_visual.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		add_child(jammer_visual)
-
 	progress_bar = find_child("HealthBar", true, false) as ProgressBar
 	if progress_bar:
 		progress_bar.max_value = max_health
@@ -150,41 +142,28 @@ func _on_body_entered(body: Node2D) -> void:
 		# Kinetic Energy: Ek = 0.5 * m * v^2
 		var current_player_mass = body.mass
 		var player_kinetic_energy = 0.5 * current_player_mass * pow(player_vel, 2)
-		
+
 		# Apply combo multiplier if player has it
 		if "combo_multiplier" in body:
 			player_kinetic_energy *= body.combo_multiplier
-			
+
 		var threshold_kinetic_energy = 0.5 * current_player_mass * pow(velocity_threshold, 2)
 
 		if player_kinetic_energy >= threshold_kinetic_energy:
 			# Fast player = massive damage equivalent to their kinetic energy
 			take_damage(player_kinetic_energy)
 		else:
-			# Phase Shield check: If player has shield, don't bounce them, let them pass
-			if "shield_charges" in body and body.shield_charges > 0:
-				body.take_damage(damage_amount) # This will consume a charge but NOT bounce
-			else:
-				# Slow player = player takes damage and bounces
-				body.take_damage(damage_amount)
-				
-				# Check for Thorns
-				if "dikenli_deri" in body and body.dikenli_deri > 0:
-					take_damage(body.dikenli_deri)
+			# Slow player = player takes damage and bounces
+			body.take_damage(damage_amount)
 
-				var bounce_dir = global_position.direction_to(body.global_position)
-				body.bounce_back(bounce_dir, bounce_force)
+			# Check for Thorns
+			if "dikenli_deri" in body and body.dikenli_deri > 0:
+				_take_damage(body.dikenli_deri)
 
-func take_damage(amount: float, knock_dir: Vector2 = Vector2.ZERO) -> void:
-	if type == EnemyType.SQUARE_GHOST and is_ghosting:
-		return # Immune while ghosting
-	if type == EnemyType.PENTAGON_TANK:
-		# Tank takes half damage from bullets, but 1.5x from momentum
-		if knock_dir != Vector2.ZERO:
-			amount *= 1.5
-		else:
-			amount *= 0.5
+			var bounce_dir = global_position.direction_to(body.global_position)
+			body.bounce_back(bounce_dir, bounce_force)
 
+func _take_damage(amount: float) -> void:
 	current_health -= amount
 	if is_boss:
 		HitstopManager.hitstop(0.02, 0.2)
@@ -241,134 +220,22 @@ func _show_floating_damage(amount: float) -> void:
 	# Queue free after animation completes
 	tween.tween_callback(label.queue_free)
 
-func _die(knock_dir: Vector2 = Vector2.ZERO) -> void:
-
-	# --- Loop Particle Economy ---
-	var p = get_tree().current_scene.find_child("Player", true, false)
-	if is_instance_valid(p) and p.get("active_redzone_count") != null:
-		var redzone_multiplier = p.active_redzone_count
-		var drop_chance = 0.2 + (Global.particle_drop_chance_level * 0.1)
-		var base_amount = 1 + Global.particle_drop_amount_level
-
-
-		# Zorluk çarpanlarını uygula (Protocol scaling)
-		var loot_multiplier = 1
-		if Global.current_selected_map == Global.MapType.NEON_HELL:
-			loot_multiplier = 2
-		elif Global.current_selected_map == Global.MapType.QUANTUM_VOID:
-			loot_multiplier = 5
-
-		var should_drop = false
-		var final_amount = 0
-
-		if redzone_multiplier > 0:
-			# 100% drop in redzone, multiplied by layers
-			should_drop = true
-			final_amount = base_amount * redzone_multiplier * loot_multiplier
-		else:
-			# Chance outside redzone
-			if randf() < drop_chance:
-				should_drop = true
-				final_amount = base_amount * loot_multiplier
-
-		if should_drop:
-			var particle_scene = load("res://LoopParticle.gd")
-			if particle_scene:
-				var particle = Area2D.new()
-				particle.set_script(particle_scene)
-				particle.amount = final_amount
-				particle.global_position = global_position
-				get_tree().current_scene.call_deferred("add_child", particle)
-	# -----------------------------
-	Global.current_run_kills += 1
-
-	HitstopManager.hitstop(0.05, 0.1)
-
-	if is_boss and is_instance_valid(player_node):
-		player_node.is_jammed = false
-
-	CameraShake.add_trauma(0.4)
-
-	_spawn_death_particles(knock_dir)
-
+func _die() -> void:
 	# Direct EXP
 	if is_instance_valid(player_node):
 		player_node.add_exp(35.0) # Base exp
-		
+
 	_spawn_coin()
 	queue_free()
-
-func _spawn_death_particles(dir: Vector2) -> void:
-	var particles = CPUParticles2D.new()
-	particles.emitting = false
-	particles.one_shot = true
-	particles.explosiveness = 1.0
-	particles.lifetime = 0.5
-	particles.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
-	particles.emission_sphere_radius = 10.0
-	particles.spread = 45.0
-	particles.initial_velocity_min = 200.0
-	particles.initial_velocity_max = 400.0
-	particles.direction = dir if dir != Vector2.ZERO else Vector2(0, -1)
-	particles.scale_amount_min = 4.0
-	particles.scale_amount_max = 8.0
-	particles.color = Color(1.0, 0.2, 0.2, 1.0)
-
-	get_tree().current_scene.add_child(particles)
-	particles.global_position = global_position
-	particles.emitting = true
-
-	var timer = Timer.new()
-	timer.wait_time = particles.lifetime
-	timer.one_shot = true
-	timer.autostart = true
-	timer.timeout.connect(particles.queue_free)
-	particles.add_child(timer)
 
 func _spawn_coin() -> void:
 	if coin_scene:
 		var coin = coin_scene.instantiate() as Coin
 		coin.global_position = global_position
-		# Zorluk çarpanlarını uygula (Protocol scaling)
-		var loot_multiplier = 1
-		if Global.current_selected_map == Global.MapType.NEON_HELL:
-			loot_multiplier = 2
-		elif Global.current_selected_map == Global.MapType.QUANTUM_VOID:
-			loot_multiplier = 5
-
 		# Randomize value maybe
 		if randf() < 0.2:
-			coin.value = 5.0 * loot_multiplier
+			coin.value = 5.0
 			coin.modulate = Color.GOLD
 		else:
-			coin.value = 1.0 * loot_multiplier
+			coin.value = 1.0
 		get_tree().current_scene.call_deferred("add_child", coin)
-
-func _shoot_plasma(dir: Vector2) -> void:
-	var plasma = Area2D.new()
-	var col = CollisionShape2D.new()
-	var shape = CircleShape2D.new()
-	shape.radius = 10.0
-	col.shape = shape
-	plasma.add_child(col)
-
-	var mesh = MeshInstance2D.new()
-	var quad = QuadMesh.new()
-	quad.size = Vector2(20, 20)
-	mesh.mesh = quad
-	mesh.modulate = Color.ORANGE
-	plasma.add_child(mesh)
-
-	plasma.global_position = global_position
-	get_tree().current_scene.add_child(plasma)
-
-	# Basic projectile movement via tween since we don't have a dedicated enemy bullet script
-	var tw = create_tween()
-	tw.tween_property(plasma, "global_position", plasma.global_position + dir * 1000.0, 2.0)
-	tw.tween_callback(plasma.queue_free)
-
-	plasma.body_entered.connect(func(body):
-		if body is Player or body.name == "Player":
-			body.take_damage(damage_amount)
-			plasma.queue_free()
-	)

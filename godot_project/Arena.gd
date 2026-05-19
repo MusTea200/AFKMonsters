@@ -6,240 +6,87 @@ extends Node2D
 @export var cull_radius: float = 2500.0
 @export var max_nodes_in_world: int = 30
 
-# Procedural Chunk & Persistence
-var map_seed: int = 12345
-var chunk_size: float = 2000.0
-var active_chunks: Dictionary = {}
-var persisted_data: Dictionary = {} # { Vector2_chunk_id: [ {type, pos, data} ] }
-
-
 var grapple_node_scene = preload("res://GrappleNode.tscn")
-var enemy_scenes: Array[PackedScene] = [
-	preload("res://enemy_circle.tscn"),
-	preload("res://enemy_triangle.tscn"),
-	preload("res://enemy_square.tscn"),
-	preload("res://enemy_pentagon.tscn"),
-	preload("res://enemy_hexagon.tscn"),
-	preload("res://enemy_octagonal.tscn")
-]
+var enemy_scene = preload("res://Enemy.tscn")
 var magnet_scene = preload("res://Magnet.tscn")
 var spawn_timer: Timer
 
-var player_node: Node2D
+var player_node: Player
 var pause_menu: Control
-var stats_label # Türü serbest bıraktık (Label veya RichTextLabel olabilir)
-var balance_label: Label
-var arena_time: float = 0.0
-var horde_triggered: bool = false
-var boss_triggered: bool = false
-var current_spawn_multiplier: int = 1
-var is_horde_mode: bool = false
-
-var countdown_label: Label
-var base_time_limit: float = 600.0 # 10 minutes
-var remaining_time: float = 600.0
-var difficulty_multiplier: float = 1.0
-var last_minute_checked: int = 10
-var last_20s_checked: int = 3
-
+var stats_label: Label
 
 
 func _ready() -> void:
-	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
-	get_tree().root.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_EXPAND
-	process_mode = Node.PROCESS_MODE_ALWAYS # Arena zaman dursa da çalışsın (ESC için)
-	
-	for n in get_children():
-		if n.name == "Player": 
+	process_mode = Node.PROCESS_MODE_ALWAYS # Ensure Arena can process ESC key when paused
+	# Find player
+	var scene_nodes = get_children()
+	for n in scene_nodes:
+		if n is Player:
 			player_node = n
 			break
 
-
-
-	# Fiziksel Node Referansları
-	var mobile_controls = get_tree().current_scene.find_child("MobileControls", true, false)
-	if mobile_controls:
-		if OS.has_feature("mobile") or Global.current_input_type == Global.InputType.TOUCH:
-			mobile_controls.show()
-			Global.left_joystick = mobile_controls.get_node("LeftJoystick")
-			if Global.use_manual_aim_joystick:
-				Global.right_joystick = mobile_controls.get_node("RightJoystick")
-			else:
-				mobile_controls.get_node("RightJoystick").hide()
-
-			var grapple_btn = mobile_controls.get_node("GrappleBtn")
-			grapple_btn.pressed.connect(func(): if is_instance_valid(player_node):
-				player_node._is_hook_held = true
-				if not Global.grapple_hold_mode:
-					# Tek atımlık modsa direkt at
-					var aim_dir = Vector2.ZERO
-					if Global.right_joystick and Global.right_joystick.is_dragging:
-						aim_dir = Global.right_joystick.get_joystick_vector().normalized()
-					elif Global.left_joystick and Global.left_joystick.is_dragging:
-						aim_dir = Global.left_joystick.get_joystick_vector().normalized()
-
-					if is_instance_valid(player_node.current_target_node):
-						player_node._create_spring_joint(player_node.current_target_node)
-					elif aim_dir.length() > 0.1:
-						player_node._try_attach_spring_dir(aim_dir)
-			)
-			grapple_btn.released.connect(func(): if is_instance_valid(player_node):
-				player_node._is_hook_held = false
-				if Global.grapple_hold_mode:
-					player_node._release_slingshot()
-			)
-
-			var pause_btn = mobile_controls.get_node("PauseBtn")
-			var p_shape = RectangleShape2D.new()
-			p_shape.size = Vector2(100, 100)
-			pause_btn.shape = p_shape
-			pause_btn.pressed.connect(func(): _toggle_pause())
-
-			# Deployable Buttons for Mobile (Optional, currently mapped to Q E R on PC)
-			var btn_q = mobile_controls.get_node_or_null("TurretBtn")
-			if btn_q and Global.get("turret_unlocked"):
-				btn_q.show()
-				btn_q.pressed.connect(func():
-					var turret = load("res://Turret.gd").new()
-					turret.global_position = player_node.global_position
-					get_tree().current_scene.add_child(turret)
-					Global.turret_unlocked = false
-					btn_q.hide()
-				)
-			elif btn_q: btn_q.hide()
-
-			var btn_e = mobile_controls.get_node_or_null("MagnetBtn")
-			if btn_e and Global.get("portable_magnet_unlocked"):
-				btn_e.show()
-				btn_e.pressed.connect(func():
-					var magnet = load("res://PortableMagnet.gd").new()
-					get_tree().current_scene.add_child(magnet)
-					Global.portable_magnet_unlocked = false
-					btn_e.hide()
-				)
-			elif btn_e: btn_e.hide()
-
-			var btn_r = mobile_controls.get_node_or_null("FlaskBtn")
-			if btn_r and Global.get("poison_flask_unlocked"):
-				btn_r.show()
-				btn_r.pressed.connect(func():
-					var flask = load("res://PoisonFlask.gd").new()
-					flask.global_position = player_node.global_position
-					# Auto throw forward based on velocity or random if standing still
-					var throw_dir = player_node.linear_velocity.normalized()
-					if throw_dir.length() < 0.1: throw_dir = Vector2(1,0).rotated(randf() * TAU)
-					flask.target_pos = player_node.global_position + throw_dir * 500.0
-					get_tree().current_scene.add_child(flask)
-					Global.poison_flask_unlocked = false
-					btn_r.hide()
-				)
-			elif btn_r: btn_r.hide()
-		else:
-			mobile_controls.hide()
-
+	# Setup Pause Menu
 	pause_menu = get_tree().current_scene.find_child("PauseMenu", true, false) as Control
 	if pause_menu:
 		pause_menu.hide()
-		pause_menu.process_mode = Node.PROCESS_MODE_ALWAYS # Menü oyun durunca donmasın
-		
-
-		var btn_settings = Button.new()
-		btn_settings.text = "Settings"
-		btn_settings.position = Vector2(pause_menu.size.x / 2.0 - 100, pause_menu.size.y - 300)
-		btn_settings.custom_minimum_size = Vector2(200, 50)
-		pause_menu.add_child(btn_settings)
-		btn_settings.pressed.connect(self._open_settings_menu)
-
-		var btn_main = Button.new()
-		btn_main.text = "Main Menu"
-		btn_main.position = Vector2(pause_menu.size.x / 2.0 - 100, pause_menu.size.y - 200)
-		btn_main.custom_minimum_size = Vector2(200, 50)
-		pause_menu.add_child(btn_main)
-		btn_main.pressed.connect(func(): get_tree().paused = false; get_tree().change_scene_to_file("res://MainMenu.tscn"))
-
-		var return_btn = Button.new()
-		return_btn.text = "Return to Market"
-		return_btn.custom_minimum_size = Vector2(200, 60)
-		return_btn.position = Vector2(pause_menu.size.x / 2.0 - 100, pause_menu.size.y - 100)
-		pause_menu.add_child(return_btn)
-		return_btn.pressed.connect(self._on_return_market_pressed)
-
-
-		stats_label = pause_menu.find_child("StatsLabel", true, false)
-		# Eğer StatsLabel RichTextLabel ise, BBCode'u otomatik aç!
-		if stats_label and "bbcode_enabled" in stats_label:
-			stats_label.bbcode_enabled = true
-
-	balance_label = get_tree().current_scene.find_child("BalanceLabel", true, false) as Label
-	update_balance_ui()
-	_ready_countdown()
-
-	# --- MAP VARIATION SETUP ---
-	_setup_map_variation()
-
+		stats_label = pause_menu.find_child("StatsLabel", true, false) as Label
 
 	_setup_enemy_spawner()
 	_initial_node_spawn()
 
 func _process(delta: float) -> void:
-	if get_tree().paused or not is_instance_valid(player_node):
-		return # Oyun durduysa motoru hiç yorma
-	if not get_tree().paused:
-		arena_time += delta
-		_check_time_events()
-		remaining_time -= delta
-		_update_countdown_ui()
-		_check_dynamic_difficulty()
+	if not is_instance_valid(player_node):
+		return
 
-
-		
 	_cull_distant_objects()
 	_maintain_node_count()
 
 func _initial_node_spawn() -> void:
-	if not is_instance_valid(player_node): return
+	if not is_instance_valid(player_node):
+		return
+
+	var player_pos = player_node.global_position
 	for i in range(max_nodes_in_world):
-		_try_spawn_node_around(player_node.global_position, 0, spawn_radius)
+		_try_spawn_node_around(player_pos, 0, spawn_radius)
 
 func _maintain_node_count() -> void:
-	if not is_instance_valid(player_node): return
-	var current_nodes = get_tree().get_nodes_in_group("grapple_nodes").size()
+	if not is_instance_valid(player_node):
+		return
+
+	var current_nodes = 0
+	for child in get_children():
+		if child is GrappleNode:
+			current_nodes += 1
+
 	if current_nodes < max_nodes_in_world:
+		# Spawn new nodes just outside the immediate view, up to spawn_radius
 		_try_spawn_node_around(player_node.global_position, spawn_radius * 0.8, spawn_radius)
 
 func _try_spawn_node_around(center: Vector2, min_rad: float, max_rad: float) -> void:
 	var angle = randf() * 2.0 * PI
 	var dist = randf_range(min_rad, max_rad)
 	var potential_pos = center + Vector2(cos(angle), sin(angle)) * dist
-	
+
+	# Check distance against existing nodes
 	var is_valid = true
 	for child in get_children():
-		if child.is_in_group("grapple_nodes") or child.is_in_group("magnets"):
+		if child is GrappleNode or child is Magnet:
 			if potential_pos.distance_to(child.global_position) < min_distance_between_nodes:
 				is_valid = false
 				break
-				
+
 	if is_valid:
-		if randf() < 0.1: 
-			var magnet = magnet_scene.instantiate()
+		if randf() < 0.1: # 10% chance to spawn a Magnet instead of GrappleNode
+			var magnet = magnet_scene.instantiate() as Magnet
 			magnet.global_position = potential_pos
-			magnet.add_to_group("magnets")
 			add_child(magnet)
 		else:
 			_create_node_instance(potential_pos)
 
 func _create_node_instance(pos: Vector2) -> void:
-	var node_instance = grapple_node_scene.instantiate()
-
-	# 10% chance to spawn Redzone instead of a normal node
-	if randf() < 0.1:
-		var rz = load("res://Redzone.tscn").instantiate()
-		rz.global_position = pos
-		add_child(rz)
-		return
-
+	var node_instance = grapple_node_scene.instantiate() as GrappleNode
 	node_instance.global_position = pos
-	node_instance.add_to_group("grapple_nodes")
+	# Type is randomized in GrappleNode._ready() now
 	add_child(node_instance)
 
 	# 5% chance to spawn RouletteMan on a node
@@ -258,402 +105,51 @@ func _setup_enemy_spawner() -> void:
 	add_child(spawn_timer)
 
 func _on_spawn_timer_timeout() -> void:
-	if not is_instance_valid(player_node) or get_tree().paused:
+	if not is_instance_valid(player_node):
 		return
+
+	# Spawn enemy at a random angle at spawn_radius
 	var angle = randf() * 2.0 * PI
 	var spawn_pos = player_node.global_position + Vector2(cos(angle), sin(angle)) * spawn_radius
 
-	for i in range(current_spawn_multiplier):
-		# Havuz limitini mapa gore ez (Kuantum haritasi sekizgene hizli gecer)
-		var pool_max_index = 1
-		match Global.current_selected_map:
-			Global.MapType.CYBER_GRID:
-				if arena_time > 60: pool_max_index = 2
-				if arena_time > 120: pool_max_index = 3
-				if arena_time > 180: pool_max_index = 4
-				if arena_time > 240: pool_max_index = 5
-			Global.MapType.NEON_HELL:
-				pool_max_index = 2 # Kare bastan var
-				if arena_time > 60: pool_max_index = 3
-				if arena_time > 120: pool_max_index = 4
-				if arena_time > 180: pool_max_index = 5
-			Global.MapType.QUANTUM_VOID:
-				pool_max_index = 3 # Besgen bastan var
-				if arena_time > 60: pool_max_index = 5 # Sekizgen hizli girer
-		var final_pos = spawn_pos + Vector2(cos(angle), sin(angle)) * randf_range(0, 200)
-		# Dinamik zorluk agirlikli secim
-
-		# Agirligi basitce yonetmek icin randi() kullanarak 0 ile pool_max_index arasinda cekiyoruz
-		var selected_scene = enemy_scenes[randi() % (pool_max_index + 1)]
-		var enemy_instance = selected_scene.instantiate()
-		enemy_instance.name = "Enemy_" + str(randi() % 1000000)
-		enemy_instance.global_position = final_pos
-		enemy_instance.max_health *= difficulty_multiplier
-		match Global.current_selected_map:
-			Global.MapType.NEON_HELL:
-				enemy_instance.max_health *= 2.0
-				enemy_instance.damage_amount *= 2.0
-				enemy_instance.move_speed *= 1.5
-			Global.MapType.QUANTUM_VOID:
-				enemy_instance.max_health *= 5.0
-				enemy_instance.damage_amount *= 5.0
-				enemy_instance.move_speed *= 2.0
-		if is_horde_mode:
-			enemy_instance.move_speed = 150.0 * 1.2
-		else:
-			enemy_instance.move_speed *= (1.0 + (difficulty_multiplier - 1.0) * 0.5)
-			enemy_instance.damage_amount *= difficulty_multiplier
-		add_child(enemy_instance)
+	var enemy_instance = enemy_scene.instantiate()
+	enemy_instance.global_position = spawn_pos
+	add_child(enemy_instance)
 
 func _cull_distant_objects() -> void:
 	var player_pos = player_node.global_position
-	var current_chunk = Vector2(floor(player_pos.x / chunk_size), floor(player_pos.y / chunk_size))
 
 	for child in get_children():
-		# Do NOT cull important mechanics
-		if child is RouletteMan or child is Merchant or child is SpeedMerchant or child is DeathLine:
-			continue
-
-		# Grapple node icinde rulet adami (veya merchant) varsa node'u asla silme!
-		if child.is_in_group("grapple_nodes"):
-			var has_important_entity = false
-			for grand_child in child.get_children():
-				if grand_child is RouletteMan or grand_child is Merchant or grand_child is SpeedMerchant:
-					has_important_entity = true
-					break
-			if has_important_entity:
-				continue
-
-		if child.is_in_group("grapple_nodes") or child.is_in_group("magnets") or "Enemy" in child.name or "Drop" in child.name or "Coin" in child.name:
+		if child is GrappleNode or child is Enemy or child is Drop:
 			if child.global_position.distance_to(player_pos) > cull_radius:
-				# Persistence: Save state before removing
-				var c_id = Vector2(floor(child.global_position.x / chunk_size), floor(child.global_position.y / chunk_size))
-				if not persisted_data.has(c_id):
-					persisted_data[c_id] = []
-
-				var obj_type = "Node"
-				if child.is_in_group("magnets"): obj_type = "Magnet"
-				elif "Coin" in child.name: obj_type = "Coin"
-				elif "Enemy" in child.name: obj_type = "Enemy"
-
-				# Sadece destekledigimiz tipleri persist edelim, gerisini dogrudan silelim
-				if obj_type in ["Node", "Magnet", "Coin", "Enemy"]:
-					persisted_data[c_id].append({
-						"type": obj_type,
-						"pos": child.global_position
-					})
-
 				child.queue_free()
 
-	_load_nearby_chunks(current_chunk)
-
-func _load_nearby_chunks(center_chunk: Vector2) -> void:
-	# Check 3x3 grid around player
-	for x in range(-1, 2):
-		for y in range(-1, 2):
-			var c_id = center_chunk + Vector2(x, y)
-			if persisted_data.has(c_id) and persisted_data[c_id].size() > 0:
-				for data in persisted_data[c_id]:
-					_respawn_persisted_object(data)
-				persisted_data[c_id].clear() # Temizle ki cift spawn olmasin
-
-func _respawn_persisted_object(data: Dictionary) -> void:
-	if data["type"] == "Magnet":
-		var m = magnet_scene.instantiate()
-		m.global_position = data["pos"]
-		m.add_to_group("magnets")
-		add_child(m)
-	elif data["type"] == "Node":
-		var n = grapple_node_scene.instantiate()
-		n.global_position = data["pos"]
-		n.add_to_group("grapple_nodes")
-		add_child(n)
-
-func _input(event: InputEvent) -> void:
+func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel") or (event is InputEventKey and event.keycode == KEY_ESCAPE and event.pressed and not event.echo):
 		_toggle_pause()
 
 func _toggle_pause() -> void:
-	if get_meta("is_resuming", false): return # Block ESC spam during countdown
-	
 	var new_pause_state = not get_tree().paused
-	if new_pause_state:
-		# Pausing
-		get_tree().paused = true
-		if pause_menu: pause_menu.visible = true
-		if is_instance_valid(player_node): _update_stats_label()
-	else:
-		# Unpausing - Multiplayer 5 second sync logic
-		if pause_menu: pause_menu.visible = false
-		_show_center_warning("5 SANİYE İÇİNDE DEVAM EDİYOR...")
-		set_meta("is_resuming", true)
-		# Note: Real implementation uses RPCs, this is simulation
-		await get_tree().create_timer(5.0, true, false, true).timeout
-		set_meta("is_resuming", false)
-		get_tree().paused = false
+	get_tree().paused = new_pause_state
+
+	if pause_menu:
+		pause_menu.visible = new_pause_state
+
+		if new_pause_state and stats_label and is_instance_valid(player_node):
+			_update_stats_label()
 
 func _update_stats_label() -> void:
-	if not stats_label: return
-	
-	var stats_text = "[center][b]--- OYUNCU İSTATİSTİKLERİ ---[/b][/center]\n\n"
-	stats_text += "Seviye: " + str(player_node.economy_comp.level) + "\n"
-	stats_text += "Can: " + str(round(player_node.current_health)) + " / " + str(player_node.max_health) + "\n"
-	stats_text += "Can Yenileme: " + str(player_node.combat_comp.can_yenileme) + " sn\n"
-	# Float -> float yapıldı ve combat_comp üzerinden çağrıldı
-	stats_text += "Zırh: %" + str(float(player_node.combat_comp.hasar_azaltma) * 100.0) + "\n"
-	stats_text += "Dikenli Deri: " + str(player_node.combat_comp.dikenli_deri) + "\n"
-	stats_text += "Kaçış Şansı: %" + str(float(player_node.combat_comp.kacis_sansi) * 100.0) + "\n"
-	stats_text += "İp Uzunluğu: " + str(player_node.ip_uzunlugu) + "\n"
-	stats_text += "Atış Hızı: " + str(player_node.combat_comp.atis_hizi) + " / sn\n"
-	stats_text += "Mermi Sayısı: " + str(player_node.combat_comp.mermi_sayisi) + "\n"
-	stats_text += "Delip Geçme: " + str(player_node.combat_comp.delip_gecme) + "\n"
-	stats_text += "Mermi Hasarı: " + str(player_node.combat_comp.mermi_hasari) + "\n"
-	
-	stats_label.text = stats_text # RichTextLabel ise kodların görünmesini engeller
+	var stats_text = "[center][b]--- PLAYER STATS ---[/b][/center]\n\n"
+	stats_text += "Level: " + str(player_node.level) + "\n"
+	stats_text += "Health: " + str(round(player_node.current_health)) + " / " + str(player_node.max_health) + "\n"
+	stats_text += "Health Regen: " + str(player_node.can_yenileme) + " / sec\n"
+	stats_text += "Armor (Damage Reduction): " + str(player_node.hasar_azaltma * 100.0) + "%\n"
+	stats_text += "Thorns: " + str(player_node.dikenli_deri) + "\n"
+	stats_text += "Dodge Chance: " + str(player_node.kacis_sansi * 100.0) + "%\n"
+	stats_text += "Rope Length: " + str(player_node.ip_uzunlugu) + "\n"
+	stats_text += "Fire Rate: " + str(player_node.atis_hizi) + " / sec\n"
+	stats_text += "Bullet Count: " + str(player_node.mermi_sayisi) + "\n"
+	stats_text += "Piercing: " + str(player_node.delip_gecme) + "\n"
+	stats_text += "Bullet Damage: " + str(player_node.mermi_hasari) + "\n"
 
-
-func _ready_countdown() -> void:
-	countdown_label = get_tree().current_scene.find_child("CountdownLabel", true, false) as Label
-
-	base_time_limit += Global.extended_core_clock * 60.0 # +1 minute per upgrade
-	remaining_time = base_time_limit
-
-func update_balance_ui() -> void:
-	if is_instance_valid(player_node) and is_instance_valid(balance_label):
-		balance_label.text = str(int(player_node.get_node("EconomyComponent").gold))
-
-
-func _open_settings_menu() -> void:
-	var settings_panel = Panel.new()
-	settings_panel.process_mode = Node.PROCESS_MODE_ALWAYS # FIX: Allows UI to work while paused
-	settings_panel.custom_minimum_size = Vector2(400, 400)
-	settings_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-
-	var vbox = VBoxContainer.new()
-	vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	settings_panel.add_child(vbox)
-
-	var title = Label.new()
-	title.text = "SETTINGS"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(title)
-
-	# Sensitivity
-	var sens_hbox = HBoxContainer.new()
-	var sens_lbl = Label.new()
-	sens_lbl.text = "Sensitivity:"
-	var sens_slider = HSlider.new()
-	sens_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	sens_slider.min_value = 0.1
-	sens_slider.max_value = 2.0
-	sens_slider.step = 0.1
-	sens_slider.value = Global.settings_sensitivity
-	sens_slider.value_changed.connect(func(v): Global.settings_sensitivity = v)
-	sens_hbox.add_child(sens_lbl)
-	sens_hbox.add_child(sens_slider)
-	vbox.add_child(sens_hbox)
-
-	# V-Sync
-	var vsync_btn = CheckButton.new()
-	vsync_btn.text = "V-Sync"
-	vsync_btn.button_pressed = Global.settings_vsync
-	vsync_btn.toggled.connect(func(toggled):
-		Global.settings_vsync = toggled
-		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED if toggled else DisplayServer.VSYNC_DISABLED)
-	)
-	vbox.add_child(vsync_btn)
-
-	# Hold to Grapple
-	var hold_btn = CheckButton.new()
-	hold_btn.text = "Hold to Grapple"
-	hold_btn.button_pressed = Global.grapple_hold_mode
-	hold_btn.modulate = Color(0, 1, 1, 1) # Neon Cyan
-	hold_btn.toggled.connect(func(toggled):
-		Global.grapple_hold_mode = toggled
-	)
-	vbox.add_child(hold_btn)
-
-	# Audio Volume
-	var vol_hbox = HBoxContainer.new()
-	var vol_lbl = Label.new()
-	vol_lbl.text = "Master Volume:"
-	var vol_slider = HSlider.new()
-	vol_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vol_slider.min_value = 0.0
-	vol_slider.max_value = 1.0
-	vol_slider.step = 0.1
-	vol_slider.value = Global.settings_volume
-	vol_slider.value_changed.connect(func(v):
-		Global.settings_volume = v
-		AudioServer.set_bus_volume_db(0, linear_to_db(v))
-	)
-	vol_hbox.add_child(vol_lbl)
-	vol_hbox.add_child(vol_slider)
-	vbox.add_child(vol_hbox)
-
-	var save_btn = Button.new()
-	save_btn.text = "Save & Close"
-	save_btn.pressed.connect(func():
-		Global.save_game()
-		settings_panel.queue_free()
-	)
-	vbox.add_child(save_btn)
-
-	get_tree().current_scene.find_child("CanvasLayer", true, false).add_child(settings_panel)
-
-
-func _on_return_market_pressed() -> void:
-	if is_instance_valid(player_node) and player_node.has_node("EconomyComponent"):
-		var eco = player_node.get_node("EconomyComponent")
-		eco.convert_gold_to_global()
-
-	Global.save_game()
-
-	Engine.time_scale = 1.0
-	get_tree().paused = false
-	get_tree().change_scene_to_file("res://ShopUI.tscn")
-
-func _check_time_events() -> void:
-	# Merchant at 2 minutes (120s)
-	if arena_time >= 120.0 and not get_meta("merchant_spawned", false):
-		set_meta("merchant_spawned", true)
-		_spawn_merchant()
-
-	# Horde at 3 minutes (180s)
-	if arena_time >= 180.0 and not horde_triggered:
-		horde_triggered = true
-		is_horde_mode = true
-		current_spawn_multiplier = 3
-		spawn_timer.wait_time = spawn_timer.wait_time / 3.0
-		_show_center_warning("SÜRÜ BASKINI!")
-
-
-	# 4 minutes: Flappy Chase (DeathLine)
-	if arena_time >= 240.0 and not get_meta("deathline_spawned", false):
-		set_meta("deathline_spawned", true)
-		var dl = load("res://DeathLine.gd").new()
-		dl.global_position = player_node.global_position + Vector2(-3000, 0) # Start way behind
-		add_child(dl)
-		_show_center_warning("ÖLÜM ÇİZGİSİ YAKLAŞIYOR!")
-
-	# 1 minute: Speed Merchant
-	if arena_time >= 60.0 and not get_meta("speed_merchant_spawned", false):
-		set_meta("speed_merchant_spawned", true)
-		var sm = load("res://SpeedMerchant.gd").new()
-		sm.global_position = player_node.global_position + Vector2(1000, 0)
-		add_child(sm)
-		_show_center_warning("HIZLI TÜCCARI YAKALA!")
-
-	# Boss at 5 minutes (300s)
-	if arena_time >= 300.0 and not boss_triggered:
-		boss_triggered = true
-		_spawn_boss()
-		_show_center_warning("BOSS BELİRDİ!")
-
-func _show_center_warning(msg: String) -> void:
-	var lbl = Label.new()
-	lbl.text = msg
-	lbl.modulate = Color.RED
-	lbl.add_theme_font_size_override("font_size", 48)
-	get_tree().current_scene.find_child("CanvasLayer", true, false).add_child(lbl)
-	lbl.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-
-	var tween = create_tween()
-	tween.tween_property(lbl, "scale", Vector2(1.5, 1.5), 0.5)
-	tween.tween_property(lbl, "modulate:a", 0.0, 1.5).set_delay(1.0)
-	tween.tween_callback(lbl.queue_free)
-
-func _spawn_boss() -> void:
-	var angle = randf() * 2.0 * PI
-	var spawn_pos = player_node.global_position + Vector2(cos(angle), sin(angle)) * spawn_radius
-	var boss = load("res://enemy_boss_hexagon.tscn").instantiate()
-	boss.name = "EnemyBoss"
-	boss.global_position = spawn_pos
-	boss.scale = Vector2(3.0, 3.0)
-	boss.max_health = 1000.0 * pow(1.5, Global.successful_loops) # HUGE HP
-	boss.move_speed = 100.0
-	boss.base_mass = 5.0
-	boss.is_boss = true
-	# Rastgele dönerek doğmasını sağla (İçi oyuk kısım her seferinde farklı yöne baksın)
-	boss.rotation_degrees = randf_range(0, 360)
-	_attach_indicator(boss)
-	# Note: Off-screen indicator would require a separate UI script,
-	# but we keep it simple by just having a big enemy tracking us.
-	add_child(boss)
-
-func _spawn_merchant() -> void:
-	var merchant = load("res://Merchant.gd").new()
-	_attach_indicator(merchant)
-	var angle = randf() * 2.0 * PI
-	var dist = randf_range(1000.0, 2000.0)
-	merchant.global_position = player_node.global_position + Vector2(cos(angle), sin(angle)) * dist
-	add_child(merchant)
-	_show_center_warning("TÜCCAR GELDİ!")
-
-func _update_countdown_ui() -> void:
-	if remaining_time > 0:
-		var mins = int(remaining_time) / 60
-		var secs = int(remaining_time) % 60
-		countdown_label.text = "%02d:%02d" % [mins, secs]
-
-		if remaining_time <= 60.0:
-			countdown_label.add_theme_color_override("font_color", Color.RED)
-	else:
-		var overtime = abs(remaining_time)
-		var secs = int(overtime) % 60
-		countdown_label.text = "OVERTIME: %02d" % [secs]
-		countdown_label.add_theme_color_override("font_color", Color.MAGENTA)
-
-func _check_dynamic_difficulty() -> void:
-	if remaining_time > 60.0:
-		var current_minute = int(remaining_time) / 60
-		if current_minute < last_minute_checked:
-			last_minute_checked = current_minute
-			_increase_difficulty()
-
-	elif remaining_time > 0.0:
-		var current_20s = int(remaining_time) / 20
-		if current_20s < last_20s_checked:
-			last_20s_checked = current_20s
-			_increase_difficulty()
-			_show_center_warning("ZORLUK ARTIYOR!")
-
-func _increase_difficulty() -> void:
-	difficulty_multiplier *= 1.15
-	spawn_timer.wait_time = max(0.1, spawn_timer.wait_time / 1.15)
-
-func _attach_indicator(target_node: Node2D) -> void:
-	var ind = load("res://OffScreenIndicator.gd").new()
-	ind.target = target_node
-	# Add to CanvasLayer or Scene Root. Scene root is better since it uses global coordinates
-	get_tree().current_scene.call_deferred("add_child", ind)
-
-func _setup_map_variation() -> void:
-	# CanvasModulate kullanarak dunya rengini (Arkaplan, izler, hepsi) etkiliyoruz
-	var map_modulate = CanvasModulate.new()
-	get_tree().current_scene.call_deferred("add_child", map_modulate)
-
-	var label = Label.new()
-	label.add_theme_font_size_override("font_size", 48)
-	label.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.position.y += 100
-	get_tree().current_scene.find_child("CanvasLayer", true, false).call_deferred("add_child", label)
-
-	match Global.current_selected_map:
-		Global.MapType.CYBER_GRID:
-			map_modulate.color = Color(1.0, 1.0, 1.0) # Normal (Mavi/Gri siber tema)
-			label.text = ">> CYBER GRID <<"
-			label.modulate = Color.CYAN
-		Global.MapType.NEON_HELL:
-			map_modulate.color = Color(1.2, 0.8, 0.8) # Kirmizimsi, daha karanlik
-			label.text = ">> NEON HELL <<"
-			label.modulate = Color.RED
-		Global.MapType.QUANTUM_VOID:
-			map_modulate.color = Color(0.5, 0.5, 1.0) # Lacivert/Koyu mavi
-			label.text = ">> QUANTUM VOID <<"
-			label.modulate = Color.VIOLET
-
-	var tw = create_tween()
-	tw.tween_property(label, "modulate:a", 0.0, 5.0).set_trans(Tween.TRANS_EXPO)
-	tw.tween_callback(label.queue_free)
+	stats_label.text = stats_text
