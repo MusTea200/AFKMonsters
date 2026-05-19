@@ -30,7 +30,7 @@ func _process(delta: float) -> void:
 
 func set_captured() -> void:
 	is_captured = true
-	visual.color = Color(0.8, 0.8, 0.8) # Temiz beyaz eşya
+	visual.color = Color("#00ff33")
 
 func _on_body_entered(body: Node2D) -> void:
 	if not is_captured:
@@ -46,3 +46,12 @@ func _on_body_exited(body: Node2D) -> void:
 func _open_gacha_shop() -> void:
 	var gacha = load("res://GachaUI.tscn").instantiate()
 	get_tree().current_scene.find_child("CanvasLayer", true, false).add_child(gacha)
+
+	gacha.tree_exited.connect(func():
+		is_captured = false
+		visual.color = Color("#7c7c7c")
+	)
+
+func activate_green() -> void:
+	is_captured = true
+	visual.color = Color("#00ff33")

@@ -671,6 +671,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			for r in redzones:
 				if is_instance_valid(r) and r.player == player_node: # Inside redzone
 					r.capture_time = r.capture_target
+					r.defense_time = 0.0 # Clear defense time immediately so no countdown starts
 					r.captured = true
 					if is_instance_valid(r.visual):
 						r.visual.color = Color(0.0, 1.0, 0.0, 0.2)
