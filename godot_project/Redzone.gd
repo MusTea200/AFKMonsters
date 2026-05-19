@@ -7,9 +7,14 @@ var debuff_active: bool = false
 var debuff_timer: float = 0.0
 var captured: bool = false
 var capture_time: float = 0.0
-var capture_target: float = 100.0
+var capture_target: float = 10.0
 var defense_time: float = 10.0
 var vending_machine: Node2D
+var progress_bar: ProgressBar
+var countdown_label: Label
+var last_spawn_percent: float = 0.0
+var is_used: bool = false
+
 
 var original_speed: float = 0.0
 var original_regen: float = 0.0
@@ -42,6 +47,29 @@ func _ready() -> void:
 	visual.modulate = Color(1.0, 0.0, 0.0, 0.3)
 
 
+
+	progress_bar = ProgressBar.new()
+	progress_bar.max_value = 100.0
+	progress_bar.custom_minimum_size = Vector2(200, 20)
+	progress_bar.position = Vector2(-100, -350)
+	progress_bar.hide()
+
+	# To make progress bar look cyberpunk
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color(0.2, 0.2, 0.2, 0.8)
+	var sbf = StyleBoxFlat.new()
+	sbf.bg_color = Color(1.0, 0.0, 0.0)
+	progress_bar.add_theme_stylebox_override("background", sb)
+	progress_bar.add_theme_stylebox_override("fill", sbf)
+	add_child(progress_bar)
+
+	countdown_label = Label.new()
+	countdown_label.add_theme_font_size_override("font_size", 64)
+	countdown_label.set_anchors_preset(Control.PRESET_CENTER)
+	countdown_label.position = Vector2(-50, -100) # Local center rough
+	countdown_label.hide()
+	add_child(countdown_label)
+
 	area_entered.connect(_on_area_entered)
 
 	# Vending Machine Ekle
@@ -52,23 +80,46 @@ func _ready() -> void:
 	area_exited.connect(_on_area_exited)
 
 func _process(delta: float) -> void:
+	if is_used: return
+
 	if captured:
 		defense_time -= delta
-		if defense_time <= 0:
-			_trigger_emp()
-		return
-	if is_instance_valid(player):
-		inside_time += delta
+		if defense_time > 0:
+			if not countdown_label.visible:
+				countdown_label.show()
+				progress_bar.hide()
 
-		capture_time += delta * (0.5 if vending_machine else 1.0) # Yavas ele gecirme
+			countdown_label.text = str(int(defense_time + 1))
+			# Lerp color from red (#ff0000) to green (#00ff00)
+			var t = 1.0 - (defense_time / 10.0)
+			countdown_label.add_theme_color_override("font_color", Color(1.0, 0.0, 0.0).lerp(Color(0.0, 1.0, 0.0), t))
+
+		if defense_time <= 0:
+			countdown_label.hide()
+			_trigger_emp()
+
+			# Mutlak Matrix Renk Dönüşümleri
+			visual.color = Color("#00ff004d")
+			if is_instance_valid(vending_machine):
+				vending_machine.activate_green()
+			is_used = true
+		return
+
+	if is_instance_valid(player):
+		progress_bar.show()
+		inside_time += delta
+		capture_time += delta
+
+		var percent = clamp((capture_time / capture_target) * 100.0, 0.0, 100.0)
+		progress_bar.value = percent
+
+		if percent >= last_spawn_percent + 10.0:
+			last_spawn_percent += 10.0
+			_spawn_redzone_wave(last_spawn_percent)
+
 		if capture_time >= capture_target and not captured:
 			captured = true
-			if is_instance_valid(vending_machine):
-				vending_machine.set_captured()
-				vending_machine.set_captured()
-			visual.color = Color(0.0, 1.0, 0.0, 0.2) # Yesile doner
 
-		# Anında debuff uygula
 		if not debuff_active:
 			_apply_debuff()
 
@@ -170,3 +221,41 @@ func _remove_debuff() -> void:
 			vignette.queue_free()
 
 		original_speed = 0.0
+
+func _spawn_redzone_wave(percent: float) -> void:
+	var arena = get_tree().current_scene
+	if not arena or not "enemy_scenes" in arena: return
+
+	var scenes = arena.enemy_scenes
+	if scenes.size() == 0: return
+
+	var multiplier = 1.0 + (percent / 100.0) * 3.0 # max 4x stronger
+	var count = 3 + int(percent / 20.0)
+
+	for i in range(count):
+		var angle = randf() * TAU
+		var radius_spawn = 400.0
+		var pos = global_position + Vector2(cos(angle), sin(angle)) * radius_spawn
+
+		var enemy = scenes[randi() % scenes.size()].instantiate()
+		enemy.global_position = pos
+		enemy.max_health *= multiplier
+		enemy.damage_amount *= multiplier
+		enemy.move_speed *= multiplier
+
+		arena.call_deferred("add_child", enemy)
+
+	# Cyber Shockwave Effect
+	var shock = Polygon2D.new()
+	var pts = PackedVector2Array()
+	for i in range(32):
+		var ang = (i / 32.0) * TAU
+		pts.append(Vector2(cos(ang), sin(ang)) * 10.0)
+	shock.polygon = pts
+	shock.color = Color(1.0, 0.0, 0.0, 0.8) # Red wave
+	add_child(shock)
+
+	var tw = create_tween()
+	tw.tween_property(shock, "scale", Vector2(40.0, 40.0), 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(shock, "modulate:a", 0.0, 0.5)
+	tw.tween_callback(shock.queue_free)

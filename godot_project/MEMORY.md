@@ -70,3 +70,31 @@ Bu ödül `EconomyComponent.gd` üzerinden `Global.dongu_parcaciklari` bakiyesin
 - Eşya yaratımı (`PanelContainer`) sırasında GridContainer öncelikle `queue_free()` kullanılarak tamamen temizleniyor. Böylece menü her açıldığında yüzlerce gereksiz düğümün üst üste binip Memory Leak (bellek sızıntısı) yaratması engelleniyor.
 - `_process` gibi her kare çalışan fonksiyonlarda değil, sinyal (event) tabanlı tetiklenmelerle ilerlenerek işlemci döngüleri korundu.
 - Efsanevi (Tier 5) düşme şansı 0.01'den 0.05'e yükseltilerek hem dopamin döngüsü tetiklendi hem de imkansız bir RNG senaryosundan daha makul bir oyun içi piyasaya geçiş yapıldı.
+
+## 🚀 Kademeli Ele Geçirme Lojiği ve Siber Renk Matrisleri
+
+### Şimdiye kadar yapılanlar
+- `Redzone.gd` alanına dinamik ve siber tasarımlı bir ProgressBar eklendi. Oyuncu alanın içine girdiğinde bu bar görünür hale geliyor ve 10 saniyelik bir süre içerisinde %0'dan %100'e doğru doluyor.
+- Ele geçirme barı her %10 arttığında, `_spawn_redzone_wave` ile orantılı olarak güçlenmiş (`max_health`, `damage_amount` ve `move_speed`) düşman dalgaları yaratıldı. Dalga doğumu anında kırmızı bir Polygon2D şok dalgasıyla (Tween animasyonu) desteklendi.
+- Bar %100'e ulaştığında merkezde beliren ve rengi 10 saniye boyunca kırmızıdan (#ff0000) yeşile (#00ff00) pürüzsüzce interpolasyon yapan (Color Lerp) 10 saniyelik bir geri sayım Label eklendi.
+- Sayaç 0'a ulaştığında alanın rengi anında `#00ff004d`ye, içerisindeki otomatın rengi ise `#00ff33`ye dönüştürülerek kilitler açıldı. Gacha menüsünden çıkıldıktan sonra otomat etkileşime sonsuza dek kapatılarak rengi sinsi bir gri tonu olan `#7c7c7c`ye ayarlandı.
+
+### Hangi hataların düzeltildiği
+- Oyuncunun girdiği anda hemen ele geçirilebilen veya belirsiz ilerleme mekaniğine sahip statik siber bölgeler ortadan kaldırıldı ve yerine aşamalı bir UX (Kullanıcı Deneyimi) geri bildirimi eklendi.
+- Geri sayım sırasında statik tekdüze renk kullanımından ötürü oluşan zaman algısı körlüğü çözüldü.
+
+### Bir daha aynı hatalara nasıl bulaşılmayacağı
+- UI geri bildirimleri (örneğin süreç barları, zamanlayıcılar), kod içinden ziyade Tween ve zaman aralıklı hesaplamalar (math lerp) ile kontrol edilerek oyunun frame dalgalanmalarından bağımsız tutulmalıdır.
+- Sinyal tabanlı durum kapanışlarında (`tree_exited`), nesne tekrar kullanılamayacak ise boolean kilidi yanında (örn. `is_captured = false`) mutlaka kalıcı, etkisizleştiğini belirten bir görsel duruma (gri renk vs.) büründürülmelidir.
+
+### Projenin gidişatı ve gelecek planları
+- Alan savunma mekaniği tam donanımlı bir dalga hayatta kalma mini oyununa dönüştürüldü.
+- Daha sonraki sürümlerde oyuncuya bu tarz meydan okumaları tamamlama sürelerine ve kaçırdığı hasarlara göre bonus statüler sağlayan başarı puanı sistemi getirilebilir.
+
+### Kendisinin ekleyeceği ve yararlı olduğunu düşündüğü özellikler
+- Her düşman dalgası doğduğunda kısa ve ani bir kamera sarsıntısı (`CameraShake` singleton ile) eklenebilir, bu arcade hissiyatını ve ağırlığı artırır.
+- Otomat rengi yeşil olduğu an siber bir onaylama sesi (`AudioStreamPlayer2D`) çalınabilir.
+
+### Güvenlik ve performans adına yaptıkları
+- `_process` üzerinde yorucu olan düğüm yaratma işlemleri ve döngüler, yalnızca yüzde kontrolü her %10'luk eşiği geçtiğinde bir defaya mahsus çalışacak şekilde sınırlanarak performans korundu.
+- Yaratılan şok dalgası `Polygon2D` düğümü, Tween bitiminde belleği işgal etmemesi adına doğrudan `queue_free()` fonksiyonuna (`tween_callback` aracılığıyla) bağlandı.
