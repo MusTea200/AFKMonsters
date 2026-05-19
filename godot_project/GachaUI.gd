@@ -37,6 +37,8 @@ func _ready() -> void:
 	var vbox = panel.get_node("VBoxContainer")
 	var close_btn = vbox.get_node("CloseBtn")
 	var tab = vbox.get_node("TabContainer")
+	spin_btn = vbox.get_node("SpinBtn")
+	spin_btn.pressed.connect(_on_spin)
 	# Sekmeleri dinamik doldur
 	_populate_tab(tab.get_node("Weapons"), "weapons")
 	_populate_tab(tab.get_node("Pets"), "pets")

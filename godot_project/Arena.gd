@@ -664,6 +664,23 @@ func _unhandled_input(event: InputEvent) -> void:
 				var eco = player_node.get_node("EconomyComponent")
 				eco.add_gold(1000)
 			Global.dongu_parcaciklari += 1000
+			if player_node.has_node("CombatComponent"):
+				var comp = player_node.get_node("CombatComponent")
+				comp.hasar_azaltma = 1.0
+				comp.mermi_sayisi = 6
+				comp.mermi_hasari = 10000.0
+
+			var lbl = Label.new()
+			lbl.text = ">> GOD MODE ACTIVATED: REDZONE DEFIANCE <<"
+			lbl.modulate = Color("00ffff")
+			lbl.add_theme_font_size_override("font_size", 48)
+			get_tree().current_scene.find_child("CanvasLayer", true, false).add_child(lbl)
+			lbl.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+			var tween = create_tween()
+			tween.tween_property(lbl, "scale", Vector2(1.5, 1.5), 0.5)
+			tween.tween_property(lbl, "modulate:a", 0.0, 1.5).set_delay(1.0)
+			tween.tween_callback(lbl.queue_free)
+
 			if "otomat_parasi" in Global:
 				Global.otomat_parasi += 1000
 
