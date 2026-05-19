@@ -1,0 +1,73 @@
+[gd_scene load_steps=6 format=3 uid="uid://dl5sptk3qhjnt"]
+
+[ext_resource type="Script" uid="uid://dpgv33vxeohjt" path="res://Magnet.gd" id="1_ts0mk"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_ts0mk"]
+radius = 26.133389
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_ts0mk"]
+radial_segments = 4
+rings = 1
+
+[sub_resource type="SphereMesh" id="SphereMesh_ock5g"]
+radial_segments = 8
+rings = 2
+
+[sub_resource type="PrismMesh" id="PrismMesh_qs5to"]
+
+[node name="Magnet" type="Area2D"]
+scale = Vector2(5, 5)
+script = ExtResource("1_ts0mk")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+modulate = Color(0, 1, 1, 1)
+scale = Vector2(30, 30)
+shape = SubResource("CircleShape2D_ts0mk")
+
+[node name="MeshInstance2D2" type="MeshInstance2D" parent="."]
+modulate = Color(0, 0.5411765, 1, 1)
+position = Vector2(6.9999995, 0)
+scale = Vector2(6.25, 10.000001)
+mesh = SubResource("CapsuleMesh_ts0mk")
+
+[node name="MeshInstance2D" type="MeshInstance2D" parent="."]
+modulate = Color(1, 0, 0, 1)
+position = Vector2(-7, 0)
+scale = Vector2(6.25, 10.000001)
+mesh = SubResource("CapsuleMesh_ts0mk")
+
+[node name="MeshInstance2D5" type="MeshInstance2D" parent="."]
+position = Vector2(-7, -6.605)
+scale = Vector2(7.24, 7.08)
+mesh = SubResource("SphereMesh_ock5g")
+
+[node name="MeshInstance2D6" type="MeshInstance2D" parent="."]
+position = Vector2(7, -6.605)
+scale = Vector2(7.24, 7.08)
+mesh = SubResource("SphereMesh_ock5g")
+
+[node name="MeshInstance2D7" type="MeshInstance2D" parent="."]
+modulate = Color(1, 0, 0, 1)
+position = Vector2(-4.89, 6.015)
+rotation = 0.48694688
+scale = Vector2(9.865, 9)
+mesh = SubResource("SphereMesh_ock5g")
+
+[node name="MeshInstance2D" type="MeshInstance2D" parent="MeshInstance2D7"]
+position = Vector2(0.435, -0.002)
+rotation = -3.1415927
+scale = Vector2(0.5, 0.5)
+mesh = SubResource("PrismMesh_qs5to")
+
+[node name="MeshInstance2D8" type="MeshInstance2D" parent="."]
+modulate = Color(0, 0.5411765, 1, 1)
+position = Vector2(4.89, 6.015)
+rotation = 0.48694688
+scale = Vector2(9.865, 9)
+mesh = SubResource("SphereMesh_ock5g")
+
+[node name="MeshInstance2D" type="MeshInstance2D" parent="MeshInstance2D8"]
+position = Vector2(-0.241, 0.403)
+rotation = 2.2078414
+scale = Vector2(0.5, 0.5)
+mesh = SubResource("PrismMesh_qs5to")

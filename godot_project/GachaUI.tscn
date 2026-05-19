@@ -1,0 +1,86 @@
+[gd_scene format=3 uid="uid://dnwg31q364wx7"]
+
+[ext_resource type="Script" uid="uid://dx4ukuo41p7h5" path="res://GachaUI.gd" id="1_gacha"]
+
+[node name="GachaUI" type="Control" unique_id=981622123]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_gacha")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1110546680]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0.1, 0.2, 0.8)
+
+[node name="PanelContainer" type="PanelContainer" parent="." unique_id=871072714]
+custom_minimum_size = Vector2(800, 600)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -300.0
+offset_right = 400.0
+offset_bottom = 300.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer" unique_id=1330405883]
+layout_mode = 2
+
+[node name="CloseBtn" type="Button" parent="PanelContainer/VBoxContainer" unique_id=729339943]
+layout_mode = 2
+size_flags_horizontal = 8
+text = " X "
+
+[node name="TabContainer" type="TabContainer" parent="PanelContainer/VBoxContainer" unique_id=998169906]
+layout_mode = 2
+size_flags_vertical = 3
+current_tab = 0
+
+[node name="Weapons" type="ScrollContainer" parent="PanelContainer/VBoxContainer/TabContainer" unique_id=180886997]
+layout_mode = 2
+metadata/_tab_index = 0
+
+[node name="GridContainer" type="GridContainer" parent="PanelContainer/VBoxContainer/TabContainer/Weapons" unique_id=179590558]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+columns = 4
+
+[node name="Pets" type="ScrollContainer" parent="PanelContainer/VBoxContainer/TabContainer" unique_id=1759358398]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 1
+
+[node name="GridContainer" type="GridContainer" parent="PanelContainer/VBoxContainer/TabContainer/Pets" unique_id=784651516]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+columns = 4
+
+[node name="Costumes" type="ScrollContainer" parent="PanelContainer/VBoxContainer/TabContainer" unique_id=525898482]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 2
+
+[node name="GridContainer" type="GridContainer" parent="PanelContainer/VBoxContainer/TabContainer/Costumes" unique_id=632495055]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+columns = 4
+
+[node name="SpinBtn" type="Button" parent="PanelContainer/VBoxContainer" unique_id=19929769]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+text = "SPIN (Gacha)"
