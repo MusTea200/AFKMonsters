@@ -70,6 +70,7 @@ func _ready() -> void:
 	body_entered.connect(_on_body_entered)
 
 func _process(delta: float) -> void:
+	if get_tree().paused: return
 	var movement = Vector2.ZERO
 	# Kuzeye bakan polygon'u ilerledigi yone dondur
 	if movement != Vector2.ZERO and not is_boss:

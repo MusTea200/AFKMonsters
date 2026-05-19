@@ -113,3 +113,18 @@ Bu ödül `EconomyComponent.gd` üzerinden `Global.dongu_parcaciklari` bakiyesin
 ### UI Sinyalleri ve Gelişmiş Debug Manipülasyonları
 - `GachaUI.gd` dosyasındaki eksik `spin_btn` bağlantısı (`pressed.connect`) `_ready()` fonksiyonunda `tab` yapılandırmalarının hemen altına entegre edilerek oyun içindeki çark tamamen işlevsel hale getirildi. Unutulan veya kopan sinyallerin UI (Arayüz) elementlerini nasıl felç ettiği, sinyal bağlantılarının (mapping) hayati önemi bir kez daha tescillendi.
 - "1" tuşu ile tetiklenen siber hile motoru (Debug Konsolu) daha da güçlendirildi. Oyuncu 1'e bastığı an kaynak yüklemesine ve Redzone manipülasyonuna ek olarak RPG dinamikleri de ele geçirildi: `hasar_azaltma` oranı 1.0 yapılarak tam ölümsüzlük, `mermi_sayisi` 6 ve `mermi_hasari` 10000.0 yapılarak dehşet verici ateş gücü (God Mode) sağlandı. Bu sayede canavar eskalasyon testleri ve son seviye hayatta kalma mekanikleri vakit kaybetmeden saniyeler içinde test edilebilir hale geldi.
+
+### Mutlak Donma (Hard Pause) ve Arayüz Lojiği
+- Daha önce Gacha çarkı veya Market gibi `get_tree().paused = true` durumunda çalışan sistemler yüzünden, arka plandaki düşman dalgalarının ve sayaçların (`_process` / `_physics_process`) çalışmaya veya hesaplama yapmaya devam etme riski bulunuyordu.
+- Tüm ana oyun nesnelerinin (`Arena.gd`, `Redzone.gd`, `Enemy.gd`) `_process` döngülerinin başına mutlak suretle `if get_tree().paused: return` kilidi (Hard Pause) eklenerek sistem zırhlandırıldı.
+- `Redzone.gd` açıkça `process_mode = Node.PROCESS_MODE_PAUSABLE` olarak işaretlenerek, oyuncu marketteyken alan hesaplamalarının milisaniyelik olsa dahi oynaması engellendi.
+
+### Gacha Animasyonu ve Instant-Resolve (Anında Tamamlanma)
+- Gacha çarkı (`GachaUI.gd`) rastgele zamanlı gecikmeler yerine, tam 5 saniye (5.0s) sürecek pürüzsüz ve üssel yavaşlayan (Exponential Easing) bir interpolasyon (`lerp`) mantığına oturtuldu. Son karelerde hedef üzerinde neon mor (Legendary Bait) parlama hilesi korunarak ödül veriliyor.
+- Gacha dönerken oyuncu sabırsızlanıp "X" butonuna basarsa, animasyon anında kesiliyor (Instant-Resolve), ödül envantere işleniyor ve arayüz güvenle `queue_free()` ile yok ediliyor. Ayrıca kazanım anı 2.0x scale efekti ve Siber partikül patlamasıyla (CPUParticles2D) donatıldı.
+
+### Genişletilmiş Siber Arsenal
+- Oyunun tekrar oynanabilirliğini ve "build" varyasyonlarını (Roguelite elementleri) zenginleştirmek için yeni pasif ve aktif Gacha yetenekleri sisteme enjekte edildi:
+  - **Petler:** Ruh Emici, Kalkan Dronu, Şifacı Peri
+  - **Kostümler:** Gölge Koşucu, Mıknatıs Zırhı, Reflektör
+  - **Mermiler:** Homing Missile, Chain Lightning, Black Hole

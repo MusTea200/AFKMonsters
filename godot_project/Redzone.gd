@@ -21,6 +21,7 @@ var original_regen: float = 0.0
 
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_PAUSABLE
 	add_to_group("redzones")
 
 	if not progress_bar:
@@ -58,6 +59,7 @@ func _ready() -> void:
 	body_exited.connect(_on_body_exited)
 
 func _process(delta: float) -> void:
+	if get_tree().paused: return
 	if is_used: return
 
 	if captured:

@@ -4,26 +4,36 @@ var items = {
 	"pets": [
 		{"name": "Hızlandırıcı Kedi", "tier": 1},
 		{"name": "Zamanla Can Basan Doktor Dron", "tier": 2},
-		{"name": "Alev Püskürten Ejderha", "tier": 5}
+		{"name": "Ruh Emici", "tier": 3},
+		{"name": "Kalkan Dronu", "tier": 4},
+		{"name": "Alev Püskürten Ejderha", "tier": 5},
+		{"name": "Şifacı Peri", "tier": 5}
 	],
 	"costumes": [
 		{"name": "Maksimum Can Artırıcı", "tier": 1},
 		{"name": "İtme Dalgası", "tier": 3},
+		{"name": "Gölge Koşucu", "tier": 3},
+		{"name": "Mıknatıs Zırhı", "tier": 4},
+		{"name": "Reflektör", "tier": 5},
 		{"name": "Run Başı 1 Kez Dirilme", "tier": 5}
 	],
 	"weapons": [
 		{"name": "Shotgun", "tier": 2},
 		{"name": "Boomerang", "tier": 3},
+		{"name": "Homing Missile", "tier": 3},
 		{"name": "Orbit Bullets", "tier": 4},
-		{"name": "Wizard Staff", "tier": 5}
+		{"name": "Chain Lightning", "tier": 4},
+		{"name": "Wizard Staff", "tier": 5},
+		{"name": "Black Hole", "tier": 5}
 	]
 }
 
 var grid: GridContainer
 var spin_btn: Button
 var is_spinning: bool = false
-var spin_time: float = 0.0
+var spin_time_elapsed: float = 0.0
 var spin_delay: float = 0.05
+var spin_step_timer: float = 0.0
 var current_index: int = 0
 var target_index: int = 0
 var roll_count: int = 0
@@ -48,6 +58,9 @@ func _ready() -> void:
 	grid = tab.get_node("Weapons").get_node("GridContainer")
 
 	close_btn.pressed.connect(func():
+		if is_spinning:
+			is_spinning = false
+			_award_item(target_index)
 		get_tree().paused = false
 		queue_free()
 	)
@@ -105,45 +118,47 @@ func _on_spin() -> void:
 	# hedefte durduracagiz. Animasyonun icinde _process te halledecegiz.
 
 	# Hedef indeks bulundu. Donusu baslat:
-	spin_time = 0.0
-	spin_delay = 0.02 # Baslangicta inanilmaz hizli don!
-	roll_count = 40 + target_index # 40 tam tur + hedefe varis
+	spin_time_elapsed = 0.0
+	spin_step_timer = 0.0
+	spin_delay = 0.02
 
 func _process(delta: float) -> void:
 	if not is_spinning: return
 
-	spin_time += delta
-	if spin_time >= spin_delay:
-		spin_time = 0.0
+	spin_time_elapsed += delta
+	spin_step_timer += delta
 
-		# Reset old glow
+	# Ussel yavaslama
+	var t = min(spin_time_elapsed / 5.0, 1.0)
+	spin_delay = lerp(0.02, 0.4, pow(t, 3.0))
+
+	if spin_step_timer >= spin_delay:
+		spin_step_timer = 0.0
+
 		if current_index < grid.get_child_count():
 			grid.get_child(current_index).modulate = Color.WHITE
 			grid.get_child(current_index).scale = Vector2.ONE
 
 		current_index = (current_index + 1) % grid.get_child_count()
 
-		# Set new glow
-
-		# Cyberpunk ses tınısı simülasyonu (Bip Bop)
-		# AudioStreamPlayer eklenebilir
-
-
-		# Profesyonel Near Miss Yavaslamasi
-		roll_count -= 1
-
-		if roll_count < 10:
-			spin_delay += 0.08 # Sona yaklastikca katlanarak yavasla
-
-			# Sondan 1 ve 2 onceki adimlari efsanevi esyalar mis gibi parlat
-			if roll_count == 1 or roll_count == 2:
-				grid.get_child(current_index).modulate = Color(1.0, 0.0, 1.0) # Sinsi neon mor!
+		if t > 0.8:
+			grid.get_child(current_index).modulate = Color(1.0, 0.0, 1.0) # Sinsi neon mor!
 		else:
 			grid.get_child(current_index).modulate = Color(1.5, 1.5, 0.0) # Intense Yellow/Gold
 
 		grid.get_child(current_index).scale = Vector2(1.1, 1.1)
 
+	if spin_time_elapsed >= 5.0:
+		is_spinning = false
 
+		# Gorseli hedefe kilitle
+		if current_index < grid.get_child_count():
+			grid.get_child(current_index).modulate = Color.WHITE
+			grid.get_child(current_index).scale = Vector2.ONE
+
+		current_index = target_index
+
+		_award_item(target_index)
 
 func _award_item(idx: int) -> void:
 	var p = grid.get_child(idx)
@@ -171,9 +186,24 @@ func _award_item(idx: int) -> void:
 
 	# Kazanilan gorsel soku
 	var tw = create_tween()
-	tw.tween_property(p, "scale", Vector2(1.5, 1.5), 0.2).set_trans(Tween.TRANS_BOUNCE)
+	tw.tween_property(p, "scale", Vector2(2.0, 2.0), 0.2).set_trans(Tween.TRANS_BOUNCE)
 	tw.tween_property(p, "scale", Vector2.ONE, 0.3)
 	p.modulate = Color.GREEN # Gecici Yesil
+
+	# Siber Particle
+	var particles = CPUParticles2D.new()
+	particles.emitting = true
+	particles.one_shot = true
+	particles.amount = 30
+	particles.lifetime = 1.0
+	particles.explosiveness = 0.9
+	particles.spread = 180.0
+	particles.gravity = Vector2.ZERO
+	particles.initial_velocity_min = 50.0
+	particles.initial_velocity_max = 150.0
+	particles.color = Color("00ff33")
+	particles.position = p.size / 2.0
+	p.add_child(particles)
 
 func _populate_tab(tab_node: Node, category: String) -> void:
 	var grid_container = tab_node.get_node("GridContainer")

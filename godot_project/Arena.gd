@@ -182,6 +182,7 @@ func _ready() -> void:
 	_initial_node_spawn()
 
 func _process(delta: float) -> void:
+	if get_tree().paused: return
 	if get_tree().paused or not is_instance_valid(player_node):
 		return # Oyun durduysa motoru hiç yorma
 	if not get_tree().paused:
