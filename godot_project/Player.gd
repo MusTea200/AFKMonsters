@@ -9,6 +9,8 @@ class_name Player
 @export var grapple_radius: float = 600.0
 
 var current_health: float
+var _is_hook_held: bool = false
+var active_redzone_count: int = 0
 var active_springs: Dictionary = {}
 var current_target_node: Node2D = null
 
@@ -36,11 +38,13 @@ var combo_speed_threshold: float = 800.0
 var combo_drop_threshold: float = 300.0
 var combo_label: Label
 
-# Economy & Level
-var exp: float = 0.0
-var level: int = 1
-var gold: float = 0.0
-var next_level_exp: float = 100.0
+var stun_icon: Sprite2D
+var momentum_label: Label
+var speed_lines: ColorRect
+
+@export var min_zoom: float = 0.5
+@export var max_zoom: float = 3.0
+@export var zoom_speed: float = 0.1
 
 var exp_bar: ProgressBar
 var camera: Camera2D
@@ -53,15 +57,27 @@ var mass_multiplier: float = 1.0
 var stiffness_multiplier: float = 1.0
 
 
-# Reference to UI (You would typically inject this or autoload it)
 var level_up_ui: LevelUpUI
+var economy_comp: EconomyComponent
+var combat_comp: CombatComponent
 
 func _ready() -> void:
+	max_health = Global.perm_max_health
+	max_speed = Global.base_speed
+	shield_charges = Global.shield_capacity
+	orbit_count = Global.orbital_count
+	_create_orbitals()
 	current_health = max_health
+	Global.start_run()
 	gravity_scale = 0.0
-	# Lower linear damp allows for more natural "Spider-Man" style swinging and gliding
 	linear_damp = 1.0
 	lock_rotation = true
+	
+
+	var canvas = get_tree().current_scene.find_child("CanvasLayer", true, false)
+	if canvas:
+		momentum_label = canvas.find_child("MomentumLabel", true, false) as Label
+		speed_lines = canvas.find_child("SpeedLines", true, false) as ColorRect
 
 	health_bar = get_tree().current_scene.find_child("PlayerHealthBar", true, false) as ProgressBar
 	if is_instance_valid(health_bar):
@@ -94,20 +110,51 @@ func _ready() -> void:
 	if ui_scene:
 		level_up_ui = ui_scene.instantiate()
 		add_child(level_up_ui)
-		level_up_ui.upgrade_selected.connect(_apply_upgrade)
+
+	# Components Initialization
+	economy_comp = EconomyComponent.new()
+	economy_comp.name = "EconomyComponent"
+	add_child(economy_comp)
+
+	combat_comp = CombatComponent.new()
+	combat_comp.name = "CombatComponent"
+	add_child(combat_comp)
+
+	economy_comp.initialize(self, exp_bar, level_up_ui)
+	combat_comp.initialize(self)
+
+	if is_instance_valid(level_up_ui):
+		level_up_ui.upgrade_selected.connect(economy_comp.apply_upgrade)
 
 func _physics_process(delta: float) -> void:
-	var input_vector = Vector2.ZERO
-	if Input.is_key_pressed(KEY_D) or Input.is_action_pressed("ui_right"):
-		input_vector.x += 1
-	if Input.is_key_pressed(KEY_A) or Input.is_action_pressed("ui_left"):
-		input_vector.x -= 1
-	if Input.is_key_pressed(KEY_S) or Input.is_action_pressed("ui_down"):
-		input_vector.y += 1
-	if Input.is_key_pressed(KEY_W) or Input.is_action_pressed("ui_up"):
-		input_vector.y -= 1
+	if is_stunned:
+		linear_velocity = linear_velocity.move_toward(Vector2.ZERO, 50.0 * delta)
+		if stun_icon:
+			stun_icon.rotation += 5.0 * delta
+		return
 
-	input_vector = input_vector.normalized()
+	if _is_hook_held and active_springs.is_empty() and Global.grapple_hold_mode:
+		var aim_dir = Vector2.ZERO
+		if Global.right_joystick and Global.right_joystick.is_dragging:
+			aim_dir = Global.right_joystick.get_joystick_vector().normalized()
+		elif Global.left_joystick and Global.left_joystick.is_dragging:
+			aim_dir = Global.left_joystick.get_joystick_vector().normalized()
+		elif Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down").length() > 0:
+			aim_dir = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down").normalized()
+
+		if is_instance_valid(current_target_node):
+			_create_spring_joint(current_target_node)
+		elif aim_dir.length() > 0.1:
+			_try_attach_spring_dir(aim_dir)
+
+
+	var input_vector = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
+
+	if Global.left_joystick and Global.left_joystick.is_dragging:
+		var joy_vec = Global.left_joystick.get_joystick_vector()
+		if joy_vec.length() > 0.1:
+			input_vector = joy_vec
+
 	if input_vector.length() > 0:
 		apply_central_force(input_vector * move_force)
 
@@ -140,7 +187,6 @@ func _physics_process(delta: float) -> void:
 	_update_combo(delta)
 	queue_redraw()
 
-# Limit the maximum velocity safely through physics integration
 func _integrate_forces(state: PhysicsDirectBodyState2D) -> void:
 	if state.linear_velocity.length() > max_speed:
 		state.linear_velocity = state.linear_velocity.limit_length(max_speed)
@@ -160,6 +206,46 @@ func _unhandled_input(event: InputEvent) -> void:
 				var new_zoom = clamp(camera.zoom.x - zoom_speed, min_zoom, max_zoom)
 				camera.zoom = Vector2(new_zoom, new_zoom)
 
+func _unhandled_input(event: InputEvent) -> void:
+	if is_stunned: return
+
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			if event.pressed:
+				_is_hook_held = true
+				if not Global.grapple_hold_mode:
+					_try_attach_spring(get_global_mouse_position())
+			else:
+				_is_hook_held = false
+				if Global.grapple_hold_mode:
+					_release_slingshot()
+		elif event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:
+				var new_zoom = clamp(camera.zoom.x + zoom_speed, min_zoom, max_zoom)
+				camera.zoom = Vector2(new_zoom, new_zoom)
+		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN and event.pressed:
+			if is_instance_valid(camera):
+				var new_zoom = clamp(camera.zoom.x - zoom_speed, min_zoom, max_zoom)
+				camera.zoom = Vector2(new_zoom, new_zoom)
+
+
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_Q and Global.get("turret_unlocked"):
+			var turret = load("res://Turret.gd").new()
+			turret.global_position = global_position
+			get_tree().current_scene.add_child(turret)
+			Global.turret_unlocked = false # Consumed
+
+		elif event.keycode == KEY_E and Global.get("portable_magnet_unlocked"):
+			var magnet = load("res://PortableMagnet.gd").new()
+			get_tree().current_scene.add_child(magnet)
+			Global.portable_magnet_unlocked = false # Consumed
+
+		elif event.keycode == KEY_R and Global.get("poison_flask_unlocked"):
+			var flask = load("res://PoisonFlask.gd").new()
+			flask.global_position = global_position
+			flask.target_pos = get_global_mouse_position()
+			get_tree().current_scene.add_child(flask)
+			Global.poison_flask_unlocked = false # Consumed
 	if event is InputEventKey and event.keycode == KEY_SPACE and event.pressed:
 		if not event.echo:
 			_release_slingshot()

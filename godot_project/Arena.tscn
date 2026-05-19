@@ -1,49 +1,27 @@
-[gd_scene load_steps=6 format=3 uid="uid://darena1234"]
+[gd_scene load_steps=9 format=3 uid="uid://darena1234"]
 
 [ext_resource type="Script" uid="uid://dbwwkhi2388iv" path="res://Arena.gd" id="1_arena"]
 [ext_resource type="PackedScene" uid="uid://cx6g0q6j7l2vj" path="res://Player.tscn" id="2_u45fm"]
+[ext_resource type="Shader" uid="uid://d168ggsij0fgm" path="res://SpeedLines.gdshader" id="3_spdlines"]
+[ext_resource type="Script" uid="uid://db04y0u2esu67" path="res://NeonButton.gd" id="res://NeonButton.gd"]
+[ext_resource type="Script" uid="uid://stfqwqfiwuhk" path="res://VirtualJoystick.gd" id="res://VirtualJoystick.gd"]
 
-[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_bouncy"]
-bounce = 1.0
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_spd"]
+shader = ExtResource("3_spdlines")
+shader_parameter/line_color = Color(1, 1, 1, 0.5)
+shader_parameter/speed_multiplier = 0.0
+shader_parameter/line_density = 50.0
+shader_parameter/line_length = 0.5
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_horizontal"]
-size = Vector2(4000, 100)
+[sub_resource type="SphereMesh" id="SphereMesh_u45fm"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_vertical"]
-size = Vector2(100, 4000)
+[sub_resource type="PlaneMesh" id="PlaneMesh_vbyki"]
+lightmap_size_hint = Vector2i(12, 12)
+orientation = 2
 
 [node name="Arena" type="Node2D"]
+process_mode = 3
 script = ExtResource("1_arena")
-
-[node name="Borders" type="Node2D" parent="."]
-
-[node name="TopWall" type="StaticBody2D" parent="Borders"]
-position = Vector2(2000, -50)
-physics_material_override = SubResource("PhysicsMaterial_bouncy")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Borders/TopWall"]
-shape = SubResource("RectangleShape2D_horizontal")
-
-[node name="BottomWall" type="StaticBody2D" parent="Borders"]
-position = Vector2(2000, 4050)
-physics_material_override = SubResource("PhysicsMaterial_bouncy")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Borders/BottomWall"]
-shape = SubResource("RectangleShape2D_horizontal")
-
-[node name="LeftWall" type="StaticBody2D" parent="Borders"]
-position = Vector2(-50, 2000)
-physics_material_override = SubResource("PhysicsMaterial_bouncy")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Borders/LeftWall"]
-shape = SubResource("RectangleShape2D_vertical")
-
-[node name="RightWall" type="StaticBody2D" parent="Borders"]
-position = Vector2(4050, 2000)
-physics_material_override = SubResource("PhysicsMaterial_bouncy")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Borders/RightWall"]
-shape = SubResource("RectangleShape2D_vertical")
 
 [node name="Player" parent="." instance=ExtResource("2_u45fm")]
 position = Vector2(1962, 2103)
@@ -51,3 +29,185 @@ position = Vector2(1962, 2103)
 [node name="Camera2D" type="Camera2D" parent="Player"]
 zoom = Vector2(0.5, 0.5)
 position_smoothing_enabled = true
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="SpeedLines" type="ColorRect" parent="CanvasLayer"]
+material = SubResource("ShaderMaterial_spd")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0.5)
+
+[node name="CountdownLabel" type="Label" parent="CanvasLayer"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -100.0
+offset_right = 100.0
+offset_bottom = 67.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 48
+text = "10:00"
+horizontal_alignment = 1
+
+[node name="MomentumLabel" type="Label" parent="CanvasLayer"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 120.0
+offset_top = -124.0
+offset_right = 344.0
+offset_bottom = -90.0
+grow_horizontal = 2
+grow_vertical = 2
+rotation = 0.43633232
+theme_override_colors/font_color = Color(1, 0, 1, 1)
+theme_override_font_sizes/font_size = 24
+text = "MOMENTUM: 1.0x"
+horizontal_alignment = 1
+metadata/_edit_group_ = true
+
+[node name="ExpBar" type="ProgressBar" parent="CanvasLayer"]
+offset_top = 32.0
+offset_right = 331.0
+offset_bottom = 73.0
+
+[node name="RichTextLabel" type="RichTextLabel" parent="CanvasLayer/ExpBar"]
+layout_mode = 0
+offset_left = 151.0
+offset_top = -25.0
+offset_right = 181.0
+offset_bottom = -1.0
+text = "EXP"
+
+[node name="PauseMenu" type="Panel" parent="CanvasLayer"]
+process_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="StatsLabel" type="RichTextLabel" parent="CanvasLayer/PauseMenu"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.3654514
+anchor_top = 0.32766616
+anchor_right = 0.6458333
+anchor_bottom = 0.6012364
+offset_left = -357.0
+offset_top = -148.00002
+offset_right = 344.0
+offset_bottom = 187.00006
+grow_horizontal = 2
+grow_vertical = 2
+text = "Hello
+"
+
+[node name="Coin" type="TextureRect" parent="CanvasLayer"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -239.99994
+offset_top = 16.0
+offset_right = -199.99994
+offset_bottom = 56.0
+grow_horizontal = 0
+scale = Vector2(1.415, 1.415)
+
+[node name="BalanceLabel" type="Label" parent="CanvasLayer/Coin"]
+layout_mode = 0
+offset_left = 45.936413
+offset_top = -7.067138
+offset_right = 114.93642
+offset_bottom = 157.93286
+scale = Vector2(0.3, 0.3)
+theme_override_font_sizes/font_size = 120
+text = "1234567"
+
+[node name="MeshInstance2D" type="MeshInstance2D" parent="CanvasLayer/Coin"]
+modulate = Color(1, 1, 0, 1)
+position = Vector2(19.787987, 19.787989)
+scale = Vector2(39.620907, 39.57598)
+mesh = SubResource("SphereMesh_u45fm")
+
+[node name="MeshInstance2D2" type="MeshInstance2D" parent="CanvasLayer/Coin"]
+modulate = Color(1, 0.735357, 0, 1)
+position = Vector2(19.787983, 19.787985)
+rotation = 0.59609425
+scale = Vector2(11.785, 11.785)
+skew = 0.3839724
+mesh = SubResource("PlaneMesh_vbyki")
+
+[node name="MobileControls" type="CanvasLayer" parent="."]
+
+[node name="LeftJoystick" type="Control" parent="MobileControls"]
+layout_mode = 3
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 32.0
+offset_top = -272.0
+offset_right = 272.0
+offset_bottom = -32.0
+grow_vertical = 0
+script = ExtResource("res://VirtualJoystick.gd")
+
+[node name="RightJoystick" type="Control" parent="MobileControls"]
+layout_mode = 3
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -272.0
+offset_top = -280.0
+offset_right = -32.0
+offset_bottom = -40.0
+grow_horizontal = 0
+grow_vertical = 0
+script = ExtResource("res://VirtualJoystick.gd")
+
+[node name="GrappleBtn" type="TouchScreenButton" parent="MobileControls"]
+position = Vector2(1280, 256)
+action = "ui_accept"
+script = ExtResource("res://NeonButton.gd")
+base_color = Color(0, 1, 1, 0.6)
+radius = 70.0
+label_text = "HOOK"
+
+
+[node name="TurretBtn" type="TouchScreenButton" parent="MobileControls"]
+position = Vector2(800, 200)
+script = ExtResource("res://NeonButton.gd")
+base_color = Color(1, 0.5, 0, 0.6)
+radius = 40.0
+label_text = "TURRET"
+
+[node name="MagnetBtn" type="TouchScreenButton" parent="MobileControls"]
+position = Vector2(900, 150)
+script = ExtResource("res://NeonButton.gd")
+base_color = Color(0.8, 0, 1, 0.6)
+radius = 40.0
+label_text = "MAG"
+
+[node name="FlaskBtn" type="TouchScreenButton" parent="MobileControls"]
+position = Vector2(1000, 200)
+script = ExtResource("res://NeonButton.gd")
+base_color = Color(0.2, 1, 0.2, 0.6)
+radius = 40.0
+label_text = "FLASK"
+
+[node name="PauseBtn" type="TouchScreenButton" parent="MobileControls"]
+position = Vector2(408, 48)
+script = ExtResource("res://NeonButton.gd")
+base_color = Color(0, 1, 0.5, 0.6)
+radius = 50.0
+label_text = "||"

@@ -1,0 +1,42 @@
+[gd_scene format=3 uid="uid://biofvtsnwdm0s"]
+
+[ext_resource type="Script" uid="uid://sibdckpq2n60" path="res://Bullet.gd" id="1_ayd6b"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_x3e43"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_ayd6b"]
+
+[sub_resource type="PrismMesh" id="PrismMesh_4s4u5"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_7281b"]
+height = 11.144
+
+[node name="Bullet" type="Area2D" unique_id=1941150536]
+process_mode = 1
+rotation = 1.5710828
+scale = Vector2(3, 3)
+script = ExtResource("1_ayd6b")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=120078659]
+rotation = 1.5707964
+scale = Vector2(0.27, 0.34)
+shape = SubResource("CapsuleShape2D_x3e43")
+
+[node name="MermiUcu" type="MeshInstance2D" parent="CollisionShape2D" unique_id=1779115712]
+modulate = Color(0.9752409, 0.6318643, 0, 1)
+position = Vector2(2.910383e-11, -6.897058)
+scale = Vector2(16.796726, 15.074532)
+mesh = SubResource("SphereMesh_ayd6b")
+
+[node name="MermiTaban" type="MeshInstance2D" parent="CollisionShape2D" unique_id=1047354694]
+modulate = Color(0.70083064, 0.30468878, 0, 0.8745098)
+position = Vector2(2.910383e-11, 10.661763)
+rotation = -3.1415925
+scale = Vector2(17.688889, 4.488235)
+mesh = SubResource("PrismMesh_4s4u5")
+
+[node name="MermiGovdeUst" type="MeshInstance2D" parent="CollisionShape2D" unique_id=184133165]
+modulate = Color(0.8509804, 0.54901963, 0, 1)
+position = Vector2(-8.731149e-11, 1.7058822)
+scale = Vector2(17.682152, -1.837244)
+mesh = SubResource("CapsuleMesh_7281b")
