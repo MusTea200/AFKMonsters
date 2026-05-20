@@ -128,3 +128,9 @@ Bu ödül `EconomyComponent.gd` üzerinden `Global.dongu_parcaciklari` bakiyesin
   - **Petler:** Ruh Emici, Kalkan Dronu, Şifacı Peri
   - **Kostümler:** Gölge Koşucu, Mıknatıs Zırhı, Reflektör
   - **Mermiler:** Homing Missile, Chain Lightning, Black Hole
+
+### Kalıcı Gelişim Mimarisi ve İyileşme (Healing) Halkaları
+- Gacha pazarından (`GachaUI.gd`) elde edilen yetenek, pet ve kostüm seviyeleri sadece run'lık olmaktan çıkartılarak `Global.gd` altındaki `gacha_levels` sözlüğüne entegre edildi. `save_game()` döngüsü sayesinde elde edilen her bir geliştirme kalıcı hale geldi ve oyuncunun ilerlemesi (Meta-progression) tam kapasiteyle bağlandı.
+- Arayüzdeki sekmeler arası geçişlerin çark animasyonu dönerken hata (veya hedef kayması) yaratmaması adına `locked_grid` isimli bir geçici referans hafızası kuruldu. Oyuncu sekmeyi değiştirse dahi, ödül ilk tıklandığı kategoriden gelecek.
+- Siber "Redzone" alan mekaniklerine üçüncü ve son aşama olan "10 Saniyelik Şifa Hanesi" (`healing_time`) kodlandı. Alan tamamen savunulup renk `00ff004d`ye (Yeşil) döndüğünde, içerdeki oyuncunun tüm debuff'ları arındırılarak saniyede %5 max can (`player.max_health * 0.05 * delta`) pürüzsüzce iyileştiriliyor. 10 saniye sonunda şifa döngüsü bitiyor ve Vending Machine kilidi açılarak renkleri güncelleniyor.
+- "1" hile koduna bu 3. fazı atlama kilidi ve siber Tanrı modu özellikleri başarıyla perçinlendi.
