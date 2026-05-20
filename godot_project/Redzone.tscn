@@ -24,14 +24,15 @@ offset_top = -350.0
 offset_right = 100.0
 offset_bottom = -330.0
 
-[node name="CountdownLabel" type="Label" parent="." unique_id=174355814]
-offset_left = -50.0
-offset_top = -100.0
-offset_right = 50.0
-offset_bottom = -36.0
-theme_override_font_sizes/font_size = 64
-horizontal_alignment = 1
+[node name="Timer" type="Timer" parent="." unique_id=1632979599]
 
 [node name="VendingMachine" parent="." unique_id=1014674215 instance=ExtResource("2_vending")]
 
-[node name="Timer" type="Timer" parent="." unique_id=1632979599]
+[node name="CountdownLabel" type="Label" parent="." unique_id=174355814]
+offset_left = -75.0
+offset_top = -383.185
+offset_right = 71.0
+offset_bottom = -34.184998
+theme_override_font_sizes/font_size = 256
+text = "8"
+horizontal_alignment = 1
