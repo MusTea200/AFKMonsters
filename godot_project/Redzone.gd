@@ -13,8 +13,6 @@ var healing_time: float = 10.0
 var is_healing: bool = false
 var last_spawn_percent: float = 0.0
 var is_used: bool = false
-var original_speed: float = 0.0
-var original_regen: float = 0.0
 
 @onready var visual = $ZoneVisual
 @onready var progress_bar = $ProgressBar
@@ -59,6 +57,7 @@ func _ready() -> void:
 
 	body_entered.connect(_on_body_entered)
 	body_exited.connect(_on_body_exited)
+	tree_exiting.connect(_on_tree_exiting)
 
 func _process(delta: float) -> void:
 	if get_tree().paused: return
@@ -90,7 +89,13 @@ func _process(delta: float) -> void:
 
 		if defense_time <= 0:
 			countdown_label.hide()
+
+			if is_instance_valid(player) and player.has_method("get") and "active_redzone_count" in player:
+				if debuff_active:
+					player.active_redzone_count -= 1
+					if player.active_redzone_count < 0: player.active_redzone_count = 0
 			_remove_debuff()
+
 			# Mutlak Matrix Renk Dönüşümleri
 			visual.color = Color("00ff004d")
 
@@ -128,13 +133,15 @@ func _process(delta: float) -> void:
 func _on_body_entered(body: Node2D) -> void:
 	if body.name == "Player":
 		player = body
-		if body.has_method("get") and "active_redzone_count" in body:
-			body.active_redzone_count += 1
+		# Sadece redzone tehlikeliyse sayaca ekle!
+		if not is_used and not is_healing and not (captured and defense_time <= 0):
+			if body.has_method("get") and "active_redzone_count" in body:
+				body.active_redzone_count += 1
 
 func _on_body_exited(body: Node2D) -> void:
 	if body.name == "Player":
 		player = null
-		if body.has_method("get") and "active_redzone_count" in body:
+		if debuff_active and body.has_method("get") and "active_redzone_count" in body:
 			body.active_redzone_count -= 1
 			if body.active_redzone_count < 0: body.active_redzone_count = 0
 		debuff_timer = inside_time / 3.0
@@ -143,33 +150,43 @@ func _apply_debuff() -> void:
 	debuff_active = true
 	var p = player if is_instance_valid(player) else get_tree().current_scene.find_child("Player", true, false)
 	if is_instance_valid(p):
-		original_speed = p.max_speed
-		original_regen = p.combat_comp.can_yenileme
 
-		p.max_speed = original_speed * 0.5
-		p.combat_comp.can_yenileme = 0.0
-		p.modulate = Color.RED
+		# Sadece ilk kez debuff yiyorsa statlari yariya dusur
+		if p.get("active_redzone_count") == 1:
+			p.max_speed = Global.base_speed * 0.5
+			if p.has_node("CombatComponent"):
+				p.get_node("CombatComponent").can_yenileme = 0.0
+			p.modulate = Color.RED
+			p.linear_damp = 0.2 # Ice effect (kayganlik)
 
 		# Kesişim vurgusu
 		if p.active_redzone_count > 1:
 			visual.color = Color(1.0, 0.0, 0.0, 0.4) # Daha koyu plazma
-		p.linear_damp = 0.2 # Ice effect (kayganlik)
 
 		# warning ui
 		var canvas = CanvasLayer.new()
 		canvas.name = "RedzoneVignette"
-
 		var vignette = ColorRect.new()
 		vignette.color = Color(1, 0, 0, 0.2)
 		vignette.set_anchors_preset(Control.PRESET_FULL_RECT)
 		vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		canvas.add_child(vignette)
 
+		# Creative Siber Dalgalanma Efekti (Process icinde titremesi icin script eklenir veya Tween)
+		if p.active_redzone_count > 1:
+			vignette.color = Color(1.0, 0.0, 1.0, 0.3)
+			var tw = create_tween().set_loops()
+			tw.tween_property(vignette, "color", Color(1.0, 0.0, 0.0, 0.3), 0.5)
+			tw.tween_property(vignette, "color", Color(1.0, 0.0, 1.0, 0.3), 0.5)
+
 		var label = Label.new()
 		label.name = "RedzoneWarnLabel"
 		if p.active_redzone_count > 1:
 			label.text = ">> MATRIX BONUS: MULTIPLIER X" + str(p.active_redzone_count) + " <<"
 			label.add_theme_color_override("font_color", Color(1.0, 0.0, 1.0)) # Neon Pink bonus
+			var tw2 = create_tween().set_loops()
+			tw2.tween_property(label, "scale", Vector2(1.2, 1.2), 0.3)
+			tw2.tween_property(label, "scale", Vector2.ONE, 0.3)
 		else:
 			label.text = ">> WARNING: OVERHEAT DEBUFF <<"
 			label.add_theme_color_override("font_color", Color.RED)
@@ -189,21 +206,33 @@ func _trigger_emp() -> void:
 
 func _remove_debuff() -> void:
 	var p = get_tree().current_scene.find_child("Player", true, false)
-	if is_instance_valid(p) and p.get("active_redzone_count") != null and p.active_redzone_count > 0:
-		return # Hala baska redzone icindeyse debuff i silme!
 	debuff_active = false
-	p = get_tree().current_scene.find_child("Player", true, false)
-	if is_instance_valid(p) and original_speed > 0:
-		p.max_speed = original_speed
-		p.combat_comp.can_yenileme = original_regen
+	if is_instance_valid(p):
+		if p.get("active_redzone_count") != null and p.active_redzone_count > 0:
+			# Hala baska redzone icindeyse statlari geri verme, sadece kendi yarattigimiz UI elementini sil
+			_cleanup_vignette()
+			return
+
+		# active_redzone_count == 0 oldugu an, statlari merkezi olarak geri yukle!
+		p.max_speed = Global.base_speed
+
+		# Yenileme miktarini orijinal Global/Economy seviyesinden cek
+		var regen_base = 0.0
+		if Global.upgrade_levels.has("regen"):
+			regen_base = Global.upgrade_levels["regen"] * 0.5
+
+		if p.has_node("CombatComponent"):
+			p.get_node("CombatComponent").can_yenileme = regen_base
+
 		p.modulate = Color.WHITE
 		p.linear_damp = 1.0 # Normal friction
 
-		var vignette = get_tree().current_scene.find_child("RedzoneVignette", true, false)
-		if vignette:
-			vignette.queue_free()
+		_cleanup_vignette()
 
-		original_speed = 0.0
+func _cleanup_vignette() -> void:
+	var vignette = get_tree().current_scene.find_child("RedzoneVignette", true, false)
+	if vignette:
+		vignette.queue_free()
 
 func _spawn_redzone_wave(percent: float) -> void:
 	var arena = get_tree().current_scene
@@ -242,3 +271,9 @@ func _spawn_redzone_wave(percent: float) -> void:
 	tw.tween_property(shock, "scale", Vector2(40.0, 40.0), 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tw.tween_property(shock, "modulate:a", 0.0, 0.5)
 	tw.tween_callback(shock.queue_free)
+
+func _on_tree_exiting() -> void:
+	if debuff_active and is_instance_valid(player) and player.has_method("get") and "active_redzone_count" in player:
+		player.active_redzone_count -= 1
+		if player.active_redzone_count < 0: player.active_redzone_count = 0
+		_remove_debuff()
