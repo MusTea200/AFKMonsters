@@ -10,6 +10,8 @@ class_name Player
 var current_health: float
 var _is_hook_held: bool = false
 var active_redzone_count: int = 0
+var last_redzone_count: int = 0
+var redzone_vignette: CanvasLayer = null
 var active_springs: Dictionary = {}
 var current_target_node: Node2D = null
 
@@ -93,6 +95,9 @@ func _ready() -> void:
 		level_up_ui.upgrade_selected.connect(economy_comp.apply_upgrade)
 
 func _physics_process(delta: float) -> void:
+	if active_redzone_count != last_redzone_count:
+		_update_redzone_visuals()
+		last_redzone_count = active_redzone_count
 	if is_stunned:
 		linear_velocity = linear_velocity.move_toward(Vector2.ZERO, 50.0 * delta)
 		if stun_icon:
@@ -463,3 +468,63 @@ func _try_attach_spring_dir(dir: Vector2) -> void:
 
 	if closest_node:
 		_create_spring_joint(closest_node)
+
+func _update_redzone_visuals() -> void:
+	if active_redzone_count == 0:
+		if is_instance_valid(redzone_vignette):
+			redzone_vignette.queue_free()
+			redzone_vignette = null
+		max_speed = Global.base_speed
+
+		var regen_base = 0.0
+		if Global.upgrade_levels.has("regen"):
+			regen_base = Global.upgrade_levels["regen"] * 0.5
+		if has_node("CombatComponent"):
+			get_node("CombatComponent").can_yenileme = regen_base
+
+		modulate = Color.WHITE
+		linear_damp = 1.0
+
+	elif active_redzone_count == 1:
+		max_speed = Global.base_speed * 0.5
+		if has_node("CombatComponent"):
+			get_node("CombatComponent").can_yenileme = 0.0
+		modulate = Color.RED
+		linear_damp = 0.2
+
+		if not is_instance_valid(redzone_vignette):
+			redzone_vignette = CanvasLayer.new()
+			redzone_vignette.name = "CentralRedzoneVignette"
+
+			var vignette_rect = ColorRect.new()
+			vignette_rect.name = "Rect"
+			vignette_rect.color = Color(1.0, 0.0, 0.0, 0.2)
+			vignette_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+			vignette_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			redzone_vignette.add_child(vignette_rect)
+
+			var lbl = Label.new()
+			lbl.name = "WarnLabel"
+			lbl.text = ">> WARNING: OVERHEAT DEBUFF <<"
+			lbl.add_theme_color_override("font_color", Color.RED)
+			lbl.add_theme_font_size_override("font_size", 48)
+			lbl.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+			lbl.position = Vector2(get_viewport_rect().size.x / 2.0 - 400, get_viewport_rect().size.y - 150)
+			redzone_vignette.add_child(lbl)
+
+			get_tree().current_scene.add_child(redzone_vignette)
+		else:
+			# Revert to state 1 from state > 1
+			var r = redzone_vignette.get_node("Rect") as ColorRect
+			var l = redzone_vignette.get_node("WarnLabel") as Label
+			r.color = Color(1.0, 0.0, 0.0, 0.2)
+			l.text = ">> WARNING: OVERHEAT DEBUFF <<"
+			l.add_theme_color_override("font_color", Color.RED)
+
+	elif active_redzone_count >= 2:
+		if is_instance_valid(redzone_vignette):
+			var r = redzone_vignette.get_node("Rect") as ColorRect
+			var l = redzone_vignette.get_node("WarnLabel") as Label
+			r.color = Color(1.0, 0.0, 1.0, 0.3)
+			l.text = ">> MATRIX BONUS: MULTIPLIER X" + str(active_redzone_count) + " <<"
+			l.add_theme_color_override("font_color", Color(1.0, 0.0, 1.0))

@@ -142,3 +142,8 @@ Bu ödül `EconomyComponent.gd` üzerinden `Global.dongu_parcaciklari` bakiyesin
 
 ### Ghost State (Culling) Önlemleri
 - Oyuncu Redzone içindeyken o alanın oyun tarafından silinmesi (Culling) durumunda oyuncunun sayacının kilitli kalmaması için `tree_exiting` sinyali zırhı eklendi. Alan yok olurken zorla sayacı temizleyip debuff'ları kaldırıyor.
+
+### Tek Merkezli (Centralized) Arayüz ve Stat Mimarisi
+- Önceden `Redzone.gd` alanları kendilerine özel `CanvasLayer` yaratıp sahneye atıyordu. Kesişim durumlarında (iki alana birden girilmesi), isim çakışmalarından dolayı `find_child` hataları meydana geliyor ve oyuncu alanlardan çıksa dahi kırmızı "OVERHEAT DEBUFF" yazısı veya Vignette ekranda kalıcı olarak kilitleniyordu (Memory Leak ve UI Freeze).
+- Yeni mimaride alanların arayüz veya stat değiştirme yetkisi ellerinden tamamen alındı. Alanlar yalnızca oyuncuya "Benim içimdesin" manasında `active_redzone_count` değerini +1 ve -1 olarak manipüle etme iznine sahiptir.
+- Bütün görsel ve matematiksel yük `Player.gd` içerisindeki tekil bir `_update_redzone_visuals()` merkezi fonksiyonuna devredildi. Oyuncu bu sayacı dinleyerek, sayacın durumuna göre (0, 1, 2+) kendi statlarını pürüzsüzce kısar veya açar. Bu sayede hiçbir şekilde üst üste binen kopya katmanlar üretilemez ve görsel kilitlenmeler matematiksel olarak engellenir.
