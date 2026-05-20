@@ -688,6 +688,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			var redzones = get_tree().get_nodes_in_group("redzones")
 			for r in redzones:
 				if is_instance_valid(r) and r.player == player_node: # Inside redzone
+					if r.debuff_active and is_instance_valid(player_node) and "active_redzone_count" in player_node:
+						player_node.active_redzone_count -= 1
+						if player_node.active_redzone_count < 0: player_node.active_redzone_count = 0
+					r._remove_debuff()
 					r.capture_time = r.capture_target
 					r.defense_time = 0.0 # Clear defense time immediately so no countdown starts
 					r.healing_time = 0.0 # Skip healing phase to unlock vending machine instantly

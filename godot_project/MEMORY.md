@@ -134,3 +134,11 @@ Bu ödül `EconomyComponent.gd` üzerinden `Global.dongu_parcaciklari` bakiyesin
 - Arayüzdeki sekmeler arası geçişlerin çark animasyonu dönerken hata (veya hedef kayması) yaratmaması adına `locked_grid` isimli bir geçici referans hafızası kuruldu. Oyuncu sekmeyi değiştirse dahi, ödül ilk tıklandığı kategoriden gelecek.
 - Siber "Redzone" alan mekaniklerine üçüncü ve son aşama olan "10 Saniyelik Şifa Hanesi" (`healing_time`) kodlandı. Alan tamamen savunulup renk `00ff004d`ye (Yeşil) döndüğünde, içerdeki oyuncunun tüm debuff'ları arındırılarak saniyede %5 max can (`player.max_health * 0.05 * delta`) pürüzsüzce iyileştiriliyor. 10 saniye sonunda şifa döngüsü bitiyor ve Vending Machine kilidi açılarak renkleri güncelleniyor.
 - "1" hile koduna bu 3. fazı atlama kilidi ve siber Tanrı modu özellikleri başarıyla perçinlendi.
+
+### "Distributed State Overwrite" Çözümü ve Güvenli Stat Yönetimi
+- Daha önceden Redzone alanları, oyuncunun hız ve can yenileme statlarını (`original_speed` vs.) kendi içlerinde saklıyordu. Üst üste binen alanlarda veya hızlı geçişlerde, bir alan diğerinin düşürdüğü bozuk statı "orijinal" sanarak saklıyordu, bu da kalıcı yavaşlama ve stat bozulması buglarına (Race Condition) yol açıyordu.
+- Tüm bu mimari iptal edilerek stat yönetimini oyuncu üzerindeki `active_redzone_count` sayacına endeksleyen **Safe Debuff Stack** yapısına geçildi. Oyuncu bir alana girdiğinde eğer sayacı 1 ise statlar `Global.base_speed` üzerinden yarıya indirilir. Eğer sayaç > 1 ise statlar yeniden bozulmaz, sadece arayüzdeki neon uyarı şiddeti katlanarak uyarır.
+- Temizlik aşamasında da sayaç 0 olmadığı sürece statlar geri yüklenmez. Sayaç sıfıra ulaştığında yerel hafızadan değil, doğrudan Mutlak Orijinal olan `Global.base_speed` ve `Global.upgrade_levels["regen"]` gibi tekil stat kaynaklarından değerler sorunsuzca geri yüklenir.
+
+### Ghost State (Culling) Önlemleri
+- Oyuncu Redzone içindeyken o alanın oyun tarafından silinmesi (Culling) durumunda oyuncunun sayacının kilitli kalmaması için `tree_exiting` sinyali zırhı eklendi. Alan yok olurken zorla sayacı temizleyip debuff'ları kaldırıyor.

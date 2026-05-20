@@ -174,15 +174,12 @@ func _award_item(idx: int) -> void:
 	p.set_meta("level", lvl)
 
 	var l = p.get_child(0) as Label
-	l.text = item_name + "
-Tier " + str(items[cat][item_idx]["tier"]) + "
-Lvl " + str(lvl) + "/20"
+	l.text = item_name + "\nTier " + str(items[cat][item_idx]["tier"]) + "\nLvl " + str(lvl) + "/20"
 
 	# MAX Seviyeye ulastiysa karart
 	if lvl >= 20:
 		p.modulate = Color(0.3, 0.3, 0.3)
-		l.text += "
-(MAXED)"
+		l.text += "\n(MAXED)"
 
 	# Global Pasif Enjeksiyonlari (10. ve 20. seviyelerde)
 	if lvl == 10:
@@ -234,16 +231,13 @@ func _populate_tab(tab_node: Node, category: String) -> void:
 		panel_container.set_meta("level", current_lvl)
 
 		var label = Label.new()
-		label.text = item_name + "
-Tier " + str(item["tier"]) + "
-Lvl " + str(current_lvl) + "/20"
+		label.text = item_name + "\nTier " + str(item["tier"]) + "\nLvl " + str(current_lvl) + "/20"
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		panel_container.add_child(label)
 
 		if current_lvl >= 20:
 			panel_container.modulate = Color(0.3, 0.3, 0.3)
-			label.text += "
-(MAXED)"
+			label.text += "\n(MAXED)"
 
 		grid_container.add_child(panel_container)
