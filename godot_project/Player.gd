@@ -284,7 +284,8 @@ func _update_targeting() -> void:
 		# 1. Eski hedefin büyümesini geri al
 		if is_instance_valid(current_target_node):
 			# Eğer düğümün kendi original_scale değişkeni varsa onu kullan, yoksa 1.0 yap
-			var old_scale = current_target_node.get("original_scale") if current_target_node.has_method("get") and current_target_node.get("original_scale") != null else Vector2.ONE
+			var old_scale = current_target_node.get("original_scale")
+			if old_scale == null: old_scale = Vector2.ONE
 			current_target_node.scale = old_scale
 			current_target_node.modulate.v = 1.0 # Parlaklığı normale döndür
 
@@ -292,6 +293,7 @@ func _update_targeting() -> void:
 
 		# 2. Yeni hedefi büyüt ve parlat
 		if is_instance_valid(current_target_node):
-			var new_scale = current_target_node.get("original_scale") if current_target_node.has_method("get") and current_target_node.get("original_scale") != null else Vector2.ONE
+			var new_scale = current_target_node.get("original_scale")
+			if new_scale == null: new_scale = Vector2.ONE
 			current_target_node.scale = new_scale * 1.3 # %30 büyüt
 			current_target_node.modulate.v = 1.5 # Daha parlak yap (HDR/Glow efekti için)
